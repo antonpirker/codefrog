@@ -19,3 +19,11 @@ def calculate_complexity(root_dir):
             pass
 
     return complexity
+
+
+def calculate_loc(root_dir):
+    """
+    Calculates the total number of lines of code in the given directory.
+    """
+    loc = 0
+    return loc

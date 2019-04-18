@@ -79,3 +79,5 @@ gunicorn.pid
 
 /*.sql
 *.dump
+
+*.sqlite3
