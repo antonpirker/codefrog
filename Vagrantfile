@@ -11,6 +11,7 @@ Vagrant.configure("2") do |config|
 
     # synched folders
     config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    config.vm.synced_folder "/home/anton/data/business/Projects/Formunauts/donut/Code", "/projects", type: "virtualbox"
 
     # provisioning
     config.vm.provision :shell, path: "scripts/vagrant/provision.sh"

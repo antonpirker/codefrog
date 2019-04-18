@@ -1,13 +1,12 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
-from maintainer.githooks.views import merge_request_webhook
 from maintainer.main.views import index
 
 
 urlpatterns = [
     path('', index),
-    path('incoming_merge_request_webhook', merge_request_webhook),
+    path('incoming/', include('maintainer.incomingwebhooks.urls')),
 
     path('admin/', admin.site.urls),
 ]

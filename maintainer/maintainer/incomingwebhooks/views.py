@@ -10,7 +10,7 @@ from git import Repo
 
 
 @csrf_exempt
-def merge_request_webhook(request):
+def gitlab_merge_request(request):
     # receive web hook
     data = json.loads(request.body)
     project_id = data['project']['id']

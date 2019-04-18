@@ -1,7 +1,7 @@
 import subprocess
 
 
-def run_command(cmd, cwd=None):
+def run_shell_command(cmd, cwd=None):
     """
     Runs a shell command and returns the commands output as string.
     """

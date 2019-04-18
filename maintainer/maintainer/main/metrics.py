@@ -11,7 +11,7 @@ def calculate_complexity(root_dir):
     complexity = 0
 
     for filename in glob.iglob(root_dir + '**/**', recursive=True):
-        try: 
+        try:
             with open(os.path.join(filename), 'r') as src:
                 for line in src.readlines():
                     complexity += len(line) - len(line.lstrip())

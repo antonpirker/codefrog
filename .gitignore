@@ -57,6 +57,7 @@ pip-delete-this-directory.txt
 /private/
 /tmp/
 /log/
+/data/
 
 /static_collect/
 
