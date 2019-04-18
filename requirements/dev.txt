@@ -1,0 +1,7 @@
+Django==2.1.3
+
+requests==2.20.1
+
+lizard==1.15.6
+
+GitPython==2.1.11
