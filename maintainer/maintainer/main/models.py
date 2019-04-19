@@ -4,6 +4,7 @@ class Metric(models.Model):
     project_slug = models.CharField(max_length=30)
     git_reference = models.CharField(max_length=30)
     date = models.DateField()
+
     complexity = models.IntegerField(null=True)
     loc = models.IntegerField(null=True)
     jira_bug_issues = models.IntegerField(null=True)
@@ -12,7 +13,7 @@ class Metric(models.Model):
 
     @property
     def complexity_per_loc(self):
-        return self.complexity/self.loc
+        return self.complexity / self.loc
 
     class Meta:
         unique_together = (

@@ -17,6 +17,9 @@ PROJECTS = (
         'slug': 'backend',
         'name': 'donut-backend',
         'source_dir': '/projects/donation/server/django-donut',
+        'gitlab_personal_access_token': 'CbCvxtYU-M-U1Pdsyemn',
+        'gitlab_group': 'die-gmbh',
+        'gitlab_project': 'donation',
     },
 #    {
 #        'slug': 'frontend',
@@ -48,6 +51,18 @@ def index(request):
     return HttpResponse(rendered)
 
 
+def update_issues(request):
+    for project in PROJECTS:
+        for metric in Metric.objects.all():
+            date = metric.date.strftime('%Y-%m-%d')
+            gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
+            metric.gitlab_bug_issues = gitlab_bug_issues
+            metric.save()
+            print('.')
+
+    return HttpResponse('Finished!')
+
+
 def update(request):
     for project in PROJECTS:
         # checkout desired branch
@@ -77,6 +92,10 @@ def update(request):
             complexity = metrics.complexity(project['source_dir'])
             loc = metrics.loc(project['source_dir'])
 
+            gitlab_bug_issues = metrics.gitlab_bug_issues(project, version_date)
+            jira_bug_issues = metrics.jira_bug_issues(project, version_date)
+            sentry_errors = metrics.sentry_errors(project, version_date)
+
             # save the metric to db
             metric, created = Metric.objects.get_or_create(
                 project_slug=project['slug'],
@@ -84,6 +103,9 @@ def update(request):
                 date=version_date,
                 complexity=complexity,
                 loc=loc,
+                gitlab_bug_issues=gitlab_bug_issues,
+                jira_bug_issues=jira_bug_issues,
+                sentry_errors=sentry_errors,
             )
 
             # clean up so the next hash can be checked out

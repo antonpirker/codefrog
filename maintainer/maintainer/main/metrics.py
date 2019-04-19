@@ -1,5 +1,11 @@
 import glob
 import os
+import urllib
+import requests
+import json
+
+from dateutil import parser
+import pytz
 
 from maintainer.main.utils import run_shell_command
 
@@ -32,3 +38,62 @@ def loc(root_dir):
     output = run_shell_command(cmd)
 
     return int(output or 0)
+
+
+def jira_bug_issues(project, date):
+    return None
+
+
+def gitlab_bug_issues(project, date):
+    return None
+
+
+def gitlab_bug_issues(project, date):
+    """
+    Returns the number of open issues with label "bug" in Gitlab Issue tracker
+    """
+    headers = {
+        'Private-Token': project['gitlab_personal_access_token'],
+    }
+
+    # get the Gitlab group ID
+    group_id = 20359
+    if not group_id:
+        url = 'https://gitlab.com/api/v4/groups?search={}'.format(project['gitlab_group'])
+        r = requests.get(url, headers=headers)
+        content = json.loads(r.content)
+        group_id = content[0]['id']
+
+    # get the Gitlab project ID
+    project_id = 28745
+    if not project_id:
+        url = 'https://gitlab.com/api/v4/groups/{}/projects?search={}'.format(
+            group_id, project['gitlab_project']
+        )
+        r = requests.get(url, headers=headers)
+        content = json.loads(r.content)
+        project_id = content[0]['id']
+
+    # get all issues for the day
+    params = {
+        'scope': 'all',
+        'created_before': date,
+        'labels': 'bug',
+    }
+    url = 'https://gitlab.com/api/v4/projects/{}/issues?{}'.format(
+        project_id, urllib.parse.urlencode(params)
+    )
+    r = requests.get(url, headers=headers)
+    content = json.loads(r.content)
+
+    current_date = pytz.utc.localize(parser.parse(date))
+    num_issues = 0
+    for issue in content:
+        created_at = parser.parse(issue['created_at'])
+        closed_at = parser.parse(issue['closed_at']) if issue['closed_at'] else None
+
+        if created_at <= current_date and \
+            (closed_at == None or closed_at > current_date):
+            num_issues += 1
+
+    return num_issues

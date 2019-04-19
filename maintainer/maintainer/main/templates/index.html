@@ -14,7 +14,7 @@
                         moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
                     {% endfor %}
                 ],
-                datasets: [{
+                datasets: [/*{
                     fill: false,
                     label: 'Complexity',
                     data: [
@@ -38,9 +38,9 @@
                     backgroundColor: '#FFF236',
                     lineTension: 0,
                     yAxisID: "y-axis-1",
-                },{
+                },*/{
                     fill: false,
-                    label: 'Complexity/Loc',
+                    label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.complexity_per_loc }}{% if not forloop.last %},{% endif %}
@@ -50,6 +50,18 @@
                     backgroundColor: '#FF3643',
                     lineTension: 0,
                     yAxisID: "y-axis-2",
+                },{
+                    fill: false,
+                    label: 'Gitlab Issues',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.gitlab_bug_issues }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#36FFF2',
+                    backgroundColor: '#36FFF2',
+                    lineTension: 0,
+                    yAxisID: "y-axis-3",
                 }]
             }
 
@@ -77,7 +89,7 @@
                                 labelString: "Date",
                             }
                         }],
-                        yAxes: [{
+                        yAxes: [/*{
                             "id": "y-axis-0",
                             scaleLabel: {
                                 display: false,
@@ -89,11 +101,17 @@
                                 display: false,
                                 labelString: 'Y-Axis-1'
                             }
-                        },{
+                        },*/{
                             "id": "y-axis-2",
                             scaleLabel: {
                                 display: false,
                                 labelString: 'Y-Axis-2'
+                            }
+                        },{
+                            "id": "y-axis-3",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-3'
                             }
                         }]
                     },
