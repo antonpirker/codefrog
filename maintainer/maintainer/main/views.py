@@ -47,6 +47,7 @@ def index(request):
     rendered = render_to_string('index.html', context=context)
     return HttpResponse(rendered)
 
+
 def update(request):
     for project in PROJECTS:
         # checkout desired branch

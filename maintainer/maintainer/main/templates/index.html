@@ -25,6 +25,7 @@
                     borderColor: '#fe8b36',
                     backgroundColor: '#fe8b36',
                     lineTension: 0,
+                    yAxisID: "y-axis-0",
                 },{
                     fill: false,
                     label: 'Lines of code (loc)',
@@ -36,6 +37,7 @@
                     borderColor: '#FFF236',
                     backgroundColor: '#FFF236',
                     lineTension: 0,
+                    yAxisID: "y-axis-1",
                 },{
                     fill: false,
                     label: 'Complexity/Loc',
@@ -47,6 +49,7 @@
                     borderColor: '#FF3643',
                     backgroundColor: '#FF3643',
                     lineTension: 0,
+                    yAxisID: "y-axis-2",
                 }]
             }
 
@@ -75,9 +78,22 @@
                             }
                         }],
                         yAxes: [{
+                            "id": "y-axis-0",
                             scaleLabel: {
                                 display: false,
-                                labelString: 'Complexity'
+                                labelString: 'Y-Axis-0'
+                            }
+                        },{
+                            "id": "y-axis-1",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-1'
+                            }
+                        },{
+                            "id": "y-axis-2",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-2'
                             }
                         }]
                     },
