@@ -9,6 +9,9 @@ class Metric(models.Model):
     jira_bug_issues = models.IntegerField(default=-1)
     gitlab_bug_issues = models.IntegerField(default=-1)
 
+    @property
+    def complexity_per_loc(self):
+        return self.complexity/self.loc
 
     class Meta:
         unique_together = (

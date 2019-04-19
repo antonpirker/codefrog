@@ -19,14 +19,37 @@
                     label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.metric }}{% if not forloop.last %},{% endif %}
+                            {{ metric.complexity }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: '#fe8b36',
                     backgroundColor: '#fe8b36',
                     lineTension: 0,
+                },{
+                    fill: false,
+                    label: 'Lines of code (loc)',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.loc }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#FFF236',
+                    backgroundColor: '#FFF236',
+                    lineTension: 0,
+                },{
+                    fill: false,
+                    label: 'Complexity/Loc',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.complexity_per_loc }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#FF3643',
+                    backgroundColor: '#FF3643',
+                    lineTension: 0,
                 }]
             }
+
             const options = {
                 type: 'line',
                 data: data,
