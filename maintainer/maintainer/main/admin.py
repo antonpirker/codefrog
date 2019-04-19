@@ -5,7 +5,7 @@ from maintainer.main.models import Metric
 
 class MetricAdmin(admin.ModelAdmin):
     list_display = (
-        'project_slug', 'git_reference', 'date', 'metric',
+        'project_slug', 'git_reference', 'date', 'complexity', 'loc',
     )
     ordering = ['project_slug', '-date', ]
 

@@ -4,7 +4,11 @@ class Metric(models.Model):
     project_slug = models.CharField(max_length=30)
     git_reference = models.CharField(max_length=30)
     date = models.DateField()
-    metric = models.IntegerField()
+    complexity = models.IntegerField(default=-1)
+    loc = models.IntegerField(default=-1)
+    jira_bug_issues = models.IntegerField(default=-1)
+    gitlab_bug_issues = models.IntegerField(default=-1)
+
 
     class Meta:
         unique_together = (

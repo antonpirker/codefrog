@@ -11,11 +11,17 @@ apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     gettext \
-    git \
     shared-mime-info \
     vim \
     wget \
     rsync
+
+
+echo "Install tools for code analysis..."
+
+apt-get install -y --no-install-recommends \
+    git \
+    cloc
 
 
 echo "Install prerequisites for pyenv..."

@@ -1,8 +1,9 @@
 import glob
 import os
 
+from maintainer.main.utils import run_shell_command
 
-def calculate_complexity(root_dir):
+def complexity(root_dir):
     """
     Calculates the total complexity of the source code in a given directory.
 
@@ -20,9 +21,14 @@ def calculate_complexity(root_dir):
     return complexity
 
 
-def calculate_loc(root_dir):
+def loc(root_dir):
     """
     Calculates the total number of lines of code in the given directory.
     """
     loc = 0
-    return loc
+
+    cmd = 'cloc {} -q -csv 2> /dev/null | tail -n +3 | ' \
+          'cut --delimiter=, --fields=5 | paste -sd+ - | bc'.format(root_dir)
+    output = run_shell_command(cmd)
+
+    return int(output)

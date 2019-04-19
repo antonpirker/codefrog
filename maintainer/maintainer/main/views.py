@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 
 from maintainer.main.utils import run_shell_command
-from maintainer.main.metrics import calculate_complexity
+from maintainer.main import metrics
 from maintainer.main.models import Metric
 
 GIT_BRANCH = 'master'
@@ -32,7 +32,6 @@ def index(request):
     """
     Displays one project.
     """
-    
     DONUT_BACKEND = 0
     project = PROJECTS[DONUT_BACKEND]
 
@@ -49,9 +48,6 @@ def index(request):
     return HttpResponse(rendered)
 
 def update(request):
-
-    Metric.objects.all().delete()
-
     for project in PROJECTS:
         # checkout desired branch
         cmd = 'git checkout -q {}'.format(GIT_BRANCH)
@@ -77,14 +73,16 @@ def update(request):
             run_shell_command(cmd, cwd=project['source_dir'])
 
             # calculate metric of the checked out version
-            complexity = calculate_complexity(project['source_dir'])
+            complexity = metrics.complexity(project['source_dir'])
+            loc = metrics.loc(project['source_dir'])
 
             # save the metric to db
             metric, created = Metric.objects.get_or_create(
                 project_slug=project['slug'],
                 git_reference=version_name,
                 date=version_date,
-                metric=complexity,
+                complexity=complexity,
+                loc=loc,
             )
 
             # clean up so the next hash can be checked out
