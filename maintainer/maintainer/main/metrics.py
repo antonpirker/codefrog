@@ -9,10 +9,9 @@ def calculate_complexity(root_dir):
     The complexity is measured by the sum of heading white space on all lines of code.
     """
     complexity = 0
-
-    for filename in glob.iglob(root_dir + '**/**', recursive=True):
+    for filename in glob.iglob(os.path.join(root_dir, '**/**'), recursive=True):
         try:
-            with open(os.path.join(filename), 'r') as src:
+            with open(filename, 'r') as src:
                 for line in src.readlines():
                     complexity += len(line) - len(line.lstrip())
         except (IsADirectoryError, UnicodeDecodeError, FileNotFoundError):

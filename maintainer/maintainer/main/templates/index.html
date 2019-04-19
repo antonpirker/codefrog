@@ -1,1 +1,86 @@
-Hello World! This will become the maintainer!
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script type="text/javascript">
+        window.onload = function () {
+            // CHART JS
+            var timeFormat = 'MM/DD/YYYY HH:mm';
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const data = {
+                // Labels should be Date objects
+                labels: [
+                    {% for metric in metrics %}
+                        moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                datasets: [{
+                    fill: false,
+                    label: 'Complexity',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.metric }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: '#fe8b36',
+                    backgroundColor: '#fe8b36',
+                    lineTension: 0,
+                }]
+            }
+            const options = {
+                type: 'line',
+                data: data,
+                options: {
+                    fill: false,
+                    responsive: true,
+                    scales: {
+                        xAxes: [{
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DD HH:mm:ss',
+                                displayFormats: {
+                                    day: 'LL',
+                                    week: 'ww/YYYY',
+                                    month: 'MMM YYYY',
+                                    quarter: 'Q YYYY',
+                                    year: 'YYYY'
+                                },
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Date",
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Complexity'
+                            }
+                        }]
+                    },
+                    plugins: {
+                        zoom: {
+                            zoom: {
+                                enabled: true,
+                                drag: true,
+                                mode: 'x',
+                                speed: 0.1,
+                            }
+                        }
+                    }
+                }
+            }
+            const chart = new Chart(ctx, options);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
+</head>
+
+<body>
+    <h1>Project: {{ project.name }}</h1>
+    <canvas id="myChart"></canvas>
+</body>
+</html>

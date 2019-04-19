@@ -15,6 +15,7 @@ OUT_DIR = os.path.join(settings.BASE_DIR, os.path.pardir, 'data')
 PROJECTS = (
     {
         'slug': 'backend',
+        'name': 'donut-backend',
         'source_dir': '/projects/donation/server/django-donut',
     },
 #    {
@@ -27,24 +28,46 @@ PROJECTS = (
 #    },
 )
 
-
 def index(request):
+    """
+    Displays one project.
+    """
+    
+    DONUT_BACKEND = 0
+    project = PROJECTS[DONUT_BACKEND]
+
+    metrics = Metric.objects.filter(
+        project_slug=project['slug'],
+    ).order_by('date')
+
+    context = {
+        'metrics': metrics,
+        'project': project,
+    }
+
+    rendered = render_to_string('index.html', context=context)
+    return HttpResponse(rendered)
+
+def update(request):
+
+    Metric.objects.all().delete()
+
     for project in PROJECTS:
         # checkout desired branch
         cmd = 'git checkout -q {}'.format(GIT_BRANCH)
         run_shell_command(cmd, cwd=project['source_dir'])
 
+        # remove compiled files.
+        cmd = 'find . -name "*.pyc" -delete'
+        run_shell_command(cmd, cwd=project['source_dir'])
+
         # list all tags in the repo
-        cmd = 'git tag'
-        versions = run_shell_command(cmd, cwd=project['source_dir']).split()
+        cmd = 'git log --no-walk --tags --pretty="%H;%ad;%D" --date=iso'
+        versions = run_shell_command(cmd, cwd=project['source_dir']).split('\n')
 
         for version in versions:
             # extract tag name, hash and date
-            cmd = 'git show {} ' \
-                  '--no-patch --no-notes --no-standard-notes ' \
-                  '--pretty="%H;%ad;%D" --date=iso | grep  "tag:"'.format(version)
-
-            version_detail = run_shell_command(cmd, cwd=project['source_dir']).split(';')
+            version_detail = version.split(';')
             version_hash = version_detail[0]
             version_date = version_detail[1].split()[0]
             version_name = version_detail[2].replace('\n', '').split()[-1]
@@ -58,7 +81,7 @@ def index(request):
 
             # save the metric to db
             metric, created = Metric.objects.get_or_create(
-                projet_slug=project['slug'],
+                project_slug=project['slug'],
                 git_reference=version_name,
                 date=version_date,
                 metric=complexity,
@@ -70,11 +93,7 @@ def index(request):
 
             cmd = 'git clean -q -fd'
             run_shell_command(cmd, cwd=project['source_dir'])
-
+            
             print('.')
 
-        print('Finished {}!'.format(project['slug']))
-
-
-    rendered = render_to_string('index.html')
-    return HttpResponse(rendered)
+    return HttpResponse('Finished!')
