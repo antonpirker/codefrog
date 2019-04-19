@@ -31,4 +31,4 @@ def loc(root_dir):
           'cut --delimiter=, --fields=5 | paste -sd+ - | bc'.format(root_dir)
     output = run_shell_command(cmd)
 
-    return int(output)
+    return int(output or 0)

@@ -4,10 +4,11 @@ class Metric(models.Model):
     project_slug = models.CharField(max_length=30)
     git_reference = models.CharField(max_length=30)
     date = models.DateField()
-    complexity = models.IntegerField(default=-1)
-    loc = models.IntegerField(default=-1)
-    jira_bug_issues = models.IntegerField(default=-1)
-    gitlab_bug_issues = models.IntegerField(default=-1)
+    complexity = models.IntegerField(null=True)
+    loc = models.IntegerField(null=True)
+    jira_bug_issues = models.IntegerField(null=True)
+    gitlab_bug_issues = models.IntegerField(null=True)
+    sentry_errors = models.IntegerField(null=True)
 
     @property
     def complexity_per_loc(self):
