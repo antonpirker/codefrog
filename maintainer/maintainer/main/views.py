@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 
 from maintainer.main.utils import run_shell_command
 from maintainer.main import metrics
-from maintainer.main.models import Metric
+from maintainer.main.models import CodeMetric, ExternalMetric
 
 GIT_BRANCH = 'master'
 OUT_DIR = os.path.join(settings.BASE_DIR, os.path.pardir, 'data')
@@ -43,7 +43,7 @@ def index(request):
     DONUT_BACKEND = 0
     project = PROJECTS[DONUT_BACKEND]
 
-    metrics = Metric.objects.filter(
+    metrics = CodeMetric.objects.filter(
         project_slug=project['slug'],
     ).order_by('date')
 
@@ -58,7 +58,7 @@ def index(request):
 
 def update_issues(request):
     for project in PROJECTS:
-        for metric in Metric.objects.all():
+        for metric in ExternalMetric.objects.all().order_by('-date'):
             date = metric.date.strftime('%Y-%m-%d')
             gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
             metric.gitlab_bug_issues = gitlab_bug_issues
@@ -70,13 +70,13 @@ def update_issues(request):
 
 def update_errors(request):
     for project in PROJECTS:
-        errors_by_date = metrics.sentry_errors(project)
-
-        for metric in Metric.objects.all():
-            date_string = metric.date.strftime('%Y-%m-%d')
-            metric.sentry_errors = errors_by_date[date_string] \
-                if date_string in errors_by_date else None
-            metric.save()
+        for errors_per_day in metrics.sentry_errors(project):
+            for date_string in errors_per_day.keys():
+                ExternalMetric.objects.update_or_create(
+                    project_slug=project['slug'],
+                    date=date_string,
+                    defaults={'sentry_errors': errors_per_day[date_string]},
+                )
 
     return HttpResponse('Finished!')
 

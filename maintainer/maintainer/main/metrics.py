@@ -119,10 +119,10 @@ def sentry_errors(project):
                 date_created = parser.parse(event['dateCreated'])
                 errors_by_date[date_created.strftime('%Y-%m-%d')] += 1
 
+        yield errors_by_date
+
         next_link_info = r.headers['link'].split(',')[1].split(';')
         if next_link_info[2].strip() == 'results="true"':
             url = next_link_info[0].strip()[1:-1]
         else:
             url = None
-
-    return errors_by_date
