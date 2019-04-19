@@ -60,7 +60,7 @@ def update_issues(request):
     for project in PROJECTS:
         for metric in Metric.objects.all():
             date = metric.date.strftime('%Y-%m-%d')
-            gitlab_bug_issues = metrics.sentry_errors(project, date)
+            gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
             metric.gitlab_bug_issues = gitlab_bug_issues
             metric.save()
             print('.')

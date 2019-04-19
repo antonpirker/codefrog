@@ -108,6 +108,7 @@ def sentry_errors(project):
         project['sentry_organization_slug'], project['sentry_project_slug']
     )
 
+    # TODO: may change to a generator to yieal the resulsts after each page.
     while url:
         r = requests.get(url, headers=headers)
         content = json.loads(r.content)
