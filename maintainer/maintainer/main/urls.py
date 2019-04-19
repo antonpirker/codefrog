@@ -1,9 +1,10 @@
 from django.urls import path
 
-from maintainer.main.views import index, update, update_issues
+from maintainer.main import views
 
 urlpatterns = [
-    path('', index),
-    path('update', update),
-    path('update_issues', update_issues),
+    path('', views.index),
+    path('update', views.update),
+    path('update_issues', views.update_issues),
+    path('update_errors', views.update_errors),
 ]

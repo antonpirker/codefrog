@@ -2,6 +2,9 @@
 <html>
 <head>
     <script type="text/javascript">
+
+        colors = ['#F20530', '#033E8C', '#04BFAD', '#F2AE2E', '#025159'];
+
         window.onload = function () {
             // CHART JS
             var timeFormat = 'MM/DD/YYYY HH:mm';
@@ -43,11 +46,11 @@
                     label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.complexity_per_loc }}{% if not forloop.last %},{% endif %}
+                            {{ metric.complexity_per_loc|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
-                    borderColor: '#FF3643',
-                    backgroundColor: '#FF3643',
+                    borderColor: colors[0],
+                    backgroundColor: colors[0],
                     lineTension: 0,
                     yAxisID: "y-axis-2",
                 },{
@@ -55,13 +58,25 @@
                     label: 'Gitlab Issues',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.gitlab_bug_issues }}{% if not forloop.last %},{% endif %}
+                            {{ metric.gitlab_bug_issues|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
-                    borderColor: '#36FFF2',
-                    backgroundColor: '#36FFF2',
+                    borderColor: colors[1],
+                    backgroundColor: colors[1],
                     lineTension: 0,
                     yAxisID: "y-axis-3",
+                },{
+                    fill: false,
+                    label: 'Sentry Errors',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.sentry_errors|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: colors[2],
+                    backgroundColor: colors[2],
+                    lineTension: 0,
+                    yAxisID: "y-axis-4",
                 }]
             }
 
@@ -112,6 +127,12 @@
                             scaleLabel: {
                                 display: false,
                                 labelString: 'Y-Axis-3'
+                            }
+                        },{
+                            "id": "y-axis-4",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-4'
                             }
                         }]
                     },

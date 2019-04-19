@@ -1,6 +1,8 @@
 import glob
 import os
 import urllib
+from collections import defaultdict
+
 import requests
 import json
 
@@ -41,10 +43,6 @@ def loc(root_dir):
 
 
 def jira_bug_issues(project, date):
-    return None
-
-
-def gitlab_bug_issues(project, date):
     return None
 
 
@@ -97,3 +95,33 @@ def gitlab_bug_issues(project, date):
             num_issues += 1
 
     return num_issues
+
+
+def sentry_errors(project):
+    errors_by_date = defaultdict(int)
+
+    headers = {
+        'Authorization': 'Bearer %s' % project['sentry_auth_token'],
+    }
+
+    url = 'https://sentry.io/api/0/projects/{}/{}/events/'.format(
+        project['sentry_organization_slug'], project['sentry_project_slug']
+    )
+
+    while url:
+        r = requests.get(url, headers=headers)
+        content = json.loads(r.content)
+
+        for event in content:
+            if event['type'] == 'error':
+                print('.')
+                date_created = parser.parse(event['dateCreated'])
+                errors_by_date[date_created.strftime('%Y-%m-%d')] += 1
+
+        next_link_info = r.headers['link'].split(',')[1].split(';')
+        if next_link_info[2].strip() == 'results="true"':
+            url = next_link_info[0].strip()[1:-1]
+        else:
+            url = None
+
+    return errors_by_date

@@ -17,9 +17,14 @@ PROJECTS = (
         'slug': 'backend',
         'name': 'donut-backend',
         'source_dir': '/projects/donation/server/django-donut',
+
         'gitlab_personal_access_token': 'CbCvxtYU-M-U1Pdsyemn',
         'gitlab_group': 'die-gmbh',
         'gitlab_project': 'donation',
+
+        'sentry_auth_token': 'a1f913abcb794e709b8ad8a82b1966e51d10df638b8c4fcc9fd165b25ddaa537',
+        'sentry_organization_slug': 'formunauts-gmbh',
+        'sentry_project_slug': 'backend-live',
     },
 #    {
 #        'slug': 'frontend',
@@ -55,10 +60,23 @@ def update_issues(request):
     for project in PROJECTS:
         for metric in Metric.objects.all():
             date = metric.date.strftime('%Y-%m-%d')
-            gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
+            gitlab_bug_issues = metrics.sentry_errors(project, date)
             metric.gitlab_bug_issues = gitlab_bug_issues
             metric.save()
             print('.')
+
+    return HttpResponse('Finished!')
+
+
+def update_errors(request):
+    for project in PROJECTS:
+        errors_by_date = metrics.sentry_errors(project)
+
+        for metric in Metric.objects.all():
+            date_string = metric.date.strftime('%Y-%m-%d')
+            metric.sentry_errors = errors_by_date[date_string] \
+                if date_string in errors_by_date else None
+            metric.save()
 
     return HttpResponse('Finished!')
 
