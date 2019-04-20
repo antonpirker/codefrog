@@ -2,15 +2,13 @@
 import os
 from datetime import timedelta
 
-import numpy as np
-import pandas as pd
 from dateutil import parser
 from django.conf import settings
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from maintainer.main import metrics
 from maintainer.main.models import Metric
-from maintainer.main.utils import run_shell_command
+from maintainer.main.utils import run_shell_command, resample
 
 GIT_BRANCH = 'master'
 OUT_DIR = os.path.join(settings.BASE_DIR, os.path.pardir, 'data')
@@ -47,25 +45,17 @@ def index(request):
     project = PROJECTS[DONUT_BACKEND]
 
     metrics = Metric.objects.filter(
-        project_slug=project['slug'],
-    ).order_by('date').values('date', 'complexity', 'sentry_errors', 'gitlab_bug_issues')
-
-    # resample the data to a weekly format
-    df = pd.DataFrame.from_records(metrics)
-    df['date'] = pd.to_datetime(df['date'])
-    df = df.set_index('date')
-    df = df.resample('W').agg({
-        'complexity': 'last',  # take the last complexity in the week
-        'sentry_errors': np.sum,  # sum sentry errors per week
-        'gitlab_bug_issues': 'last',  # the number of open issues at the end of the week
-    })
-    df['date'] = df.index
-    df = df.fillna(0)
-    metrics = df.to_dict('records')
+        project_slug=project['slug'],)\
+    .order_by('date').values(
+            'date',
+            'metrics__complexity',
+            'metrics__sentry_errors',
+            'metrics__gitlab_bug_issues',
+    )
 
     context = {
         'project': project,
-        'metrics': metrics,
+        'metrics': resample(metrics, 'W'),
     }
 
     rendered = render_to_string('index.html', context=context)
