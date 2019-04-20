@@ -44,20 +44,13 @@ def index(request):
     DONUT_BACKEND = 0
     project = PROJECTS[DONUT_BACKEND]
 
-    # TODO merge the two queries into one.
-    code_metrics = Metric.objects.filter(
+    metrics = Metric.objects.filter(
         project_slug=project['slug'],
-    ).order_by('date')
-
-    external_metrics = Metric.objects.filter(
-        project_slug=project['slug'],
-        date__in=Metric.objects.all().values('date').distinct(),
     ).order_by('date')
 
     context = {
-        'code_metrics': code_metrics,
-        'external_metrics': external_metrics,
         'project': project,
+        'metrics': metrics,
     }
 
     rendered = render_to_string('index.html', context=context)
@@ -70,6 +63,13 @@ def update_issues(request):
             date = metric.date.strftime('%Y-%m-%d')
             gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
             metric.gitlab_bug_issues = gitlab_bug_issues
+
+            metric_json = metric.metrics
+            if not metric_json:
+                metric_json = {}
+            metric_json['gitlab_bug_issues'] = gitlab_bug_issues
+            metric.metrics = metric_json
+
             metric.save()
             print('.')
 
@@ -80,13 +80,20 @@ def update_errors(request):
     for project in PROJECTS:
         for errors_per_day in metrics.sentry_errors(project):
             for date_string in errors_per_day.keys():
-                Metric.objects.update_or_create(
+                metric, _ = Metric.objects.get_or_create(
                     project_slug=project['slug'],
                     date=date_string,
-                    defaults={
-                        'sentry_errors': errors_per_day[date_string],
-                    },
                 )
+
+                metric.sentry_errors = errors_per_day[date_string]
+
+                metric_json = metric.metrics
+                if not metric_json:
+                    metric_json = {}
+                metric_json['sentry_errors'] = errors_per_day[date_string]
+                metric.metrics = metric_json
+
+                metric.save()
 
     return HttpResponse('Finished!')
 
@@ -120,7 +127,7 @@ def update(request):
             )
             output = run_shell_command(cmd, cwd=project['source_dir'])
             if output:
-                last_commit_of_day = run_shell_command(cmd, cwd=project['source_dir']).split(';')[1]
+                last_commit_of_day = run_shell_command(cmd, cwd=project['source_dir']).split(';')[1].strip()
             else:
                 last_commit_of_day = None
 
@@ -142,6 +149,11 @@ def update(request):
                         'git_reference': last_commit_of_day,
                         'complexity': complexity,
                         'loc': loc,
+                        'metrics': {
+                            'git_reference': last_commit_of_day,
+                            'complexity': complexity,
+                            'loc': loc,
+                        }
                     },
                 )
 
@@ -152,4 +164,5 @@ def update(request):
                 cmd = 'git clean -q -fd'
                 run_shell_command(cmd, cwd=project['source_dir'])
 
-    return HttpResponse('Finished!')
+    return update_errors(request)
+    #return HttpResponse('Finished!')

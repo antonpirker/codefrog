@@ -1,10 +1,11 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
+
 class Metric(models.Model):
-    project_slug = models.CharField(max_length=30)
+    project_slug = models.CharField(max_length=40)
     date = models.DateField()
-    git_reference = models.CharField(max_length=30, null=True)
+    git_reference = models.CharField(max_length=40, null=True)
 
     complexity = models.IntegerField(null=True)
     loc = models.IntegerField(null=True)
@@ -17,7 +18,7 @@ class Metric(models.Model):
 
     @property
     def complexity_per_loc(self):
-        return self.complexity / (self.loc or 1)
+        return (self.complexity or 0) / (self.loc or 1)
 
     class Meta:
         unique_together = (
