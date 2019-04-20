@@ -2,6 +2,8 @@
 import os
 from datetime import timedelta
 
+import numpy as np
+import pandas as pd
 from dateutil import parser
 from django.conf import settings
 from django.http import HttpResponse
@@ -19,7 +21,7 @@ PROJECTS = (
         'name': 'donut-backend',
         'source_dir': '/projects/donation/server/django-donut',
 
-        'gitlab_personal_access_token': 'CbCvxtYU-M-U1Pdsyemn',
+        'gitlab_personal_access_token': 'iqZyDH1t7BtjiQHsRssa',
         'gitlab_group': 'die-gmbh',
         'gitlab_project': 'donation',
 
@@ -46,7 +48,20 @@ def index(request):
 
     metrics = Metric.objects.filter(
         project_slug=project['slug'],
-    ).order_by('date')
+    ).order_by('date').values('date', 'complexity', 'sentry_errors', 'gitlab_bug_issues')
+
+    # resample the data to a weekly format
+    df = pd.DataFrame.from_records(metrics)
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.set_index('date')
+    df = df.resample('W').agg({
+        'complexity': 'last',  # take the last complexity in the week
+        'sentry_errors': np.sum,  # sum sentry errors per week
+        'gitlab_bug_issues': 'last',  # the number of open issues at the end of the week
+    })
+    df['date'] = df.index
+    df = df.fillna(0)
+    metrics = df.to_dict('records')
 
     context = {
         'project': project,
@@ -139,8 +154,9 @@ def update(request):
 
                 # calculate metric of the checked out version
                 complexity = metrics.complexity(project['source_dir'])
-                loc = metrics.loc(project['source_dir'])
+                #loc = metrics.loc(project['source_dir'])
 
+                print(' - %s' % complexity)
                 # save the metric to db
                 Metric.objects.update_or_create(
                     project_slug=project['slug'],
@@ -148,11 +164,11 @@ def update(request):
                     defaults={
                         'git_reference': last_commit_of_day,
                         'complexity': complexity,
-                        'loc': loc,
+#                        'loc': loc,
                         'metrics': {
                             'git_reference': last_commit_of_day,
                             'complexity': complexity,
-                            'loc': loc,
+#                            'loc': loc,
                         }
                     },
                 )
@@ -164,5 +180,4 @@ def update(request):
                 cmd = 'git clean -q -fd'
                 run_shell_command(cmd, cwd=project['source_dir'])
 
-    return update_errors(request)
-    #return HttpResponse('Finished!')
+    return HttpResponse('Finished!')

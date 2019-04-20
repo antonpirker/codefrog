@@ -2,7 +2,11 @@ Django==2.2
 requests==2.20.1
 lizard==1.15.6
 GitPython==2.1.11
+pandas==0.24.2
+numpy==1.16.2
 python-dateutil==2.8.0
 pytz==2019.1
+psycopg2==2.8.2
+python-dateutil==2.8.0
 
 ipdb

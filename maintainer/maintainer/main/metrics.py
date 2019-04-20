@@ -82,10 +82,14 @@ def gitlab_bug_issues(project, date):
         project_id, urllib.parse.urlencode(params)
     )
     r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        raise Exception(r.content)
+
     content = json.loads(r.content)
 
     current_date = pytz.utc.localize(parser.parse(date))
     num_issues = 0
+
     for issue in content:
         created_at = parser.parse(issue['created_at'])
         closed_at = parser.parse(issue['closed_at']) if issue['closed_at'] else None
@@ -108,7 +112,6 @@ def sentry_errors(project):
         project['sentry_organization_slug'], project['sentry_project_slug']
     )
 
-    # TODO: may change to a generator to yieal the resulsts after each page.
     while url:
         r = requests.get(url, headers=headers)
         content = json.loads(r.content)

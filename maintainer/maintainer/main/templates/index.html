@@ -17,42 +17,18 @@
                         moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
                     {% endfor %}
                 ],
-                datasets: [/*{
+                datasets: [{
                     fill: false,
                     label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.complexity }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    borderColor: '#fe8b36',
-                    backgroundColor: '#fe8b36',
-                    lineTension: 0,
-                    yAxisID: "y-axis-0",
-                },{
-                    fill: false,
-                    label: 'Lines of code (loc)',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.loc }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    borderColor: '#FFF236',
-                    backgroundColor: '#FFF236',
-                    lineTension: 0,
-                    yAxisID: "y-axis-1",
-                },*/{
-                    fill: false,
-                    label: 'Complexity',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.complexity_per_loc|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[0],
                     backgroundColor: colors[0],
                     lineTension: 0,
-                    yAxisID: "y-axis-2",
+                    yAxisID: "y-axis-0",
                 },{
                     fill: false,
                     label: 'Gitlab Issues',
@@ -64,7 +40,7 @@
                     borderColor: colors[1],
                     backgroundColor: colors[1],
                     lineTension: 0,
-                    yAxisID: "y-axis-3",
+                    yAxisID: "y-axis-1",
                 },{
                     fill: false,
                     label: 'Sentry Errors',
@@ -76,7 +52,7 @@
                     borderColor: colors[2],
                     backgroundColor: colors[2],
                     lineTension: 0,
-                    yAxisID: "y-axis-4",
+                    yAxisID: "y-axis-2",
                 }]
             }
 
@@ -104,7 +80,7 @@
                                 labelString: "Date",
                             }
                         }],
-                        yAxes: [/*{
+                        yAxes: [{
                             "id": "y-axis-0",
                             scaleLabel: {
                                 display: false,
@@ -116,23 +92,11 @@
                                 display: false,
                                 labelString: 'Y-Axis-1'
                             }
-                        },*/{
+                        },{
                             "id": "y-axis-2",
                             scaleLabel: {
                                 display: false,
                                 labelString: 'Y-Axis-2'
-                            }
-                        },{
-                            "id": "y-axis-3",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-3'
-                            }
-                        },{
-                            "id": "y-axis-4",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-4'
                             }
                         }]
                     },
