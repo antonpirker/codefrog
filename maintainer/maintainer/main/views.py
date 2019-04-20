@@ -66,17 +66,13 @@ def update_issues(request):
     for project in PROJECTS:
         for metric in Metric.objects.all().order_by('-date'):
             date = metric.date.strftime('%Y-%m-%d')
-            gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
-            metric.gitlab_bug_issues = gitlab_bug_issues
 
             metric_json = metric.metrics
             if not metric_json:
                 metric_json = {}
-            metric_json['gitlab_bug_issues'] = gitlab_bug_issues
+            metric_json['gitlab_bug_issues'] = metrics.gitlab_bug_issues(project, date)
             metric.metrics = metric_json
-
             metric.save()
-            print('.')
 
     return HttpResponse('Finished!')
 
@@ -90,14 +86,11 @@ def update_errors(request):
                     date=date_string,
                 )
 
-                metric.sentry_errors = errors_per_day[date_string]
-
                 metric_json = metric.metrics
                 if not metric_json:
                     metric_json = {}
                 metric_json['sentry_errors'] = errors_per_day[date_string]
                 metric.metrics = metric_json
-
                 metric.save()
 
     return HttpResponse('Finished!')
@@ -126,13 +119,16 @@ def update(request):
             date_string = current_date.strftime('%Y-%m-%d')
 
             # get date and hash of last commit of a day:
-            cmd = 'git log --after="{} 00:00" --before="{} 00:00" --author-date-order --pretty="%ad;%H" --date=iso -1'.format(
+            cmd = 'git log --after="{} 00:00" --before="{} 00:00" ' \
+                  '--author-date-order --pretty="%ad;%H" --date=iso -1'.format(
                 current_date.strftime('%Y-%m-%d'),
                 (current_date+timedelta(days=1)).strftime('%Y-%m-%d')
             )
             output = run_shell_command(cmd, cwd=project['source_dir'])
             if output:
-                last_commit_of_day = run_shell_command(cmd, cwd=project['source_dir']).split(';')[1].strip()
+                last_commit_of_day = run_shell_command(
+                    cmd, cwd=project['source_dir']
+                ).split(';')[1].strip()
             else:
                 last_commit_of_day = None
 
@@ -144,7 +140,7 @@ def update(request):
 
                 # calculate metric of the checked out version
                 complexity = metrics.complexity(project['source_dir'])
-                #loc = metrics.loc(project['source_dir'])
+                loc = metrics.loc(project['source_dir'])
 
                 print(' - %s' % complexity)
                 # save the metric to db
@@ -153,12 +149,9 @@ def update(request):
                     date=date_string,
                     defaults={
                         'git_reference': last_commit_of_day,
-                        'complexity': complexity,
-#                        'loc': loc,
                         'metrics': {
-                            'git_reference': last_commit_of_day,
                             'complexity': complexity,
-#                            'loc': loc,
+                            'loc': loc,
                         }
                     },
                 )
