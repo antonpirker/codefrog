@@ -1,23 +1,15 @@
 from django.contrib import admin
 
-from maintainer.main.models import CodeMetric, ExternalMetric
+from maintainer.main.models import Metric
 
 
-class CodeMetricAdmin(admin.ModelAdmin):
+class MetricAdmin(admin.ModelAdmin):
     list_display = (
         'project_slug', 'date', 'git_reference',
         'complexity', 'loc',
-    )
-    ordering = ['project_slug', '-date', ]
-
-admin.site.register(CodeMetric, CodeMetricAdmin)
-
-
-class ExternalMetricAdmin(admin.ModelAdmin):
-    list_display = (
-        'project_slug', 'date',
         'jira_bug_issues', 'gitlab_bug_issues', 'sentry_errors',
     )
     ordering = ['project_slug', '-date', ]
 
-admin.site.register(ExternalMetric, ExternalMetricAdmin)
+admin.site.register(Metric, MetricAdmin)
+

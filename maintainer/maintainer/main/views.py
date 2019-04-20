@@ -1,13 +1,14 @@
 
 import os
+from datetime import timedelta
 
+from dateutil import parser
 from django.conf import settings
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-
-from maintainer.main.utils import run_shell_command
 from maintainer.main import metrics
-from maintainer.main.models import CodeMetric, ExternalMetric
+from maintainer.main.models import Metric
+from maintainer.main.utils import run_shell_command
 
 GIT_BRANCH = 'master'
 OUT_DIR = os.path.join(settings.BASE_DIR, os.path.pardir, 'data')
@@ -43,12 +44,19 @@ def index(request):
     DONUT_BACKEND = 0
     project = PROJECTS[DONUT_BACKEND]
 
-    metrics = CodeMetric.objects.filter(
+    # TODO merge the two queries into one.
+    code_metrics = Metric.objects.filter(
         project_slug=project['slug'],
     ).order_by('date')
 
+    external_metrics = Metric.objects.filter(
+        project_slug=project['slug'],
+        date__in=Metric.objects.all().values('date').distinct(),
+    ).order_by('date')
+
     context = {
-        'metrics': metrics,
+        'code_metrics': code_metrics,
+        'external_metrics': external_metrics,
         'project': project,
     }
 
@@ -58,7 +66,7 @@ def index(request):
 
 def update_issues(request):
     for project in PROJECTS:
-        for metric in ExternalMetric.objects.all().order_by('-date'):
+        for metric in Metric.objects.all().order_by('-date'):
             date = metric.date.strftime('%Y-%m-%d')
             gitlab_bug_issues = metrics.gitlab_bug_issues(project, date)
             metric.gitlab_bug_issues = gitlab_bug_issues
@@ -72,14 +80,15 @@ def update_errors(request):
     for project in PROJECTS:
         for errors_per_day in metrics.sentry_errors(project):
             for date_string in errors_per_day.keys():
-                ExternalMetric.objects.update_or_create(
+                Metric.objects.update_or_create(
                     project_slug=project['slug'],
                     date=date_string,
-                    defaults={'sentry_errors': errors_per_day[date_string]},
+                    defaults={
+                        'sentry_errors': errors_per_day[date_string],
+                    },
                 )
 
     return HttpResponse('Finished!')
-
 
 def update(request):
     for project in PROJECTS:
@@ -91,48 +100,56 @@ def update(request):
         cmd = 'find . -name "*.pyc" -delete'
         run_shell_command(cmd, cwd=project['source_dir'])
 
-        # list all tags in the repo
-        cmd = 'git log --no-walk --tags --pretty="%H;%ad;%D" --date=iso'
-        versions = run_shell_command(cmd, cwd=project['source_dir']).split('\n')
+        # date of fist commit
+        cmd = 'git log --reverse --format="%ad" --date=iso | head -1'
+        start_date = parser.parse(run_shell_command(cmd, cwd=project['source_dir']))
 
-        for version in versions:
-            # extract tag name, hash and date
-            version_detail = version.split(';')
-            version_hash = version_detail[0]
-            version_date = version_detail[1].split()[0]
-            version_name = version_detail[2].replace('\n', '').split()[-1]
+        # date of last commit
+        cmd = 'git log --format="%ad" --date=iso | head -1'
+        end_date = parser.parse(run_shell_command(cmd, cwd=project['source_dir']))
 
-            # checkout the version of the codebase at the given hash
-            cmd = 'git checkout -q {}'.format(version_hash)
-            run_shell_command(cmd, cwd=project['source_dir'])
+        age_in_days = (end_date-start_date).days
 
-            # calculate metric of the checked out version
-            complexity = metrics.complexity(project['source_dir'])
-            loc = metrics.loc(project['source_dir'])
+        for current_date in (end_date - timedelta(n) for n in range(age_in_days)):
+            date_string = current_date.strftime('%Y-%m-%d')
 
-            gitlab_bug_issues = metrics.gitlab_bug_issues(project, version_date)
-            jira_bug_issues = metrics.jira_bug_issues(project, version_date)
-            sentry_errors = metrics.sentry_errors(project, version_date)
-
-            # save the metric to db
-            metric, created = Metric.objects.get_or_create(
-                project_slug=project['slug'],
-                git_reference=version_name,
-                date=version_date,
-                complexity=complexity,
-                loc=loc,
-                gitlab_bug_issues=gitlab_bug_issues,
-                jira_bug_issues=jira_bug_issues,
-                sentry_errors=sentry_errors,
+            # get date and hash of last commit of a day:
+            cmd = 'git log --after="{} 00:00" --before="{} 00:00" --author-date-order --pretty="%ad;%H" --date=iso -1'.format(
+                current_date.strftime('%Y-%m-%d'),
+                (current_date+timedelta(days=1)).strftime('%Y-%m-%d')
             )
+            output = run_shell_command(cmd, cwd=project['source_dir'])
+            if output:
+                last_commit_of_day = run_shell_command(cmd, cwd=project['source_dir']).split(';')[1]
+            else:
+                last_commit_of_day = None
 
-            # clean up so the next hash can be checked out
-            cmd = 'git checkout -q {}'.format(GIT_BRANCH)
-            run_shell_command(cmd, cwd=project['source_dir'])
+            if last_commit_of_day:
+                print('Handling %s' % date_string)
+                # checkout the version of the codebase at the given hash
+                cmd = 'git checkout -q {}'.format(last_commit_of_day)
+                run_shell_command(cmd, cwd=project['source_dir'])
 
-            cmd = 'git clean -q -fd'
-            run_shell_command(cmd, cwd=project['source_dir'])
-            
-            print('.')
+                # calculate metric of the checked out version
+                complexity = metrics.complexity(project['source_dir'])
+                loc = metrics.loc(project['source_dir'])
+
+                # save the metric to db
+                Metric.objects.update_or_create(
+                    project_slug=project['slug'],
+                    date=date_string,
+                    defaults={
+                        'git_reference': last_commit_of_day,
+                        'complexity': complexity,
+                        'loc': loc,
+                    },
+                )
+
+                # clean up so the next hash can be checked out
+                cmd = 'git checkout -q {}'.format(GIT_BRANCH)
+                run_shell_command(cmd, cwd=project['source_dir'])
+
+                cmd = 'git clean -q -fd'
+                run_shell_command(cmd, cwd=project['source_dir'])
 
     return HttpResponse('Finished!')

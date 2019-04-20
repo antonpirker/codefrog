@@ -13,7 +13,7 @@
             const data = {
                 // Labels should be Date objects
                 labels: [
-                    {% for metric in metrics %}
+                    {% for metric in code_metrics %}
                         moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
                     {% endfor %}
                 ],
@@ -45,7 +45,7 @@
                     fill: false,
                     label: 'Complexity',
                     data: [
-                        {% for metric in metrics %}
+                        {% for metric in code_metrics %}
                             {{ metric.complexity_per_loc|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
@@ -57,7 +57,7 @@
                     fill: false,
                     label: 'Gitlab Issues',
                     data: [
-                        {% for metric in metrics %}
+                        {% for metric in external_metrics %}
                             {{ metric.gitlab_bug_issues|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
@@ -69,7 +69,7 @@
                     fill: false,
                     label: 'Sentry Errors',
                     data: [
-                        {% for metric in metrics %}
+                        {% for metric in external_metrics %}
                             {{ metric.sentry_errors|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
