@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.postgres',
 
+    'django_json_widget',
+
     'maintainer.main',
 ]
 
