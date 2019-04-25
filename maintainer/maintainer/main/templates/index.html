@@ -2,8 +2,7 @@
 <html>
 <head>
     <script type="text/javascript">
-
-        colors = ['#F20530', '#033E8C', '#04BFAD', '#F2AE2E'];
+        colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
 
         window.onload = function () {
             // CHART JS
@@ -53,6 +52,30 @@
                     backgroundColor: colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-2",
+                },{
+                    fill: false,
+                    label: '# commits',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.number_of_commits|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: colors[3],
+                    backgroundColor: colors[3],
+                    lineTension: 0,
+                    yAxisID: "y-axis-3",
+                },{
+                    fill: false,
+                    label: '# authors',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.number_of_authors|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: colors[4],
+                    backgroundColor: colors[4],
+                    lineTension: 0,
+                    yAxisID: "y-axis-4",
                 }]
             }
 
@@ -97,6 +120,18 @@
                             scaleLabel: {
                                 display: false,
                                 labelString: 'Y-Axis-2'
+                            }
+                        },{
+                            "id": "y-axis-3",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-3'
+                            }
+                        },{
+                            "id": "y-axis-4",
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Y-Axis-4'
                             }
                         }]
                     },
