@@ -11,31 +11,7 @@ from maintainer.main.models import Metric
 from maintainer.main.utils import run_shell_command, resample
 
 GIT_BRANCH = 'master'
-OUT_DIR = os.path.join(settings.BASE_DIR, os.path.pardir, 'data')
 
-PROJECTS = (
-    {
-        'slug': 'backend',
-        'name': 'donut-backend',
-        'source_dir': '/projects/donation/server/django-donut',
-
-        'gitlab_personal_access_token': 'iqZyDH1t7BtjiQHsRssa',
-        'gitlab_group': 'die-gmbh',
-        'gitlab_project': 'donation',
-
-        'sentry_auth_token': 'a1f913abcb794e709b8ad8a82b1966e51d10df638b8c4fcc9fd165b25ddaa537',
-        'sentry_organization_slug': 'formunauts-gmbh',
-        'sentry_project_slug': 'backend-live',
-    },
-#    {
-#        'slug': 'frontend',
-#        'source_dir': '/projects/donutapp-frontend/src',
-#    },
-#    {
-#        'slug': 'cockpit',
-#        'source_dir': '/projects/donut-cockpit/src',
-#    },
-)
 
 def index(request):
     """
@@ -66,29 +42,6 @@ def index(request):
 
 
 def update(request):
-    """
-    average number of commits per developer per day?
-     - number of commits / number of devs
-     - or: (number of commits of dev a + number of commits of dev b) / 2
-
-    number of lines changed on the day
-
-    cohesion
-    https://en.wikipedia.org/wiki/Cohesion_(computer_science)
-
-    coupling
-
-    design structure matrix
-    transitive closure graph
-    dependency structure
-    DSMs (design structure matrix)
-    https://stackoverflow.com/questions/508277/is-there-a-good-dependency-analysis-tool-for-python
-    http://furius.ca/snakefood/
-
-    read mood out of commit messages?
-    https://stackoverflow.com/questions/933212/is-it-possible-to-guess-a-users-mood-based-on-the-structure-of-text
-
-    """
     for project in PROJECTS:
         print('## PROJECT: %s' % project['name'])
         init_metrics(project)
