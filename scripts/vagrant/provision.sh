@@ -17,6 +17,12 @@ apt-get install -y --no-install-recommends \
     rsync
 
 
+echo "Install tools for running the system..."
+
+apt-get install -y --no-install-recommends \
+    redis-server
+
+
 echo "Install tools for code analysis..."
 
 apt-get install -y --no-install-recommends \

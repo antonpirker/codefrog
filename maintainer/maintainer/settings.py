@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.postgres',
 
+    'django_extensions',
     'django_json_widget',
 
     'maintainer.main',
@@ -158,3 +159,7 @@ GITLAB_API_BASE_URL = get_setting('GITLAB_API_BASE_URL', 'https://gitlab.com/api
 GITLAB_API_DEFAULT_HEADERS = {
     'Private-Token': GITLAB_API_PERSONAL_TOKEN,
 }
+
+
+# Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
