@@ -94,11 +94,13 @@ def import_git_metrics(project_pk):
             if output else None
 
         if last_commit_of_day:
+            print('last_commit_of_day', last_commit_of_day)
             # checkout the version of the codebase at the given hash
             cmd = 'git checkout -q {}'.format(last_commit_of_day)
             run_shell_command(cmd, cwd=project.source_dir)
 
             complexity = metrics.complexity(project.source_dir)
+            print('complexity', complexity)
             loc = metrics.loc(project.source_dir)
 
             # save the metric to db

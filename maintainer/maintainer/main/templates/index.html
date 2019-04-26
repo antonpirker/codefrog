@@ -8,7 +8,7 @@
             // CHART JS
             var timeFormat = 'MM/DD/YYYY HH:mm';
 
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx = document.getElementById('main-chart').getContext('2d');
             const data = {
                 // Labels should be Date objects
                 labels: [
@@ -21,38 +21,26 @@
                     label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.complexity_per_loc|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[0],
                     backgroundColor: colors[0],
                     lineTension: 0,
                     yAxisID: "y-axis-0",
-                },{
+                }{% comment %},{
                     fill: false,
-                    label: 'Gitlab Issues',
+                    label: 'GitHub Bug Issues',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.gitlab_bug_issues|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.github_bug_issues|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[1],
                     backgroundColor: colors[1],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
-                },{
-                    fill: false,
-                    label: 'Sentry Errors',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.sentry_errors|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    borderColor: colors[2],
-                    backgroundColor: colors[2],
-                    lineTension: 0,
-                    yAxisID: "y-axis-2",
-                },{
+                }{% endcomment %},{
                     fill: false,
                     label: '# commits',
                     data: [
@@ -60,22 +48,10 @@
                             {{ metric.number_of_commits|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
-                    borderColor: colors[3],
-                    backgroundColor: colors[3],
+                    borderColor: colors[2],
+                    backgroundColor: colors[2],
                     lineTension: 0,
-                    yAxisID: "y-axis-3",
-                },{
-                    fill: false,
-                    label: '# authors',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.number_of_authors|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    borderColor: colors[4],
-                    backgroundColor: colors[4],
-                    lineTension: 0,
-                    yAxisID: "y-axis-4",
+                    yAxisID: "y-axis-2",
                 }]
             }
 
@@ -106,17 +82,11 @@
                         yAxes: [{
                             "id": "y-axis-0",
                             display: false
-                        },{
+                        }{% comment %},{
                             "id": "y-axis-1",
                             display: false
-                        },{
+                        }{% endcomment %},{
                             "id": "y-axis-2",
-                            display: false
-                        },{
-                            "id": "y-axis-3",
-                            display: false
-                        },{
-                            "id": "y-axis-4",
                             display: false
                         }]
                     },
@@ -150,6 +120,23 @@
     </small>
 
     <h1>Project: {{ project.name }}</h1>
-    <canvas id="myChart"></canvas>
+    <canvas id="main-chart"></canvas>
+
+    <table>
+        <tr>
+            <td></td>
+            <td>12 months</td>
+            <td>6 months</td>
+            <td>1 month</td>
+        </tr>
+        {% for metric_stat in metric_stats %}
+        <tr>
+            <td>{{ metric_stat.label }}</td>
+            <td>{{ metric_stat.value1 }}</td>
+            <td>{{ metric_stat.value2 }}</td>
+            <td>{{ metric_stat.value3 }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

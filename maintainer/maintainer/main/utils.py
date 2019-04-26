@@ -24,21 +24,27 @@ def resample(queryset, frequency):
     def rename_column(val):
         return val.replace('metrics__', '')
 
+    if len(queryset) == 0:
+        return []
+
     df = pd.DataFrame.from_records(queryset)
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date')
     df = df.rename(rename_column, axis='columns')
+    df = df.fillna(method='ffill')
+    df = df.fillna(0)
+
+    df['complexity_per_loc'] = df['complexity'] / df['loc']
 
     df = df.resample(frequency).agg({
+        'loc': 'last',  # take the number of lines of code at the end of the week
         'complexity': 'last',  # take the last complexity in the week
+        'complexity_per_loc': 'last',
         'sentry_errors': np.sum,  # sum sentry errors per week
         'gitlab_bug_issues': 'last',  # the number of open issues at the end of the week
-        'number_of_authors': np.average,  # this is wrong!
-        'number_of_commits': np.sum,  # number of commits
+        'number_of_commits': np.sum,  # sum the number of commits
     })
 
     df['date'] = df.index
-    df = df.fillna(0)
     metrics = df.to_dict('records')
-
     return metrics
