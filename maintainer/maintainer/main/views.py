@@ -6,7 +6,11 @@ from maintainer.main.utils import resample
 
 
 def index(request):
-    project = Project.objects.all().order_by('name').first()
+    slug = request.GET.get('project', None)
+    if not slug:
+        project = Project.objects.all().order_by('name').first()
+    else:
+        project = Project.objects.get(slug=slug)
 
     metrics = Metric.objects.filter(
         project=project
@@ -21,8 +25,9 @@ def index(request):
     )
 
     context = {
+        'projects': Project.objects.all().order_by('name'),
         'project': project,
-        'metrics': resample(metrics, 'M'),
+        'metrics': [], #resample(metrics, 'M'),
     }
 
     rendered = render_to_string('index.html', context=context)
@@ -30,27 +35,25 @@ def index(request):
 
 
 def update(request):
-    project = Project.objects.filter(slug='donut-backend').order_by('name').last()
+    for project in Project.objects.filter(pk__lt=4).order_by('name'):
+        imports_to_run = [
+            tasks.import_git_metrics.s(),
+        ]
 
-    imports_to_run = [
-        tasks.import_git_metrics.s(),
-    ]
+    #    if 'gitlab' in project.external_services:
+    #        imports_to_run.append(
+    #            tasks.import_gitlab_issues.s()
+    #        )
 
-    import ipdb; ipdb.set_trace()
-    if 'gitlab' in project.external_services:
-        imports_to_run.append(
-            tasks.import_gitlab_issues.s()
+
+    #    if 'gitlab' in project.external_services:
+    #        imports_to_run.append(
+    #            tasks.import_sentry_errors.s()
+    #        )
+
+        tasks.init_project.apply_async(
+            args=(project.pk, ),
+            link=imports_to_run,
         )
-
-
-    if 'gitlab' in project.external_services:
-        imports_to_run.append(
-            tasks.import_sentry_errors.s()
-        )
-
-    tasks.init_project.apply_async(
-        args=(project.pk, ),
-        link=imports_to_run,
-    )
 
     return HttpResponse('Update started!')

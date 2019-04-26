@@ -64,15 +64,15 @@ def import_git_metrics(project_pk):
     for current_date in (end_date - timedelta(n) for n in range(age_in_days)):
         date_string = current_date.strftime('%Y-%m-%d')
 
-        # get number of authors of current day
+        # get list of authors of current day
         cmd = 'git log --after="{} 00:00" --before="{} 00:00" ' \
               '--author-date-order --pretty="%ae" --date=iso ' \
-              '| sort | uniq | wc -l'.format(
+              '| sort | uniq'.format(
             date_string,
             (current_date + timedelta(days=1)).strftime('%Y-%m-%d'),
         )
         output = run_shell_command(cmd, cwd=project.source_dir)
-        number_of_authors = int(output) if output else None
+        authors = output.strip().split('\n')
 
         # get commits per day:
         cmd = 'git log --after="{} 00:00" --before="{} 00:00" ' \
@@ -109,11 +109,13 @@ def import_git_metrics(project_pk):
             metric_json = metric.metrics
             if not metric_json:
                 metric_json = {}
-            metric_json['number_of_authors'] = number_of_authors
             metric_json['number_of_commits'] = number_of_commits
             metric_json['complexity'] = complexity
             metric_json['loc'] = loc
             metric.metrics = metric_json
+
+            metric.git_reference = last_commit_of_day
+            metric.authors = authors
             metric.save()
 
             print('- git metrics for %s' % date_string)

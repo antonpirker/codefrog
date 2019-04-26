@@ -105,34 +105,19 @@
                         }],
                         yAxes: [{
                             "id": "y-axis-0",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-0'
-                            }
+                            display: false
                         },{
                             "id": "y-axis-1",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-1'
-                            }
+                            display: false
                         },{
                             "id": "y-axis-2",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-2'
-                            }
+                            display: false
                         },{
                             "id": "y-axis-3",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-3'
-                            }
+                            display: false
                         },{
                             "id": "y-axis-4",
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Y-Axis-4'
-                            }
+                            display: false
                         }]
                     },
                     plugins: {
@@ -157,6 +142,13 @@
 </head>
 
 <body>
+    <small>
+        {% for project in projects %}
+            <a href="/?project={{ project.slug }}">{{ project.name }}</a>
+            {% if not forloop.last %} | {% endif %}
+        {% endfor %}
+    </small>
+
     <h1>Project: {{ project.name }}</h1>
     <canvas id="myChart"></canvas>
 </body>
