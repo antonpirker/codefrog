@@ -94,13 +94,15 @@ def import_git_metrics(project_pk):
             if output else None
 
         if last_commit_of_day:
-            print('last_commit_of_day', last_commit_of_day)
+            print('- git metrics for %s' % date_string)
+
+            print('  last_commit_of_day %s' % last_commit_of_day)
             # checkout the version of the codebase at the given hash
             cmd = 'git checkout -q {}'.format(last_commit_of_day)
             run_shell_command(cmd, cwd=project.source_dir)
 
             complexity = metrics.complexity(project.source_dir)
-            print('complexity', complexity)
+            print('  complexity %s' % complexity)
             loc = metrics.loc(project.source_dir)
 
             # save the metric to db
@@ -116,11 +118,13 @@ def import_git_metrics(project_pk):
             metric_json['loc'] = loc
             metric.metrics = metric_json
 
+            print('metric_json: %s' % metric_json)
+
             metric.git_reference = last_commit_of_day
             metric.authors = authors
             metric.save()
 
-            print('- git metrics for %s' % date_string)
+            print('  saved metric with id: %s' % metric.pk)
 
             # clean up so the next hash can be checked out
             cmd = 'git checkout -q {}'.format(GIT_BRANCH)

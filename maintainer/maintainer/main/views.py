@@ -81,7 +81,7 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.filter(slug='requests'):
+    for project in Project.objects.filter(slug='donut-backend'):
         imports_to_run = [
             tasks.import_git_metrics.s(),
         ]

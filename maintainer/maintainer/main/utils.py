@@ -31,10 +31,11 @@ def resample(queryset, frequency):
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date')
     df = df.rename(rename_column, axis='columns')
-    df = df.fillna(method='ffill')
-    df = df.fillna(0)
 
     df['complexity_per_loc'] = df['complexity'] / df['loc']
+
+    df = df.fillna(method='ffill')
+    df = df.fillna(0)
 
     df = df.resample(frequency).agg({
         'loc': 'last',  # take the number of lines of code at the end of the week

@@ -25,9 +25,17 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
 @admin.register(Metric)
 class MetricAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'project_name', 'date', 'git_reference',
+        'project', 'date', 'git_reference', 'complexity',
+    )
+    list_filter = (
+        'project', 'date',
     )
     ordering = ['project__name', '-date', ]
 
-    def project_name(self, obj):
-        return obj.project.name
+    def complexity(self, obj):
+        try:
+            complexity = obj.metrics['complexity']
+        except TypeError:
+            complexity = None
+
+        return complexity

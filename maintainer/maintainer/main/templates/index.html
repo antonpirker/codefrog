@@ -21,7 +21,7 @@
                     label: 'Complexity',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.complexity_per_loc|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[0],
