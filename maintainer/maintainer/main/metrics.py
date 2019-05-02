@@ -28,6 +28,53 @@ def complexity(root_dir):
 
     return complexity
 
+def dependencies(root_dir):
+    """
+    Calculate the number of direct and indirect dependencies in the code base,
+    as well as the maximum dependency count possible.
+    See:
+    https://www.youtube.com/watch?time_continue=678&v=tO4OinbOWaE
+    (around 12:30 min)
+
+    :param root_dir:
+    :return:
+    """
+    cmd = 'pydeps {} --no-output --show-dot --reverse | ' \
+          'grep "\->" | cut -d " " -f5,7 | sort | uniq'.format(root_dir)
+    output = run_shell_command(cmd)
+
+    dependencies_direct = []
+    for item in output.strip().split('\n'):
+        dependencies_direct.append(item.strip().split(' '))
+
+    dependencies_indirect = []
+    for direct_dependency in dependencies_direct:
+        if direct_dependency not in dependencies_indirect:
+            dependencies_indirect.append(direct_dependency)
+
+        dep_source = direct_dependency[0]
+        dep_target = direct_dependency[1]
+        for dep in dependencies_direct:
+            if dep[1] == dep_source:
+                new_dep = [dep[0], dep_target]
+                if new_dep not in dependencies_indirect:
+                    dependencies_indirect.append(new_dep)
+
+    everything = dependencies_indirect + dependencies_direct
+    modules = sorted(list(set([item for sublist in everything for item in sublist])))
+
+    max_dependencies = len(modules)*len(modules)
+    direct_dependencies = len(dependencies_direct)
+    indirect_dependencies = len(dependencies_indirect)
+
+    # eigentlich heißt das "density of the network" oder "density of transitive closure graph"
+    # oder "architectual complexity"
+
+
+    return (
+        direct_dependencies, indirect_dependencies, max_dependencies,
+    )
+
 
 def loc(root_dir):
     """

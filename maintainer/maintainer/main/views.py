@@ -25,6 +25,9 @@ def index(request):
         'metrics__gitlab_bug_issues',
         'metrics__number_of_commits',
         'metrics__complexity_per_author',
+        'metrics__dependencies_direct',
+        'metrics__dependencies_indirect',
+        'metrics__dependencies_max',
     )
 
     today = timezone.now().date()
@@ -81,7 +84,7 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.filter(slug='donut-backend'):
+    for project in Project.objects.all().exclude(slug='keras').order_by('id'):
         imports_to_run = [
             tasks.import_git_metrics.s(),
         ]

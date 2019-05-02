@@ -41,6 +41,9 @@ def resample(queryset, frequency):
         'loc': 'last',  # take the number of lines of code at the end of the week
         'complexity': 'last',  # take the last complexity in the week
         'complexity_per_loc': 'last',
+        'dependencies_direct': 'last',
+        'dependencies_indirect': 'last',
+        'dependencies_max': 'last',
         'sentry_errors': np.sum,  # sum sentry errors per week
         'gitlab_bug_issues': 'last',  # the number of open issues at the end of the week
         'number_of_commits': np.sum,  # sum the number of commits
