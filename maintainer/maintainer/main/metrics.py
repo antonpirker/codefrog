@@ -28,6 +28,7 @@ def complexity(root_dir):
 
     return complexity
 
+
 def dependencies(root_dir):
     """
     Calculate the number of direct and indirect dependencies in the code base,
@@ -39,8 +40,24 @@ def dependencies(root_dir):
     :param root_dir:
     :return:
     """
+    return dependencies_python(root_dir)
+
+
+def dependencies_python(root_dir):
+    """
+    Calculate dependencies for a python code base,
+
+    :param root_dir:
+    :return:
+    """
+    cmd = "find {} -type f -name __init__.py | " \
+          "awk '{{ print length, $0 }}' | " \
+          "sort -n -s | cut -d ' '  -f2 | head -1".format(root_dir)
+    output = run_shell_command(cmd)
+    python_root_dir = output.replace('__init__.py', '')
+
     cmd = 'pydeps {} --no-output --show-dot --reverse | ' \
-          'grep "\->" | cut -d " " -f5,7 | sort | uniq'.format(root_dir)
+          'grep "\->" | cut -d " " -f5,7 | sort | uniq'.format(python_root_dir)
     output = run_shell_command(cmd)
 
     dependencies_direct = []
@@ -67,9 +84,8 @@ def dependencies(root_dir):
     direct_dependencies = len(dependencies_direct)
     indirect_dependencies = len(dependencies_indirect)
 
-    # eigentlich heißt das "density of the network" oder "density of transitive closure graph"
-    # oder "architectual complexity"
-
+    # TODO: eigentlich heißt das "density of the network" oder "density of transitive closure graph"
+    #  oder "architectual complexity"
 
     return (
         direct_dependencies, indirect_dependencies, max_dependencies,

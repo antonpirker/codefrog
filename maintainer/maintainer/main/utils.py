@@ -14,11 +14,10 @@ def run_shell_command(cmd, cwd=None):
     """
     logger.debug(f'Running: {cmd}')
     command = subprocess.run([cmd], cwd=cwd, shell=True, capture_output=True)
-    output = command.stdout.decode('utf-8')
+    output = command.stdout.strip().decode('utf-8')
 
     if command.stderr:
         logger.error(f'Error running shell command "{cmd}": {command.stderr}')
-        import ipdb; ipdb.set_trace()
 
     return output
 

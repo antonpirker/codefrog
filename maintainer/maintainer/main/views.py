@@ -89,23 +89,19 @@ def update(request):
             tasks.import_git_metrics.s(),
         ]
 
-    #    if 'gitlab' in project.external_services:
-    #        imports_to_run.append(
-    #            tasks.import_gitlab_issues.s()
-    #        )
+        #if 'gitlab' in project.external_services:
+        #    imports_to_run.append(
+        #        tasks.import_gitlab_issues.s()
+        #    )
 
+        #if 'sentry' in project.external_services:
+        #    imports_to_run.append(
+        #        tasks.import_sentry_errors.s()
+        #    )
 
-    #    if 'gitlab' in project.external_services:
-    #        imports_to_run.append(
-    #            tasks.import_sentry_errors.s()
-    #        )
-
-        #tasks.init_project.apply_async(
-        #    args=(project.pk, ),
-        #    link=imports_to_run,
-        #)
-
-        #tasks.init_project(project.pk)
-        tasks.import_git_metrics(project.pk)
+        tasks.init_project.apply_async(
+            args=(project.pk, ),
+            link=imports_to_run,
+        )
 
     return HttpResponse('Update started!')
