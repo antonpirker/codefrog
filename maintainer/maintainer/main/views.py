@@ -84,7 +84,7 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.all().exclude(slug='keras').order_by('id'):
+    for project in Project.objects.all().filter(slug='flask').order_by('id'):
         imports_to_run = [
             tasks.import_git_metrics.s(),
         ]
@@ -100,9 +100,12 @@ def update(request):
     #            tasks.import_sentry_errors.s()
     #        )
 
-        tasks.init_project.apply_async(
-            args=(project.pk, ),
-            link=imports_to_run,
-        )
+        #tasks.init_project.apply_async(
+        #    args=(project.pk, ),
+        #    link=imports_to_run,
+        #)
+
+        #tasks.init_project(project.pk)
+        tasks.import_git_metrics(project.pk)
 
     return HttpResponse('Update started!')

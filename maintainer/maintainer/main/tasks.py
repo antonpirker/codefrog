@@ -1,19 +1,24 @@
+import logging
 from datetime import timedelta
+
 from dateutil import parser
 
 from celery import shared_task
-from maintainer.main.utils import run_shell_command
-from maintainer.main.models import Metric, Project
-
 from maintainer.main import metrics
+from maintainer.main.models import Metric, Project
+from maintainer.main.utils import run_shell_command
+
+
+logger = logging.getLogger(__name__)
 
 GIT_BRANCH = 'master'
 
+
 @shared_task
 def init_project(project_pk):
-    print('Starting init_metrics for project %s' % project_pk)
+    logger.info('Starting init_metrics for project %s', project_pk)
     project = Project.objects.get(pk=project_pk)
-    print('Project: %s' % project.name)
+    logger.info('Project: %s', project.name)
 
     # checkout desired branch
     cmd = 'git checkout -q {}'.format(GIT_BRANCH)
@@ -50,16 +55,25 @@ def init_project(project_pk):
             project=project,
             date=date_string,
         )
-        print('- init %s' % date_string)
+        logger.debug('Init %s: %s', project.name, date_string)
 
-    print('Finished init_metrics for project %s' % project.name)
+    logger.info('Finished init_metrics for project %s', project.name)
     return project_pk  # for chaining tasks
 
 
 @shared_task
 def import_git_metrics(project_pk):
-    print('Starting import_git_metrics for project %s' % project_pk)
+    logger.info('Starting import_git_metrics for project %s', project_pk)
     project = Project.objects.get(pk=project_pk)
+
+    cmd = 'git checkout -q {}'.format(GIT_BRANCH)
+    run_shell_command(cmd, cwd=project.source_dir)
+
+    cmd = 'git clean -q -n'
+    run_shell_command(cmd, cwd=project.source_dir)
+
+    cmd = 'git clean -q -f -d'
+    run_shell_command(cmd, cwd=project.source_dir)
 
     # date of fist commit
     cmd = 'git log --reverse --format="%ad" --date=iso | head -1'
@@ -104,17 +118,24 @@ def import_git_metrics(project_pk):
             if output else None
 
         if last_commit_of_day:
-            print('- git metrics for %s' % date_string)
+            logger.debug('Git metrics for %s for %s', project.name, date_string)
 
-            print('  last_commit_of_day %s' % last_commit_of_day)
+            cmd = 'git clean -q -n'
+            run_shell_command(cmd, cwd=project.source_dir)
+
+            cmd = 'git clean -q -f -d'
+            run_shell_command(cmd, cwd=project.source_dir)
+
             # checkout the version of the codebase at the given hash
             cmd = 'git checkout -q {}'.format(last_commit_of_day)
             run_shell_command(cmd, cwd=project.source_dir)
 
             complexity = metrics.complexity(project.source_dir)
-            print('  complexity %s' % complexity)
+            logger.debug('Complexity for %s: %s', project.name, complexity)
             dependencies = metrics.dependencies(project.source_dir)
+            logger.debug('Dependencies for %s: %s', project.name, dependencies)
             loc = metrics.loc(project.source_dir)
+            logger.debug('Loc for %s: %s', project.name, loc)
 
             # save the metric to db
             metric, _ = Metric.objects.get_or_create(
@@ -132,15 +153,14 @@ def import_git_metrics(project_pk):
             metric_json['loc'] = loc
             metric.metrics = metric_json
 
-            print('metric_json: %s' % metric_json)
-
             metric.git_reference = last_commit_of_day
             metric.authors = authors
             metric.save()
 
-            print('  saved metric with id: %s' % metric.pk)
+            logger.debug('Saved metrics for %s for %s with id: %s',
+                project.name, date_string, metric.pk,
+            )
 
-            # clean up so the next hash can be checked out
             cmd = 'git checkout -q {}'.format(GIT_BRANCH)
             run_shell_command(cmd, cwd=project.source_dir)
 
@@ -150,15 +170,15 @@ def import_git_metrics(project_pk):
             cmd = 'git clean -q -f -d'
             run_shell_command(cmd, cwd=project.source_dir)
 
-    print('Finished import_git_metrics for project %s' % project.name)
+    logger.info('Finished import_git_metrics for project %s', project.name)
     return project_pk  # for chaining tasks
 
 
 @shared_task
 def import_sentry_errors(project_pk):
-    print('Starting import_sentry_errors for project %s' % project_pk)
+    logger.info('Starting import_sentry_errors for project %s', project_pk)
     project = Project.objects.get(pk=project_pk)
-    print('Project: %s' % project.name)
+    logger.info('Project: %s', project.name)
 
     for errors_per_day in metrics.sentry_errors(project):
         for date_string in errors_per_day.keys():
@@ -174,16 +194,16 @@ def import_sentry_errors(project_pk):
             metric.metrics = metric_json
             metric.save()
 
-            print('- sentry errors for %s' % date_string)
+            logger.debug('Sentry error for %s for %s', project.name, date_string)
 
-    print('Finished import_sentry_errors for project %s' % project.name)
+    logger.info('Finished import_sentry_errors for project %s', project.name)
 
 
 @shared_task
 def import_gitlab_issues(project_pk):
-    print('Starting import_gitlab_issues for project %s' % project_pk)
+    logger.info('Starting import_gitlab_issues for project %s' % project_pk)
     project = Project.objects.get(pk=project_pk)
-    print('Project: %s' % project.name)
+    logger.info('Project: %s' % project.name)
 
     for metric in Metric.objects.all().order_by('-date'):
         date_string = metric.date.strftime('%Y-%m-%d')
@@ -195,6 +215,6 @@ def import_gitlab_issues(project_pk):
         metric.metrics = metric_json
         metric.save()
 
-        print('- git gitlab issues for %s' % date_string)
+        logger.debug('Gitlab issues for %s for %s', project.name, date_string)
 
-    print('Finished import_gitlab_issues for project %s' % project.name)
+    logger.info('Finished import_gitlab_issues for project %s', project.name)

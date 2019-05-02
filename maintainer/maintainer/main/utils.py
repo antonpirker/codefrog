@@ -1,15 +1,25 @@
+import logging
 import subprocess
 
 import numpy as np
 import pandas as pd
 
 
+logger = logging.getLogger(__name__)
+
+
 def run_shell_command(cmd, cwd=None):
     """
     Runs a shell command and returns the commands output as string.
     """
+    logger.debug(f'Running: {cmd}')
     command = subprocess.run([cmd], cwd=cwd, shell=True, capture_output=True)
     output = command.stdout.decode('utf-8')
+
+    if command.stderr:
+        logger.error(f'Error running shell command "{cmd}": {command.stderr}')
+        import ipdb; ipdb.set_trace()
+
     return output
 
 

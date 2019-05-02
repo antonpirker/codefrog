@@ -36,7 +36,7 @@ def up(apps, schema_editor):
     Project.objects.create(
         name='Formunauts Backend',
         slug='donut-backend',
-        source_dir='/projects/donation/server/django-donut',
+        source_dir='/projects/backend/server/django-donut',
         external_services={
             'gitlab': {
                 'personal_access_token': 'iqZyDH1t7BtjiQHsRssa',

@@ -165,7 +165,6 @@ def sentry_errors(project):
 
         for event in content:
             if event['type'] == 'error':
-                print('.')
                 date_created = parser.parse(event['dateCreated'])
                 errors_by_date[date_created.strftime('%Y-%m-%d')] += 1
 

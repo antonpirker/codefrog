@@ -153,6 +153,43 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+# Logging
+# https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging
+
+LOG_LEVEL = 'DEBUG'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s %(module)s %(pathname)s:%(lineno)d (%(funcName)s) %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+    },
+    'root': {
+        'level': LOG_LEVEL,
+        'handlers': ['console'],
+    },
+    'loggers': {
+        # discard logs from...
+        'faker': {
+            'level': 'DEBUG',
+            'handlers': ['null'],
+            'propagate': False,
+        },
+    },
+}
+
 # settings for third party services
 GITLAB_API_PERSONAL_TOKEN = get_setting('GITLAB_API_PERSONAL_TOKEN')
 GITLAB_API_BASE_URL = get_setting('GITLAB_API_BASE_URL', 'https://gitlab.com/api/v4')
