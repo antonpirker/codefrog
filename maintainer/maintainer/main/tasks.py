@@ -162,35 +162,36 @@ def fetch_code_metrics(project_id, source_dir, date, git_commit_hash):
     logger.info('Starting fetch_code_metrics for project %s for %s', project_id, date_string)
 
     temp_path = os.path.join(tempfile.gettempdir(), f'maintainer_project_{project_id}')
-    logger.warning(f'temp_path: {temp_path}')
-    project_path = os.path.join(temp_path, git_commit_hash)
-    logger.warning(f'source_dir: {source_dir}')
-    logger.warning(f'project_path: {project_path}')
+    temp_path = '/vagrant/tmp'  # TODO: remove
+    #logger.warning(f'temp_path: {temp_path}')
+    #project_path = os.path.join(temp_path, git_commit_hash)
+    #logger.warning(f'source_dir: {source_dir}')
+    #logger.warning(f'project_path: {project_path}')
 
     repo_dir = os.path.join(source_dir, os.path.pardir)
 
-    if os.path.exists(project_path):
-        shutil.rmtree(project_path)
-    shutil.copytree(repo_dir, project_path)
+#    if os.path.exists(project_path):
+#        shutil.rmtree(project_path)
+#    shutil.copytree(repo_dir, project_path)
 
     # cleanup local directory
-    cmd = 'git clean -q -n'
-    run_shell_command(cmd, cwd=project_path)
-    cmd = 'git clean -q -f -d'
-    run_shell_command(cmd, cwd=project_path)
+    #cmd = 'git clean -q -n'
+    #run_shell_command(cmd, cwd=project_path)
+    #cmd = 'git clean -q -f -d'
+    #run_shell_command(cmd, cwd=project_path)
 
     # checkout the version of the codebase at the given hash
-    cmd = 'git checkout -q {}'.format(git_commit_hash)
-    run_shell_command(cmd, cwd=project_path)
+    cmd = 'git --work-tree={} checkout -q {} -- .'.format(repo_dir, git_commit_hash)
+    run_shell_command(cmd, cwd=temp_path)
+    logger.warning(git_commit_hash)
 
+    """
     # calculate metrics
     complexity = metrics.complexity(project_path)
     logger.debug('Complexity for project %s: %s', project_id, complexity)
 
     dependencies = metrics.dependencies(project_path)
     logger.debug('Dependencies for project %s: %s', project_id, dependencies)
-
-    loc = metrics.loc(project_path)
     logger.debug('Loc for project %s: %s', project_id, loc)
 
     # save the metric to db
@@ -216,7 +217,7 @@ def fetch_code_metrics(project_id, source_dir, date, git_commit_hash):
         'Saved metrics for project %s for %s with id: %s',
         project_id, date_string, metric.pk,
     )
-
+    """
     logger.info('Finished fetch_code_metrics for project %s for %s', project_id, date_string)
 
 

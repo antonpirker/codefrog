@@ -84,7 +84,7 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.all().filter(slug='flask').order_by('id'):
+    for project in Project.objects.all().exclude(slug='flask').order_by('id'):
         imports_to_run = [
             tasks.import_git_metrics.s(),
         ]

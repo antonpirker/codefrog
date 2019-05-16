@@ -109,6 +109,22 @@ def jira_bug_issues(project, date):
     return None
 
 
+def github_bug_issues(project, date):
+    # https://developer.github.com/v3/issues/#list-issues-for-a-repository
+    # GET /repos/:owner/:repo/issues
+    # labels=bug,bug-high,..
+    # state=open|closed|all
+    # sort=created
+    # direction=asc
+
+    # ein issues hat dann folgende wichtige felder:
+    # "state"
+    # "created_at"
+    # "closed_at" (null -> noch offfen)
+
+
+    pass
+
 def gitlab_bug_issues(project, date):
     """
     Returns the number of open issues with label "bug" in Gitlab Issue tracker
