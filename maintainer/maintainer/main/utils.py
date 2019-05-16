@@ -55,6 +55,8 @@ def resample(queryset, frequency):
         'dependencies_max': 'last',
         'sentry_errors': np.sum,  # sum sentry errors per week
         'gitlab_bug_issues': 'last',  # the number of open issues at the end of the week
+        'github_bug_issues_opened': np.sum,  # the total number of issues opened during the week
+        'github_bug_issues_now_open': 'last',  # the number of open issues at the end of the week
         'number_of_commits': np.sum,  # sum the number of commits
     })
 

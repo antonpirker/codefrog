@@ -30,10 +30,10 @@
                     yAxisID: "y-axis-0",
                 },{
                     fill: false,
-                    label: '# commits',
+                    label: 'issues opened',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.number_of_commits|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.github_bug_issues_opened|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[1],
@@ -42,28 +42,16 @@
                     yAxisID: "y-axis-1",
                 },{
                     fill: false,
-                    label: 'Arch complexity direct',
+                    label: 'issues now open',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.dependencies_direct|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.github_bug_issues_now_open|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     borderColor: colors[2],
                     backgroundColor: colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-2",
-                },{
-                    fill: false,
-                    label: 'Arch complexity indirect',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.dependencies_indirect|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    borderColor: colors[3],
-                    backgroundColor: colors[3],
-                    lineTension: 0,
-                    yAxisID: "y-axis-3",
                 }]
             }
 
@@ -99,9 +87,6 @@
                             display: false
                         },{
                             "id": "y-axis-2",
-                            display: false
-                        },{
-                            "id": "y-axis-3",
                             display: false
                         }]
                     },
@@ -140,9 +125,9 @@
     <table>
         <tr>
             <td></td>
-            <td>12 months</td>
-            <td>6 months</td>
             <td>1 month</td>
+            <td>6 months</td>
+            <td>12 months</td>
         </tr>
         {% for metric_stat in metric_stats %}
         <tr>

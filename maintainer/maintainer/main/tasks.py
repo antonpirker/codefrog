@@ -265,3 +265,41 @@ def import_gitlab_issues(project_pk):
         logger.debug('Gitlab issues for %s for %s', project.name, date_string)
 
     logger.info('Finished import_gitlab_issues for project %s', project.name)
+
+
+@shared_task
+def import_github_issues(project_pk):
+    logger.info('Starting import_github_issues for project %s' % project_pk)
+    project = Project.objects.get(pk=project_pk)
+    logger.info('Project: %s' % project.name)
+
+    issues = metrics.github_bug_issues(project)
+
+    if not issues:
+        return
+
+    for metric in Metric.objects.filter(project=project).order_by('-date'):
+        date_string = metric.date.strftime('%Y-%m-%d')
+
+        try:
+            metric_json = metric.metrics
+            if not metric_json:
+                metric_json = {}
+            metric_json['github_bug_issues_opened'] = issues[date_string]['opened']
+            metric_json['github_bug_issues_now_open'] = issues[date_string]['now_open']
+            metric.metrics = metric_json
+            metric.save()
+
+            logger.info('Saved %s: %s / %s' % (
+                date_string,
+                issues[date_string]['opened'],
+                issues[date_string]['now_open'],
+            ))
+
+        except KeyError:
+            pass
+        except TypeError:
+            import ipdb; ipdb.set_trace()
+
+    logger.info('Finished import_github_issues for project %s', project.name)
+

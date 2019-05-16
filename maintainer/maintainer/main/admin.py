@@ -35,7 +35,7 @@ class MetricAdmin(ModelAdminWithJSONWidget):
     def complexity(self, obj):
         try:
             complexity = obj.metrics['complexity']
-        except TypeError:
+        except (TypeError, KeyError):
             complexity = None
 
         return complexity

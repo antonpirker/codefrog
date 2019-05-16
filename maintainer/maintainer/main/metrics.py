@@ -1,15 +1,16 @@
 import glob
+import json
 import os
 import urllib
 from collections import defaultdict
 
-import requests
-import json
-
-from dateutil import parser
 import pytz
-
+import requests
+from dateutil import parser
+from dateutil.parser import parse
+import pandas as pd
 from maintainer.main.utils import run_shell_command
+
 
 def complexity(root_dir):
     """
@@ -96,34 +97,98 @@ def loc(root_dir):
     """
     Calculates the total number of lines of code in the given directory.
     """
-    loc = 0
-
     cmd = 'cloc {} -q -csv 2> /dev/null | tail -n +3 | ' \
           'cut --delimiter=, --fields=5 | paste -sd+ - | bc'.format(root_dir)
-    output = run_shell_command(cmd)
+    loc = run_shell_command(cmd)
 
-    return int(output or 0)
+    return int(loc or 0)
 
 
 def jira_bug_issues(project, date):
     return None
 
 
-def github_bug_issues(project, date):
-    # https://developer.github.com/v3/issues/#list-issues-for-a-repository
-    # GET /repos/:owner/:repo/issues
-    # labels=bug,bug-high,..
-    # state=open|closed|all
-    # sort=created
-    # direction=asc
+def github_bug_issues(project):
 
-    # ein issues hat dann folgende wichtige felder:
-    # "state"
-    # "created_at"
-    # "closed_at" (null -> noch offfen)
+    GITHUB_API_BASE_URL = 'https://api.github.com'
+    GITHUB_API_DEFAULT_HEADERS = {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Maintainer',
+    }
+    GITHUB_API_DEFAULT_PARAMS = {
+        'client_id': os.environ['GITHUB_CLIENT_ID'],
+        'client_secret': os.environ['GITHUB_CLIENT_SECRET'],
+    }
 
+    GITHUB_BUG_ISSUE_LABELS = [
+        'Bug',
+        'bug',
+        'type:bug/performance',
+        'Type: bug',
+        'kind/bug',
+        'bug', 'debt', 'perf-bloat', 'regression',
+        'crash', 'data-loss', 'regression', 'uncaught-exception',
+        'regression',
+    ]
 
-    pass
+    github_owner = project.external_services['github']['owner']
+    github_repo = project.external_services['github']['repo']
+    list_issues_url = f'/repos/{github_owner}/{github_repo}/issues'
+
+    params = GITHUB_API_DEFAULT_PARAMS
+    params.update({
+        'state': 'all',
+        'sort': 'created',
+        'direction': 'asc',
+        'per_page': '100',
+    })
+
+    issues_opened = defaultdict(int)
+    issues_closed = defaultdict(int)
+
+    url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
+
+    while url:
+        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        content = json.loads(r.content)
+
+        for item in content:
+            try:
+                labels = [label['name'] for label in item['labels']]
+            except TypeError:
+                import ipdb; ipdb.set_trace()
+
+            if len(set(labels).intersection(set(GITHUB_BUG_ISSUE_LABELS))) > 0:
+                created_at = parse(item['created_at']).date().isoformat()
+                closed_at = parse(item['closed_at']).date().isoformat() \
+                    if item['closed_at'] else None
+
+                issues_opened[created_at] += 1
+                if closed_at:
+                    issues_closed[closed_at] += 1
+
+        links = requests.utils.parse_header_links(r.headers['Link'])
+        url = None
+        for link in links:
+            if link['rel'] == 'next':
+                url = link['url']
+                break
+
+    # Calculate the number of open issues each day
+    df1 = pd.DataFrame.from_dict(issues_opened, orient='index')
+    df1.columns = ['opened']
+    df2 = pd.DataFrame.from_dict(issues_closed, orient='index')
+    df2.columns = ['closed']
+    df = pd.concat([df1, df2], axis=1, sort=True)
+    df['sum_opened'] = df.cumsum()['opened']
+    df['now_open'] = df['sum_opened'] - df['closed']
+    del df['closed']
+    del df['sum_opened']
+    df = df.fillna(0)
+    issues = df.to_dict('index')
+
+    return issues
+
 
 def gitlab_bug_issues(project, date):
     """
