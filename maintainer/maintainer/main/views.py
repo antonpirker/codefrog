@@ -124,11 +124,9 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.all().filter(slug='requests').order_by('id'):
-        tasks.import_github_issues(project.pk)
-        """
+    for project in Project.objects.all().order_by('id'):
         imports_to_run = [
-            #tasks.import_git_metrics.s(),
+            tasks.import_git_metrics.s(),
         ]
 
         if 'github' in project.external_services:
@@ -150,6 +148,5 @@ def update(request):
             args=(project.pk, ),
             link=imports_to_run,
         )
-        """
 
     return HttpResponse('Update started!')

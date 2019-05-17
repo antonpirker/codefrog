@@ -2,6 +2,8 @@ import logging
 import os
 import shutil
 import tempfile
+import time
+from collections import defaultdict
 from datetime import timedelta
 
 from dateutil import parser
@@ -36,10 +38,6 @@ def init_project(project_pk):
     cmd = 'git clean -q -f -d'
     run_shell_command(cmd, cwd=project.source_dir)
 
-    # remove compiled files.
-    cmd = 'find . -name "*.pyc" -delete'
-    run_shell_command(cmd, cwd=project.source_dir)
-
     # date of fist commit
     cmd = 'git log --reverse --format="%ad" --date=iso | head -1'
     start_date = parser.parse(run_shell_command(cmd, cwd=project.source_dir))
@@ -65,6 +63,7 @@ def init_project(project_pk):
 
 @shared_task
 def import_git_metrics(project_pk):
+    start = time.time()
     logger.info('Starting import_git_metrics for project %s', project_pk)
     project = Project.objects.get(pk=project_pk)
 
@@ -77,36 +76,71 @@ def import_git_metrics(project_pk):
     cmd = 'git clean -q -f -d'
     run_shell_command(cmd, cwd=project.source_dir)
 
-    commits = {}
+    complexity_added = defaultdict(int)
+    complexity_removed = defaultdict(int)
+    number_of_commits = defaultdict(int)
+    authors = defaultdict(list)
 
-    cmd = 'git log --author-date-order --pretty="%ad;%H" --date=short'
+    cmd = 'git log --reverse --author-date-order --pretty="%ad;%H;%aN;%aE" --date=short'
     output = run_shell_command(cmd, cwd=project.source_dir)
     for line in output.split('\n'):
-        if line:
-            day, git_commit_hash = line.split(';')
-            if day not in commits:
-                commits[day] = git_commit_hash
-            else:
-                continue
+        if not line:
+            continue
 
-    for day in commits.keys():
-        fetch_git_metrics.apply_async(
-            kwargs={
-                'project_id': project.pk,
-                'source_dir': project.source_dir,
-                'date': day,
-            },
+        day, git_commit_hash, author_name, author_email = line.split(';')
+
+        number_of_commits[day] += 1
+        authors[day].append(f'{author_name} <{author_email}>')
+
+        # lines added
+        cmd = f'git show {git_commit_hash} | grep -v "^+++ " | grep "^+"'
+        lines_added = run_shell_command(cmd, cwd=project.source_dir)
+
+        for l in lines_added.split('\n'):
+            if l:
+                l = l[1:]  # skip first character
+                complexity_added[day] += len(l) - len(l.lstrip())
+
+        # lines removed
+        cmd = f'git show {git_commit_hash} | grep -v "^--- " | grep "^-"'
+        lines_removed = run_shell_command(cmd, cwd=project.source_dir)
+
+        for l in lines_removed.split('\n'):
+            if l:
+                l = l[1:]  # skip first character
+                complexity_removed[day] += len(l) - len(l.lstrip())
+
+        logger.info(
+            'Complexity added/removed for %s: %s / %s',
+            day, complexity_added[day], complexity_removed[day],
         )
 
-        fetch_code_metrics.apply_async(
-            kwargs={
-                'project_id': project.pk,
-                'source_dir': project.source_dir,
-                'date': day,
-                'git_commit_hash': commits[day],
-            },
-        )
+    total_added = 0
+    total_removed = 0
+    for day in sorted(complexity_added.keys()):
+        total_added += complexity_added[day]
+        total_removed += complexity_removed[day]
 
+        complexity = total_added - total_removed
+
+        # save the metrics to db
+        metric, _ = Metric.objects.get_or_create(
+            project_id=project_pk,
+            date=day,
+        )
+        metric_json = metric.metrics
+        if not metric_json:
+            metric_json = {}
+        metric_json['number_of_commits'] = number_of_commits[day]
+        metric_json['complexity'] = complexity
+        metric.metrics = metric_json
+        metric.authors = authors
+        metric.save()
+        logger.info('Complexity %s: %s (%s / %s)', day, complexity, total_added, total_removed)
+
+    end = time.time()
+    logger.info('import_git_metrics for project %s took %s seconds.', project, end-start)
+    logger.info('days processed: %s' % len(complexity_added.keys()))
     return project_pk  # for chaining tasks
 
 
