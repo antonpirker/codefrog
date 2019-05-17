@@ -40,68 +40,65 @@ def index(request):
 
     # Changes in Complexity
     current_value =  metrics.filter(metrics__complexity__isnull=False)\
-        .exclude(metrics__complexity=0)\
-        .last()['metrics__complexity']
+        .last()['metrics__complexity'] or 1
+
     try:
         value1 = metrics.filter(
             date__lte=today-timedelta(days=1*30),
             metrics__complexity__isnull=False,
-        ).exclude(metrics__complexity=0).order_by('date').last()['metrics__complexity']
-        change1 = (100/value1*current_value-100)/100
+        ).order_by('date').last()['metrics__complexity']
     except TypeError:
-        change1 = '?'
+        value1 = 1
+    change1 = (100/(value1 or 1)*current_value-100)/100
 
     try:
         value2 = metrics.filter(
             date__lte=today-timedelta(days=6*30),
             metrics__complexity__isnull=False,
-        ).exclude(metrics__complexity=0).order_by('date').last()['metrics__complexity']
-        change2 = (100/value2*current_value-100)/100
+        ).order_by('date').last()['metrics__complexity']
     except TypeError:
-        change2 = '?'
+        value2 = 1
+    change2 = (100/(value2 or 1)*current_value-100)/100
 
     try:
         value3 = metrics.filter(
             date__lte=today-timedelta(days=12*30),
             metrics__complexity__isnull=False,
-        ).exclude(metrics__complexity=0).order_by('date').last()['metrics__complexity']
-        change3 = (100/value3*current_value-100)/100
+        ).order_by('date').last()['metrics__complexity']
     except TypeError:
-        change3 = '?'
+        value3 = 1
+    change3 = (100/(value3 or 1)*current_value-100)/100
 
     # Changes in Github Bug Issues Count
     current_value = metrics.filter(metrics__github_bug_issues_now_open__isnull=False)\
-        .exclude(metrics__github_bug_issues_now_open=0)\
-        .last()['metrics__github_bug_issues_now_open']
+        .last()['metrics__github_bug_issues_now_open'] or 1
+
     try:
         value1_1 = metrics.filter(
             date__lte=today-timedelta(days=1*30),
             metrics__github_bug_issues_now_open__isnull=False,
-        ).exclude(metrics__github_bug_issues_now_open=0).order_by('date').last()['metrics__github_bug_issues_now_open']
-        change1_1 = (100/value1_1*current_value-100)/100
+        ).order_by('date').last()['metrics__github_bug_issues_now_open']
     except TypeError:
-        import ipdb; ipdb.set_trace()
-        change1_1 = '?'
+        value1_1 = 1
+    change1_1 = (100 / (value1_1 or 1) * current_value - 100) / 100
 
     try:
         value1_2 = metrics.filter(
             date__lte=today-timedelta(days=6*30),
             metrics__github_bug_issues_now_open__isnull=False,
-        ).exclude(metrics__github_bug_issues_now_open=0).order_by('date').last()['metrics__github_bug_issues_now_open']
-        change1_2 = (100/value1_2*current_value-100)/100
+        ).order_by('date').last()['metrics__github_bug_issues_now_open']
     except TypeError:
-        import ipdb; ipdb.set_trace()
-        change1_2 = '?'
+        value1_2 = 1
+    change1_2 = (100/(value1_2 or 1)*current_value-100)/100
 
     try:
         value1_3 = metrics.filter(
             date__lte=today-timedelta(days=12*30),
             metrics__github_bug_issues_now_open__isnull=False,
-        ).exclude(metrics__github_bug_issues_now_open=0).order_by('date').last()['metrics__github_bug_issues_now_open']
-        change1_3 = (100/value1_3*current_value-100)/100
+        ).order_by('date').last()['metrics__github_bug_issues_now_open']
     except TypeError:
-        import ipdb; ipdb.set_trace()
-        change1_3 = '?'
+        value1_3 = 1
+    change1_3 = (100/(value1_3 or 1)*current_value-100)/100
 
     metric_stats = [{
         'label': 'Complexity: ',

@@ -298,8 +298,6 @@ def import_github_issues(project_pk):
 
         except KeyError:
             pass
-        except TypeError:
-            import ipdb; ipdb.set_trace()
 
     logger.info('Finished import_github_issues for project %s', project.name)
 
