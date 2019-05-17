@@ -156,7 +156,7 @@ STATIC_URL = '/static/'
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging
 
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'INFO'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

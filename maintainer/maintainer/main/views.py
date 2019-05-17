@@ -22,7 +22,7 @@ def index(request):
 
     metrics = Metric.objects.filter(
         project=project,
-        date__gte=last_year,
+#        date__gte=last_year,
     ).order_by('date').values(
         'date',
         'metrics__loc',
@@ -124,7 +124,7 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.all().filter(slug='keras').order_by('id'):
+    for project in Project.objects.all().filter(slug='requests').order_by('id'):
         tasks.import_github_issues(project.pk)
         """
         imports_to_run = [

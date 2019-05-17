@@ -140,7 +140,7 @@ def github_bug_issues(project):
         'state': 'all',
         'sort': 'created',
         'direction': 'asc',
-        'per_page': '100',
+        'per_page': '300',
     })
 
     issues_opened = defaultdict(int)
@@ -174,17 +174,36 @@ def github_bug_issues(project):
                 url = link['url']
                 break
 
-    # Calculate the number of open issues each day
+    # list opened issues per day
     df1 = pd.DataFrame.from_dict(issues_opened, orient='index')
     df1.columns = ['opened']
+    # list closed issues per day
     df2 = pd.DataFrame.from_dict(issues_closed, orient='index')
     df2.columns = ['closed']
+
+    # combine two lists and fill with 0 (where NaN whould be)
     df = pd.concat([df1, df2], axis=1, sort=True)
+    df = df.fillna(0)
+
+    # make index a datetime
+    df.index = pd.to_datetime(df.index)
+
+    # fill in missing dates
+    idx = pd.date_range(df.iloc[0].name, df.iloc[-1].name)
+    df = df.reindex(idx, fill_value=0)
+
+    # calculate currently open issues per day
     df['sum_opened'] = df.cumsum()['opened']
-    df['now_open'] = df['sum_opened'] - df['closed']
+    df['sum_closed'] = df.cumsum()['closed']
+    df['now_open'] = df['sum_opened'] - df['sum_closed']
+
+    # clean up
     del df['closed']
     del df['sum_opened']
-    df = df.fillna(0)
+    del df['sum_closed']
+
+    # create a python dict
+    df.index = df.index.strftime('%Y-%m-%d')
     issues = df.to_dict('index')
 
     return issues
