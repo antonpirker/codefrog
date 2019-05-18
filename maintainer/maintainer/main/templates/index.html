@@ -2,7 +2,8 @@
 <html>
 <head>
     <script type="text/javascript">
-        colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
+        //colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
+        colors = ['#DD0F7E', '#009BBE', 'rgba(168, 218, 0, 0.6)', '#F2E205', '#EE5A02'];
 
         window.onload = function () {
             // CHART JS
@@ -19,6 +20,7 @@
                 datasets: [{
                     fill: false,
                     label: 'Complexity',
+                    type: 'line',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
@@ -26,6 +28,7 @@
                     ],
                     borderColor: colors[0],
                     backgroundColor: colors[0],
+                    pointRadius: 0,
                     lineTension: 0,
                     yAxisID: "y-axis-0",
                 },{
@@ -44,7 +47,7 @@
             }
 
             const options = {
-                type: 'line',
+                type: 'bar',
                 data: data,
                 options: {
                     fill: false,

@@ -59,6 +59,7 @@ def resample(queryset, frequency):
         'github_bug_issues_now_open': 'last',  # the number of open issues at the end of the week
         'number_of_commits': np.sum,  # sum the number of commits
     })
+    df = df.fillna(0)
 
     df['date'] = df.index
     metrics = df.to_dict('records')

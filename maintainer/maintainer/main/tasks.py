@@ -76,71 +76,95 @@ def import_git_metrics(project_pk):
     cmd = 'git clean -q -f -d'
     run_shell_command(cmd, cwd=project.source_dir)
 
-    complexity_added = defaultdict(int)
-    complexity_removed = defaultdict(int)
-    number_of_commits = defaultdict(int)
-    authors = defaultdict(list)
+    def complexityGenerator():
+        complexity_added = defaultdict(int)
+        complexity_removed = defaultdict(int)
+        number_of_commits = defaultdict(int)
+        authors = defaultdict(list)
 
-    cmd = 'git log --reverse --author-date-order --pretty="%ad;%H;%aN;%aE" --date=short'
-    output = run_shell_command(cmd, cwd=project.source_dir)
-    for line in output.split('\n'):
-        if not line:
-            continue
+        cmd = 'git log --reverse --author-date-order --pretty="%ad;%H;%aN;%aE" --date=short'
+        output = run_shell_command(cmd, cwd=project.source_dir)
+        last_day = None
+        days = 0
+        for line in output.split('\n'):
+            if not line:
+                continue
 
-        day, git_commit_hash, author_name, author_email = line.split(';')
+            day, git_commit_hash, author_name, author_email = line.split(';')
 
-        number_of_commits[day] += 1
-        authors[day].append(f'{author_name} <{author_email}>')
+            number_of_commits[day] += 1
+            authors[day].append(f'{author_name} <{author_email}>')
 
-        # lines added
-        cmd = f'git show {git_commit_hash} | grep -v "^+++ " | grep "^+"'
-        lines_added = run_shell_command(cmd, cwd=project.source_dir)
+            # lines added
+            cmd = f'git config merge.renameLimit 99999 && git show {git_commit_hash} | grep -v "^+++ " | grep "^+"'
+            lines_added = run_shell_command(cmd, cwd=project.source_dir)
 
-        for l in lines_added.split('\n'):
-            if l:
-                l = l[1:]  # skip first character
-                complexity_added[day] += len(l) - len(l.lstrip())
+            for l in lines_added.split('\n'):
+                if l:
+                    l = l[1:]  # skip first character
+                    complexity_added[day] += len(l) - len(l.lstrip())
 
-        # lines removed
-        cmd = f'git show {git_commit_hash} | grep -v "^--- " | grep "^-"'
-        lines_removed = run_shell_command(cmd, cwd=project.source_dir)
+            # lines removed
+            cmd = f'git config merge.renameLimit 99999 && git show {git_commit_hash} | grep -v "^--- " | grep "^-"'
+            lines_removed = run_shell_command(cmd, cwd=project.source_dir)
 
-        for l in lines_removed.split('\n'):
-            if l:
-                l = l[1:]  # skip first character
-                complexity_removed[day] += len(l) - len(l.lstrip())
+            for l in lines_removed.split('\n'):
+                if l:
+                    l = l[1:]  # skip first character
+                    complexity_removed[day] += len(l) - len(l.lstrip())
 
-        logger.info(
-            'Complexity added/removed for %s: %s / %s',
-            day, complexity_added[day], complexity_removed[day],
-        )
+            logger.info(
+                '%s complexity calculated added/removed for %s: %s / %s',
+                project, day, complexity_added[day], complexity_removed[day],
+            )
 
-    total_added = 0
-    total_removed = 0
-    for day in sorted(complexity_added.keys()):
-        total_added += complexity_added[day]
-        total_removed += complexity_removed[day]
+            if last_day != day:
+                days += 1
 
-        complexity = total_added - total_removed
+            if days == 30:
+                yield (
+                    complexity_added,
+                    complexity_removed,
+                    number_of_commits,
+                    authors,
+                )
+                days = 0
 
-        # save the metrics to db
-        metric, _ = Metric.objects.get_or_create(
-            project_id=project_pk,
-            date=day,
-        )
-        metric_json = metric.metrics
-        if not metric_json:
-            metric_json = {}
-        metric_json['number_of_commits'] = number_of_commits[day]
-        metric_json['complexity'] = complexity
-        metric.metrics = metric_json
-        metric.authors = authors
-        metric.save()
-        logger.info('Complexity %s: %s (%s / %s)', day, complexity, total_added, total_removed)
+            last_day = day
 
-    end = time.time()
-    logger.info('import_git_metrics for project %s took %s seconds.', project, end-start)
-    logger.info('days processed: %s' % len(complexity_added.keys()))
+    complexity_generator = complexityGenerator()
+
+    for (complexity_added, complexity_removed, number_of_commits, authors) in complexity_generator:
+        total_added = 0
+        total_removed = 0
+        for day in sorted(complexity_added.keys()):
+            total_added += complexity_added[day]
+            total_removed += complexity_removed[day]
+
+            complexity = total_added - total_removed
+
+            # save the metrics to db
+            metric, _ = Metric.objects.get_or_create(
+                project_id=project_pk,
+                date=day,
+            )
+            metric_json = metric.metrics
+            if not metric_json:
+                metric_json = {}
+            #metric_json['number_of_commits'] = number_of_commits[day]
+            metric_json['complexity'] = complexity
+            metric.metrics = metric_json
+            #metric.authors = authors
+            metric.save()
+            logger.info(
+                '%s: complexity saved %s: %s (%s / %s)',
+                project, day, complexity, complexity, number_of_commits[day],
+            )
+
+        end = time.time()
+        logger.info('import_git_metrics for project %s took %s seconds.', project, end-start)
+        logger.info('days processed: %s' % len(complexity_added.keys()))
+
     return project_pk  # for chaining tasks
 
 

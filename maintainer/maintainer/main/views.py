@@ -39,8 +39,11 @@ def index(request):
     )
 
     # Changes in Complexity
-    current_value =  metrics.filter(metrics__complexity__isnull=False)\
-        .last()['metrics__complexity'] or 1
+    try:
+        current_value =  metrics.filter(metrics__complexity__isnull=False)\
+            .last()['metrics__complexity'] or 1
+    except TypeError:
+        current_value = 1
 
     try:
         value1 = metrics.filter(
@@ -70,8 +73,11 @@ def index(request):
     change3 = (100/(value3 or 1)*current_value-100)/100
 
     # Changes in Github Bug Issues Count
-    current_value = metrics.filter(metrics__github_bug_issues_now_open__isnull=False)\
-        .last()['metrics__github_bug_issues_now_open'] or 1
+    try:
+        current_value = metrics.filter(metrics__github_bug_issues_now_open__isnull=False)\
+            .last()['metrics__github_bug_issues_now_open'] or 1
+    except TypeError:
+        current_value = 1
 
     try:
         value1_1 = metrics.filter(
@@ -115,7 +121,7 @@ def index(request):
     context = {
         'projects': Project.objects.all().order_by('name'),
         'project': project,
-        'metrics': resample(metrics, 'D'),
+        'metrics': resample(metrics, 'W'),
         'metric_stats': metric_stats,
     }
 
@@ -124,15 +130,15 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.all().order_by('id'):
+    for project in Project.objects.filter(slug='atom').order_by('id'):
         imports_to_run = [
             tasks.import_git_metrics.s(),
         ]
 
-        if 'github' in project.external_services:
-            imports_to_run.append(
-                tasks.import_github_issues.s(),
-            )
+#        if 'github' in project.external_services:
+#            imports_to_run.append(
+#                tasks.import_github_issues.s(),
+#            )
 
         #if 'gitlab' in project.external_services:
         #    imports_to_run.append(
