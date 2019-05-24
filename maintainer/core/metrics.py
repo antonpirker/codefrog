@@ -9,7 +9,7 @@ import requests
 from dateutil import parser
 from dateutil.parser import parse
 import pandas as pd
-from maintainer.main.utils import run_shell_command
+from core.utils import run_shell_command
 
 
 def complexity(root_dir):
@@ -140,11 +140,12 @@ def github_bug_issues(project):
         'state': 'all',
         'sort': 'created',
         'direction': 'asc',
-        'per_page': '300',
+        'per_page': '200',
     })
 
     issues_opened = defaultdict(int)
     issues_closed = defaultdict(int)
+    days_open = defaultdict(int)
 
     url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
 
@@ -167,6 +168,8 @@ def github_bug_issues(project):
                 if closed_at:
                     issues_closed[closed_at] += 1
 
+                    days_open[closed_at] += (parse(closed_at) - parse(created_at)).days
+
         links = requests.utils.parse_header_links(r.headers['Link'])
         url = None
         for link in links:
@@ -177,12 +180,15 @@ def github_bug_issues(project):
     # list opened issues per day
     df1 = pd.DataFrame.from_dict(issues_opened, orient='index')
     df1.columns = ['opened']
+    # list the number of days issues where open
+    df2 = pd.DataFrame.from_dict(days_open, orient='index')
+    df2.columns = ['days_open']
     # list closed issues per day
-    df2 = pd.DataFrame.from_dict(issues_closed, orient='index')
-    df2.columns = ['closed']
+    df3 = pd.DataFrame.from_dict(issues_closed, orient='index')
+    df3.columns = ['closed']
 
     # combine two lists and fill with 0 (where NaN whould be)
-    df = pd.concat([df1, df2], axis=1, sort=True)
+    df = pd.concat([df1, df2, df3], axis=1, sort=True)
     df = df.fillna(0)
 
     # make index a datetime
@@ -195,12 +201,17 @@ def github_bug_issues(project):
     # calculate currently open issues per day
     df['sum_opened'] = df.cumsum()['opened']
     df['sum_closed'] = df.cumsum()['closed']
+    df['sum_days_open'] = df.cumsum()['days_open']
+    df['avg_days_open'] = df['sum_days_open'] / df['sum_closed']
     df['now_open'] = df['sum_opened'] - df['sum_closed']
+    df = df.fillna(0)
 
     # clean up
-    del df['closed']
+    #del df['closed']
     del df['sum_opened']
     del df['sum_closed']
+    del df['days_open']
+    del df['sum_days_open']
 
     # create a python dict
     df.index = df.index.strftime('%Y-%m-%d')

@@ -3,7 +3,7 @@ from django.contrib.postgres import fields
 
 from django_json_widget.widgets import JSONEditorWidget
 
-from maintainer.main.models import Project, Metric
+from core.models import Project, Metric
 
 
 class ModelAdminWithJSONWidget(admin.ModelAdmin):
@@ -15,7 +15,7 @@ class ModelAdminWithJSONWidget(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'name', 'slug', 'source_dir',
+        'id', 'name', 'slug', 'git_url',
     )
     ordering = ['name', ]
 

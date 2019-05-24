@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 import tempfile
 import time
 from collections import defaultdict
@@ -9,9 +8,9 @@ from datetime import timedelta
 from dateutil import parser
 
 from celery import shared_task
-from maintainer.main import metrics
-from maintainer.main.models import Metric, Project
-from maintainer.main.utils import run_shell_command
+from core import metrics
+from core.models import Metric, Project
+from core.utils import run_shell_command
 
 logger = logging.getLogger(__name__)
 
@@ -344,15 +343,20 @@ def import_github_issues(project_pk):
             if not metric_json:
                 metric_json = {}
             metric_json['github_bug_issues_opened'] = issues[date_string]['opened']
+            metric_json['github_bug_issues_closed'] = issues[date_string]['closed']
+            metric_json['github_bug_issues_avg_days_open'] = issues[date_string]['avg_days_open']
             metric_json['github_bug_issues_now_open'] = issues[date_string]['now_open']
             metric.metrics = metric_json
             metric.save()
 
-            logger.info('Saved %s: %s / %s' % (
+            logger.info('%s/%s: github metrics: %s / %s | %s / %s',
+                project,
                 date_string,
                 issues[date_string]['opened'],
                 issues[date_string]['now_open'],
-            ))
+                issues[date_string]['closed'],
+                issues[date_string]['days_open'],
+            )
 
         except KeyError:
             pass

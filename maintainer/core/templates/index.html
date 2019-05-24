@@ -33,7 +33,7 @@
                     yAxisID: "y-axis-0",
                 },{
                     fill: false,
-                    label: 'Bug Issues open',
+                    label: 'Defects in issue tracker',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.github_bug_issues_now_open|default:0 }}{% if not forloop.last %},{% endif %}
@@ -43,6 +43,18 @@
                     backgroundColor: colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
+                },{
+                    fill: false,
+                    label: 'Avg days to fix defect',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.github_bug_issues_avg_days_open|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    borderColor: colors[1],
+                    backgroundColor: colors[1],
+                    lineTension: 0,
+                    yAxisID: "y-axis-2",
                 }]
             }
 
@@ -75,6 +87,9 @@
                             display: false
                         },{
                             "id": "y-axis-1",
+                            display: false
+                        },{
+                            "id": "y-axis-2",
                             display: false
                         }]
                     },

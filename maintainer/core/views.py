@@ -5,9 +5,9 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from maintainer.main import tasks
-from maintainer.main.models import Metric, Project
-from maintainer.main.utils import resample
+from core import tasks
+from core.models import Metric, Project
+from core.utils import resample
 
 
 def index(request):
@@ -30,6 +30,8 @@ def index(request):
         'metrics__sentry_errors',
         'metrics__gitlab_bug_issues',
         'metrics__github_bug_issues_opened',
+        'metrics__github_bug_issues_closed',
+        'metrics__github_bug_issues_avg_days_open',
         'metrics__github_bug_issues_now_open',
         'metrics__number_of_commits',
         'metrics__complexity_per_author',
@@ -130,15 +132,15 @@ def index(request):
 
 
 def update(request):
-    for project in Project.objects.filter(slug='atom').order_by('id'):
+    for project in Project.objects.filter(pk__gte=1, pk__lte=1).order_by('id'):
         imports_to_run = [
-            tasks.import_git_metrics.s(),
+            #tasks.import_git_metrics.s(),
         ]
 
-#        if 'github' in project.external_services:
-#            imports_to_run.append(
-#                tasks.import_github_issues.s(),
-#            )
+        if 'github' in project.external_services:
+            imports_to_run.append(
+                tasks.import_github_issues.s(),
+            )
 
         #if 'gitlab' in project.external_services:
         #    imports_to_run.append(

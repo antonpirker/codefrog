@@ -3,8 +3,8 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('', include('maintainer.main.urls')),
-    path('incoming/', include('maintainer.incomingwebhooks.urls')),
+    path('', include('core.urls')),
+    path('incoming/', include('incomingwebhooks.urls')),
 
     path('admin/', admin.site.urls),
 ]

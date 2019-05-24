@@ -5,7 +5,7 @@ from django.db import models
 class Project(models.Model):
     slug = models.SlugField(max_length=40)
     name = models.CharField(max_length=100)
-    source_dir = models.CharField(max_length=255)
+    git_url = models.CharField(max_length=255)
 
     external_services = JSONField(null=True)
 

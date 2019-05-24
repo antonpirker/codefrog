@@ -65,7 +65,9 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_json_widget',
 
-    'maintainer.main',
+    'core.apps.CoreConfig',
+    'ingest.apps.IngestConfig',
+    'incomingwebhooks.apps.IncomingWebhooksConfig',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +80,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'maintainer.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
@@ -96,7 +98,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'maintainer.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 
 # Database
