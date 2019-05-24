@@ -40,16 +40,15 @@ def ingest_code_metrics(project_id, repo_dir, start_date, end_date=None):
             continue
 
         timestamp, git_commit_hash, author_name, author_email = line.split(';')
-
         added, removed = get_complexity_change(repo_dir, git_commit_hash)
 
         try:
             logger.info('Saving RawCodeChange project(%s) / %s', project_id, timestamp)
-            RawCodeChange.objects.create(
+            RawCodeChange.objects.update_or_create(
                 project_id=project_id,
                 timestamp=parse(timestamp),
                 file_path='TODO! This needs to be added!',
-                author=f'{author_name}<{author_email}>',
+                author=f'{author_name} <{author_email}>',
                 complexity_added=added,
                 complexity_removed=removed,
             )

@@ -47,11 +47,20 @@ class Project(models.Model):
         run_shell_command(cmd)
 
     def import_data(self, start_date=None):
-        ingest_code_metrics(self.pk, self.repo_dir, start_date)
+        ingest_code_metrics(
+            project_id=self.pk,
+            repo_dir=self.repo_dir,
+            start_date=start_date,
+        )
 
         if self.has_github_issues:
-            ingest_github_issues(self.pk, start_date)
-
+            import ipdb; ipdb.set_trace()
+            ingest_github_issues(
+                project_id=self.pk,
+                repo_owner=self.external_services['github_issues']['repo_owner'],
+                repo_name=self.external_services['github_issues']['repo_name'],
+                start_date=start_date,
+            )
 
 
 class Metric(models.Model):

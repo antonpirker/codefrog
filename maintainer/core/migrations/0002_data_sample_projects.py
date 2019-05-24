@@ -11,8 +11,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/kennethreitz/requests.git',
         external_services={
             'github_issues': {
-                'owner': 'kennethreitz',
-                'repo': 'requests'
+                'repo_owner': 'kennethreitz',
+                'repo_name': 'requests'
             },
         },
     )
@@ -23,8 +23,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/pallets/flask.git',
         external_services={
             'github_issues': {
-                'owner': 'pallets',
-                'repo': 'flask'
+                'repo_owner': 'pallets',
+                'repo_name': 'flask'
             },
         },
     )
@@ -35,8 +35,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/keras-team/keras.git',
         external_services={
             'github_issues': {
-                'owner': 'keras-team',
-                'repo': 'keras'
+                'repo_owner': 'keras-team',
+                'repo_name': 'keras'
             },
         },
     )
@@ -47,8 +47,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/facebook/react.git',
         external_services={
             'github_issues': {
-                'owner': 'facebook',
-                'repo': 'react'
+                'repo_owner': 'facebook',
+                'repo_name': 'react'
             },
         },
     )
@@ -59,8 +59,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/kubernetes/kubernetes.git',
         external_services={
             'github_issues': {
-                'owner': 'kubernetes',
-                'repo': 'kubernetes'
+                'repo_owner': 'kubernetes',
+                'repo_name': 'kubernetes'
             },
         },
     )
@@ -71,8 +71,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/Microsoft/vscode.git',
         external_services={
             'github_issues': {
-                'owner': 'Microsoft',
-                'repo': 'vscode'
+                'repo_owner': 'Microsoft',
+                'repo_name': 'vscode'
             },
         },
     )
@@ -83,8 +83,8 @@ def up(apps, schema_editor):
         git_url='https://github.com/atom/atom.git',
         external_services={
             'github_issues': {
-                'owner': 'atom',
-                'repo': 'atom'
+                'repo_owner': 'atom',
+                'repo_name': 'atom'
             },
         },
     )
@@ -95,15 +95,26 @@ def up(apps, schema_editor):
         git_url='https://github.com/rails/rails.git',
         external_services={
             'github_issues': {
-                'owner': 'rails',
-                'repo': 'rails'
+                'repo_owner': 'rails',
+                'repo_name': 'rails'
             },
         },
     )
 
 
 def down(apps, schema_editor):
-    pass
+    initial_project_slugs = [
+        'requests',
+        'flask',
+        'keras',
+        'react',
+        'kubernetes',
+        'vscode',
+        'atom',
+        'rails',
+    ]
+    Project = apps.get_model('core', 'Project')
+    Project.objects.filter(slug=initial_project_slugs).delete()
 
 
 class Migration(migrations.Migration):
