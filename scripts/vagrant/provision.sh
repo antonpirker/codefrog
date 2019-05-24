@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+update-locale LC_ALL="en_US.utf8"
 
 echo "Install generic nice stuff..."
 
-apt-get update --quiet
-apt-get install -y --no-install-recommends \
+sudo apt-get update --quiet
+sudo apt-get install -y --no-install-recommends \
+    postgresql-10 \
+    postgresql-client-10 \
+    postgresql-server-dev-10 \
     apt-transport-https \
     build-essential \
     bzip2 \
