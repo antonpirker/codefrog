@@ -54,7 +54,6 @@ class Project(models.Model):
         )
 
         if self.has_github_issues:
-            import ipdb; ipdb.set_trace()
             ingest_github_issues(
                 project_id=self.pk,
                 repo_owner=self.external_services['github_issues']['repo_owner'],
