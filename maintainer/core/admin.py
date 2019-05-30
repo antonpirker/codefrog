@@ -34,7 +34,7 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
 @admin.register(Metric)
 class MetricAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'project', 'date', 'git_reference', 'complexity',
+        'project', 'date', 'complexity',
     )
     list_filter = (
         'project', 'date',
