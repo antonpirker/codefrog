@@ -1,6 +1,6 @@
 import os
 
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from core.utils import run_shell_command
@@ -48,11 +48,11 @@ class Project(models.Model):
         from ingest.git import ingest_code_metrics
         from ingest.github import ingest_github_issues
 
-        #ingest_code_metrics(
-        #    project_id=self.pk,
-        #    repo_dir=self.repo_dir,
-        #    start_date=start_date,
-        #)
+        ingest_code_metrics(
+            project_id=self.pk,
+            repo_dir=self.repo_dir,
+            start_date=start_date,
+        )
 
         if self.has_github_issues:
             ingest_github_issues(
@@ -61,6 +61,21 @@ class Project(models.Model):
                 repo_name=self.external_services['github_issues']['repo_name'],
                 start_date=start_date,
             )
+
+    def import_releases(self):
+        from ingest.github import ingest_github_releases, ingest_github_tags
+
+        ingest_github_releases(
+            project_id=self.pk,
+            repo_owner=self.external_services['github_issues']['repo_owner'],
+            repo_name=self.external_services['github_issues']['repo_name'],
+        )
+
+        ingest_github_tags(
+            project_id=self.pk,
+            repo_owner=self.external_services['github_issues']['repo_owner'],
+            repo_name=self.external_services['github_issues']['repo_name'],
+        )
 
 
 class Metric(models.Model):

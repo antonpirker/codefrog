@@ -21,7 +21,10 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
 
     prepopulated_fields = {'slug': ('name',)}
 
-    actions = ['import_project']
+    actions = [
+        'import_project',
+        'import_releases',
+    ]
 
     def import_project(self, request, queryset):
         for project in queryset:
@@ -29,6 +32,12 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
             project.import_data()
             self.message_user(request, f'Import of {project.name} started.')
     import_project.short_description = 'Import Project'
+
+    def import_releases(self, request, queryset):
+        for project in queryset:
+            project.import_releases()
+            self.message_user(request, f'Import of releases for {project.name} started.')
+    import_releases.short_description = 'Import Releases'
 
 
 @admin.register(Metric)
