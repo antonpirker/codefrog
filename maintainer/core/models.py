@@ -76,3 +76,13 @@ class Metric(models.Model):
         unique_together = (
             ('project', 'date'),
         )
+
+
+class Release(models.Model):
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+    )
+    timestamp = models.DateTimeField()
+    name = models.CharField(max_length=100)
+    url = models.CharField(max_length=255, blank=True)

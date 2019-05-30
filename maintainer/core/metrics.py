@@ -170,12 +170,15 @@ def github_bug_issues(project):
 
                     days_open[closed_at] += (parse(closed_at) - parse(created_at)).days
 
-        links = requests.utils.parse_header_links(r.headers['Link'])
         url = None
-        for link in links:
-            if link['rel'] == 'next':
-                url = link['url']
-                break
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
 
     # list opened issues per day
     df1 = pd.DataFrame.from_dict(issues_opened, orient='index')
@@ -297,8 +300,12 @@ def sentry_errors(project):
 
         yield errors_by_date
 
-        next_link_info = r.headers['link'].split(',')[1].split(';')
-        if next_link_info[2].strip() == 'results="true"':
-            url = next_link_info[0].strip()[1:-1]
-        else:
-            url = None
+        url = None
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass

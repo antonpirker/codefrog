@@ -9,7 +9,7 @@ import pandas as pd
 import requests
 from django.utils import timezone
 
-from core.models import Metric
+from core.models import Metric, Release
 from ingest.models import RawIssue
 
 logger = logging.getLogger(__name__)
@@ -78,12 +78,15 @@ def ingest_github_issues(project_id, repo_owner, repo_name, start_date=None):
                 labels=labels,
             )
 
-        links = requests.utils.parse_header_links(r.headers['Link'])
         url = None
-        for link in links:
-            if link['rel'] == 'next':
-                url = link['url']
-                break
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
 
     logger.info('Finished ingest_code_metrics for project %s', project_id)
 
@@ -173,3 +176,95 @@ def calculate_github_issue_metrics(project_id, start_date, end_date=None):
         metric.save()
 
     logger.info('Finished calculate_github_issue_metrics for project %s', project_id)
+
+
+def ingest_github_tags(project_id, repo_owner, repo_name):
+    logger.info('Starting ingest_github_tags for project %s', project_id)
+
+    params = GITHUB_API_DEFAULT_PARAMS
+
+    list_tags_url = f'/repos/{repo_owner}/{repo_name}/git/refs/tags'
+    url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
+
+    while url:
+        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        content = json.loads(r.content)
+
+        for item in content:
+            tag_name = item['ref'].rpartition('/')[2]
+            tag_url = '%s?%s' % (item['object']['url'], urllib.parse.urlencode(params))
+
+            r2 = requests.get(tag_url, headers=GITHUB_API_DEFAULT_HEADERS)
+            tag_content = json.loads(r2.content)
+
+            try:
+                tag_date = tag_content['author']['date']
+            except KeyError:
+                tag_date = tag_content['tagger']['date']
+
+            logger.info(
+                'Saving Release for project(%s) / %s / %s',
+                project_id,
+                tag_name,
+                tag_date,
+            )
+            Release.objects.update_or_create(
+                project_id=project_id,
+                timestamp=tag_date,
+                name=tag_name,
+            )
+
+        url = None
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
+
+    logger.info('Finished ingest_github_tags for project %s', project_id)
+
+
+def ingest_github_releases(project_id, repo_owner, repo_name):
+    logger.info('Starting ingest_github_releases for project %s', project_id)
+
+    params = GITHUB_API_DEFAULT_PARAMS
+
+    list_tags_url = f'/repos/{repo_owner}/{repo_name}/releases'
+    url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
+
+    while url:
+        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        content = json.loads(r.content)
+
+        for item in content:
+            tag_name = item['tag_name']
+            tag_date = item['published_at']
+            tag_url = item['html_url']
+
+            logger.info(
+                'Saving Release for project(%s) / %s / %s',
+                project_id,
+                tag_name,
+                tag_date,
+            )
+            Release.objects.update_or_create(
+                project_id=project_id,
+                timestamp=tag_date,
+                name=tag_name,
+                url=tag_url,
+            )
+
+        url = None
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
+
+    logger.info('Finished ingest_github_releases for project %s', project_id)
