@@ -1,5 +1,7 @@
 import datetime
 import logging
+from collections import defaultdict
+
 from dateutil.parser import parse
 
 from celery import shared_task
@@ -42,16 +44,19 @@ def ingest_code_metrics(project_id, repo_dir, start_date, end_date=None):
         timestamp, git_commit_hash, author_name, author_email = line.split(';')
         added, removed = get_complexity_change(repo_dir, git_commit_hash)
 
+        file_names = list(set(list(added.keys()) + list(removed.keys())))
+
         try:
-            logger.info('Saving RawCodeChange project(%s) / %s', project_id, timestamp)
-            RawCodeChange.objects.update_or_create(
-                project_id=project_id,
-                timestamp=parse(timestamp),
-                file_path='TODO! This needs to be added!',
-                author=f'{author_name} <{author_email}>',
-                complexity_added=added,
-                complexity_removed=removed,
-            )
+            for file_name in file_names:
+                logger.info('Saving RawCodeChange project(%s) / %s', project_id, timestamp)
+                RawCodeChange.objects.update_or_create(
+                    project_id=project_id,
+                    timestamp=parse(timestamp),
+                    file_path=file_name,
+                    author=f'{author_name} <{author_email}>',
+                    complexity_added=added[file_name],
+                    complexity_removed=removed[file_name],
+                )
         except ValueError as err:
             logger.error('Error saving RawCodeChange: %s', err)
 
@@ -68,31 +73,46 @@ def get_complexity_change(source_dir, git_commit_hash):
     :param git_commit_hash:
     :return:
     """
-    complexity_added = 0
-    complexity_removed = 0
+    complexity_added = defaultdict(int)
+    complexity_removed = defaultdict(int)
 
-    # lines added
-    cmd = f'git config merge.renameLimit 99999 ' \
-        f'&& git show {git_commit_hash} | grep -v "^+++ " | grep "^+"'
-    lines_added = run_shell_command(cmd, cwd=source_dir)
+    # list files that where changed
+    cmd = f'git diff-tree --no-commit-id --name-only -r {git_commit_hash}'
+    files_changed = run_shell_command(cmd, cwd=source_dir)
 
-    for line in lines_added.split('\n'):
-        if not line:
+    is_root_commit = not files_changed
+    if is_root_commit:
+        cmd = f'git diff-tree --root --no-commit-id --name-only -r {git_commit_hash}'
+        files_changed = run_shell_command(cmd, cwd=source_dir)
+
+    for file_name in files_changed.split('\n'):
+        if not file_name:
             continue
 
-        line = line[1:]  # skip first character
-        complexity_added += len(line) - len(line.lstrip())
+        # lines added
+        cmd = f'git config merge.renameLimit 99999 ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{file_name}" ' \
+            f'| grep -v "^+++ " | grep "^+"'
+        lines_added = run_shell_command(cmd, cwd=source_dir)
 
-    # lines removed
-    cmd = f'git config merge.renameLimit 99999 ' \
-        f'&& git show {git_commit_hash} | grep -v "^--- " | grep "^-"'
-    lines_removed = run_shell_command(cmd, cwd=source_dir)
+        for line in lines_added.split('\n'):
+            if not line:
+                continue
 
-    for line in lines_removed.split('\n'):
-        if not line:
-            continue
+            line = line[1:]  # skip first character
+            complexity_added[file_name] += len(line) - len(line.lstrip())
 
-        line = line[1:]  # skip first character
-        complexity_removed += len(line) - len(line.lstrip())
+        # lines removed
+        cmd = f'git config merge.renameLimit 99999 ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{file_name}" ' \
+            f'| grep -v "^--- " | grep "^-"'
+        lines_removed = run_shell_command(cmd, cwd=source_dir)
+
+        for line in lines_removed.split('\n'):
+            if not line:
+                continue
+
+            line = line[1:]  # skip first character
+            complexity_removed[file_name] += len(line) - len(line.lstrip())
 
     return complexity_added, complexity_removed

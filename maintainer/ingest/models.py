@@ -9,7 +9,7 @@ class RawIssue(models.Model):
     )
     issue_refid = models.CharField(max_length=100)
     opened_at = models.DateTimeField()
-    closed_at = models.DateTimeField()
+    closed_at = models.DateTimeField(null=True)
 
     labels = ArrayField(
         models.CharField(max_length=255),
