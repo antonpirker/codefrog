@@ -48,11 +48,11 @@ class Project(models.Model):
         from ingest.git import ingest_code_metrics
         from ingest.github import ingest_github_issues
 
-        ingest_code_metrics(
-            project_id=self.pk,
-            repo_dir=self.repo_dir,
-            start_date=start_date,
-        )
+        #ingest_code_metrics(
+        #    project_id=self.pk,
+        #    repo_dir=self.repo_dir,
+        #    start_date=start_date,
+        #)
 
         if self.has_github_issues:
             ingest_github_issues(
