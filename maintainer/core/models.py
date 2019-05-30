@@ -45,12 +45,16 @@ class Project(models.Model):
         run_shell_command(cmd)
 
     def import_data(self, start_date=None):
-        from ingest.git import ingest_code_metrics
-        from ingest.github import ingest_github_issues
+        from ingest.git import ingest_code_metrics, calculate_code_metrics
+        from ingest.github import ingest_github_issues, calculate_github_issue_metrics
 
         ingest_code_metrics(
             project_id=self.pk,
             repo_dir=self.repo_dir,
+            start_date=start_date,
+        )
+        calculate_code_metrics(
+            project_id=self.pk,
             start_date=start_date,
         )
 
@@ -59,6 +63,10 @@ class Project(models.Model):
                 project_id=self.pk,
                 repo_owner=self.external_services['github_issues']['repo_owner'],
                 repo_name=self.external_services['github_issues']['repo_name'],
+                start_date=start_date,
+            )
+            calculate_github_issue_metrics(
+                project_id=self.pk,
                 start_date=start_date,
             )
 

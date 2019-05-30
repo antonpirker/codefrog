@@ -5,7 +5,6 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from core import tasks
 from core.models import Metric, Project
 from core.utils import resample
 

@@ -3,7 +3,7 @@ from django.contrib.postgres import fields
 
 from django_json_widget.widgets import JSONEditorWidget
 
-from core.models import Project, Metric
+from core.models import Project, Metric, Release
 
 
 class ModelAdminWithJSONWidget(admin.ModelAdmin):
@@ -30,14 +30,9 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
         for project in queryset:
             project.clone_repo()
             project.import_data()
+            project.import_releases()
             self.message_user(request, f'Import of {project.name} started.')
     import_project.short_description = 'Import Project'
-
-    def import_releases(self, request, queryset):
-        for project in queryset:
-            project.import_releases()
-            self.message_user(request, f'Import of releases for {project.name} started.')
-    import_releases.short_description = 'Import Releases'
 
 
 @admin.register(Metric)
@@ -57,3 +52,14 @@ class MetricAdmin(ModelAdminWithJSONWidget):
             complexity = None
 
         return complexity
+
+
+@admin.register(Release)
+class ReleaseAdmin(ModelAdminWithJSONWidget):
+    list_display = (
+        'project', 'timestamp', 'name', 'url',
+    )
+    list_filter = (
+        'project', 'timestamp',
+    )
+    ordering = ['project__name', '-timestamp', ]

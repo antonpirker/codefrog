@@ -4,5 +4,4 @@ from core import views
 
 urlpatterns = [
     path('', views.index),
-    path('update', views.update),
 ]
