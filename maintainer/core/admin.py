@@ -15,7 +15,7 @@ class ModelAdminWithJSONWidget(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'id', 'name', 'slug', 'git_url',
+        'name', 'slug', 'git_url', 'last_update',
     )
     ordering = ['name', ]
 

@@ -363,12 +363,13 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
 
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
-        content = json.loads(r.content)
+        releases = json.loads(r.content)
 
-        for item in content:
-            tag_name = item['tag_name']
-            tag_date = item['published_at']
-            tag_url = item['html_url']
+        for release in releases:
+            print(release)
+            tag_name = release['tag_name']
+            tag_date = release['published_at']
+            tag_url = release['html_url']
 
             logger.info(
                 'project(%s): Github Release %s %s',

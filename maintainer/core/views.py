@@ -1,130 +1,39 @@
-
-from datetime import timedelta
-
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
-from django.utils import timezone
 
 from core.models import Metric, Project
 from core.utils import resample
 
 
 def index(request):
-    slug = request.GET.get('project', None)
-    if not slug:
-        project = Project.objects.all().order_by('name').first()
-    else:
-        project = Project.objects.get(slug=slug)
+    context = {
+        'projects': Project.objects.all().order_by('name'),
+    }
 
-    today = timezone.now().date()
-    last_year = today - timedelta(days=365)
+    rendered = render_to_string('index.html', context=context)
+    return HttpResponse(rendered)
+
+
+def project_detail(request, slug):
+    try:
+        project = Project.objects.get(slug=slug)
+    except Project.DoesNotExist:
+        raise Http404('Project does not exist')
 
     metrics = Metric.objects.filter(
         project=project,
-#        date__gte=last_year,
     ).order_by('date').values(
         'date',
-        'metrics__loc',
         'metrics__complexity',
-        'metrics__sentry_errors',
-        'metrics__gitlab_bug_issues',
-        'metrics__github_bug_issues_opened',
-        'metrics__github_bug_issues_closed',
-        'metrics__github_bug_issues_avg_days_open',
         'metrics__github_bug_issues_now_open',
-        'metrics__number_of_commits',
-        'metrics__complexity_per_author',
-        'metrics__dependencies_direct',
-        'metrics__dependencies_indirect',
-        'metrics__dependencies_max',
+        'metrics__github_bug_issues_avg_days_open',
     )
-
-    # Changes in Complexity
-    try:
-        current_value =  metrics.filter(metrics__complexity__isnull=False)\
-            .last()['metrics__complexity'] or 1
-    except TypeError:
-        current_value = 1
-
-    try:
-        value1 = metrics.filter(
-            date__lte=today-timedelta(days=1*30),
-            metrics__complexity__isnull=False,
-        ).order_by('date').last()['metrics__complexity']
-    except TypeError:
-        value1 = 1
-    change1 = (100/(value1 or 1)*current_value-100)/100
-
-    try:
-        value2 = metrics.filter(
-            date__lte=today-timedelta(days=6*30),
-            metrics__complexity__isnull=False,
-        ).order_by('date').last()['metrics__complexity']
-    except TypeError:
-        value2 = 1
-    change2 = (100/(value2 or 1)*current_value-100)/100
-
-    try:
-        value3 = metrics.filter(
-            date__lte=today-timedelta(days=12*30),
-            metrics__complexity__isnull=False,
-        ).order_by('date').last()['metrics__complexity']
-    except TypeError:
-        value3 = 1
-    change3 = (100/(value3 or 1)*current_value-100)/100
-
-    # Changes in Github Bug Issues Count
-    try:
-        current_value = metrics.filter(metrics__github_bug_issues_now_open__isnull=False)\
-            .last()['metrics__github_bug_issues_now_open'] or 1
-    except TypeError:
-        current_value = 1
-
-    try:
-        value1_1 = metrics.filter(
-            date__lte=today-timedelta(days=1*30),
-            metrics__github_bug_issues_now_open__isnull=False,
-        ).order_by('date').last()['metrics__github_bug_issues_now_open']
-    except TypeError:
-        value1_1 = 1
-    change1_1 = (100 / (value1_1 or 1) * current_value - 100) / 100
-
-    try:
-        value1_2 = metrics.filter(
-            date__lte=today-timedelta(days=6*30),
-            metrics__github_bug_issues_now_open__isnull=False,
-        ).order_by('date').last()['metrics__github_bug_issues_now_open']
-    except TypeError:
-        value1_2 = 1
-    change1_2 = (100/(value1_2 or 1)*current_value-100)/100
-
-    try:
-        value1_3 = metrics.filter(
-            date__lte=today-timedelta(days=12*30),
-            metrics__github_bug_issues_now_open__isnull=False,
-        ).order_by('date').last()['metrics__github_bug_issues_now_open']
-    except TypeError:
-        value1_3 = 1
-    change1_3 = (100/(value1_3 or 1)*current_value-100)/100
-
-    metric_stats = [{
-        'label': 'Complexity: ',
-        'value1': '{:+.0%}'.format(change1) if type(change1) == float else change1,
-        'value2': '{:+.0%}'.format(change2) if type(change2) == float else change2,
-        'value3': '{:+.0%}'.format(change3) if type(change3) == float else change3,
-    }, {
-        'label': 'GitHub Bug Issues: ',
-        'value1': '{:+.0%}'.format(change1_1) if type(change1_1) == float else change1_1,
-        'value2': '{:+.0%}'.format(change1_2) if type(change1_2) == float else change1_2,
-        'value3': '{:+.0%}'.format(change1_3) if type(change1_3) == float else change1_3,
-    }]
 
     context = {
         'projects': Project.objects.all().order_by('name'),
         'project': project,
         'metrics': resample(metrics, 'W'),
-        'metric_stats': metric_stats,
     }
 
-    rendered = render_to_string('index.html', context=context)
+    rendered = render_to_string('project/detail.html', context=context)
     return HttpResponse(rendered)

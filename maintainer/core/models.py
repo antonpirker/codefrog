@@ -1,8 +1,8 @@
-import datetime
 import os
 
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.utils import timezone
 
 from core.utils import run_shell_command
 
@@ -13,6 +13,8 @@ class Project(models.Model):
     git_url = models.CharField(max_length=255)
 
     external_services = JSONField(null=True)
+
+    last_update = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -51,48 +53,57 @@ class Project(models.Model):
         from ingest.tasks.github import ingest_github_releases, ingest_github_tags
         from ingest.tasks.github import update_github_issues
 
-        update_github_issues.apply_async(
-            kwargs={
-                'project_id': self.pk,
-                'repo_owner': self.external_services['github_issues']['repo_owner'],
-                'repo_name': self.external_services['github_issues']['repo_name'],
-                'start_date': datetime.date(2019, 2, 1),
-            }
-        )
-        """
+        update_from = start_date or self.last_update
+
         ingest_code_metrics.apply_async(
             kwargs={
                 'project_id': self.pk,
                 'repo_dir': self.repo_dir,
-                'start_date': start_date,
+                'start_date': update_from,
             }
         )
 
         if self.has_github_issues:
-            ingest_github_issues.apply_async(
+            repo_owner = self.external_services['github_issues']['repo_owner'],
+            repo_name = self.external_services['github_issues']['repo_name']
+
+            if update_from:
+                update_github_issues.apply_async(
+                    kwargs={
+                        'project_id': self.pk,
+                        'repo_owner': repo_owner,
+                        'repo_name': repo_name,
+                        'start_date': update_from,
+                    }
+                )
+            else:
+                ingest_github_issues.apply_async(
+                    kwargs={
+                        'project_id': self.pk,
+                        'repo_owner': repo_owner,
+                        'repo_name': repo_name,
+                    }
+                )
+
+            ingest_github_releases.apply_async(
                 kwargs={
                     'project_id': self.pk,
-                    'repo_owner': self.external_services['github_issues']['repo_owner'],
-                    'repo_name': self.external_services['github_issues']['repo_name'],
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
                 }
             )
 
-        ingest_github_releases.apply_async(
-            kwargs={
-                'project_id': self.pk,
-                'repo_owner': self.external_services['github_issues']['repo_owner'],
-                'repo_name': self.external_services['github_issues']['repo_name'],
-            }
-        )
+            ingest_github_tags.apply_async(
+                kwargs={
+                    'project_id': self.pk,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                }
+            )
 
-        ingest_github_tags.apply_async(
-            kwargs={
-                'project_id': self.pk,
-                'repo_owner': self.external_services['github_issues']['repo_owner'],
-                'repo_name': self.external_services['github_issues']['repo_name'],
-            }
-        )
-        """
+        self.last_update = timezone.now()
+        self.save()
+
 
 class Metric(models.Model):
     project = models.ForeignKey(
