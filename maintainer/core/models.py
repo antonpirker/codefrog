@@ -46,6 +46,9 @@ class Project(models.Model):
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import ingest_code_metrics
+        from ingest.tasks.github import ingest_github_issues
+
+        """
         ingest_code_metrics.apply_async(
             kwargs={
                 'project_id': self.pk,
@@ -53,30 +56,34 @@ class Project(models.Model):
                 'start_date': start_date,
             }
         )
+        """
 
         if self.has_github_issues:
-            ingest_github_issues(  # Todo: call async
-                project_id=self.pk,
-                repo_owner=self.external_services['github_issues']['repo_owner'],
-                repo_name=self.external_services['github_issues']['repo_name'],
-                start_date=start_date,
-            )
-            calculate_github_issue_metrics(  # Todo: this will be called by ingest_github_issues
-                project_id=self.pk,
-                start_date=start_date,
+            ingest_github_issues.apply_async(
+                kwargs={
+                    'project_id': self.pk,
+                    'repo_owner': self.external_services['github_issues']['repo_owner'],
+                    'repo_name': self.external_services['github_issues']['repo_name'],
+                }
             )
 
-        ingest_github_releases(  # Todo: call async
-            project_id=self.pk,
-            repo_owner=self.external_services['github_issues']['repo_owner'],
-            repo_name=self.external_services['github_issues']['repo_name'],
+        """
+        ingest_github_releases.apply_async(  # Todo: call async
+            kwargs={
+                'project_id': self.pk,
+                'repo_owner': self.external_services['github_issues']['repo_owner'],
+                'repo_name': self.external_services['github_issues']['repo_name'],
+            }
         )
 
         ingest_github_tags(  # Todo: call async
-            project_id=self.pk,
-            repo_owner=self.external_services['github_issues']['repo_owner'],
-            repo_name=self.external_services['github_issues']['repo_name'],
+            kwargs={
+                'project_id': self.pk,
+                'repo_owner': self.external_services['github_issues']['repo_owner'],
+                'repo_name': self.external_services['github_issues']['repo_name'],
+            }
         )
+        """
 
 
 

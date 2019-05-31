@@ -16,7 +16,7 @@ DAYS_PER_CHUNK = 30
 
 
 @shared_task
-def ingest_code_metrics(project_id, repo_dir, start_date):
+def ingest_code_metrics(project_id, repo_dir, start_date=None):
     """
 
     :param project_id:
@@ -97,7 +97,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date):
 
 
 @shared_task
-def calculate_code_metrics(project_id, start_date):
+def calculate_code_metrics(project_id, start_date=None):
     logger.info('Starting calculate_code_metrics for project %s', project_id)
 
     start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)

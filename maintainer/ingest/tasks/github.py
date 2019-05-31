@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import os
@@ -8,12 +7,16 @@ from collections import defaultdict
 import pandas as pd
 import requests
 from celery import shared_task
-from django.utils import timezone
 
 from core.models import Metric, Release
 from ingest.models import RawIssue
 
 logger = logging.getLogger(__name__)
+
+DAYS_PER_CHUNK = 30
+PAGES_PER_CHUNK = 5
+
+GITHUB_ISSUES_PER_PAGE = 100
 
 GITHUB_API_BASE_URL = 'https://api.github.com'
 GITHUB_API_DEFAULT_HEADERS = {
@@ -38,48 +41,47 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 
 @shared_task
-def ingest_github_issues(project_id, repo_owner, repo_name, start_date=None):
-    logger.info('Starting ingest_code_metrics for project %s', project_id)
+def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
+    logger.info('Starting ingest_github_issues for project %s', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
         'state': 'all',
         'sort': 'created',
         'direction': 'asc',
-        'per_page': '200',
+        'per_page': str(GITHUB_ISSUES_PER_PAGE),
+        'page': page,
     })
-    if start_date:
-        params.update({
-            'since': start_date,
-        })
 
     list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
     url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
 
+    pages_processed = 0
+
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
-        content = json.loads(r.content)
+        issues = json.loads(r.content)
 
-        for item in content:
+        for issue in issues:
             try:
-                labels = [label['name'] for label in item['labels']]
+                labels = [label['name'] for label in issue['labels']]
             except TypeError:
-                import ipdb; ipdb.set_trace()
+                labels = []
 
             logger.info(
-                'Saving RawIssue project(%s) / %s / %s',
+                'Project(%s): RawIssue %s',
                 project_id,
-                item['created_at'],
-                item['number'],
+                issue['created_at'],
             )
             RawIssue.objects.update_or_create(
                 project_id=project_id,
-                issue_refid=item['number'],
-                opened_at=item['created_at'],
-                closed_at=item['closed_at'],
+                issue_refid=issue['number'],
+                opened_at=issue['created_at'],
+                closed_at=issue['closed_at'],
                 labels=labels,
             )
 
+        # get url of next page (if any)
         url = None
         try:
             links = requests.utils.parse_header_links(r.headers['Link'])
@@ -90,30 +92,43 @@ def ingest_github_issues(project_id, repo_owner, repo_name, start_date=None):
         except KeyError:
             pass
 
-    logger.info('Finished ingest_code_metrics for project %s', project_id)
+        pages_processed += 1
+        if pages_processed >= PAGES_PER_CHUNK:
+            ingest_github_issues.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                    'page': page + pages_processed,
+                }
+            )
+            return
+
+    calculate_github_issue_metrics.apply_async(
+        kwargs={
+            'project_id': project_id,
+        }
+    )
+
+    logger.info('Finished ingest_github_issues for project %s (%s)', project_id)
 
 
 @shared_task
-def calculate_github_issue_metrics(project_id, start_date, end_date=None):
-    logger.info('Starting calculate_github_issue_metrics for project %s', project_id)
+def calculate_github_issue_metrics(project_id):
+    logger.info('Starting calculate_github_issue_metrics for project %s (%s)', project_id)
 
-    start_date = start_date if start_date else datetime.date(1970, 1, 1)
-    end_date = end_date if end_date else timezone.now()
-    end_date = end_date + datetime.timedelta(days=1)
+    issues_opened = defaultdict(int)
+    issues_closed = defaultdict(int)
+    days_open = defaultdict(int)
 
     bug_issues = RawIssue.objects.filter(
         project_id=project_id,
-        opened_at__date__gte=start_date,
         labels__contained_by=GITHUB_BUG_ISSUE_LABELS,
     ).order_by('opened_at').values(
         'issue_refid',
         'opened_at',
         'closed_at',
     )
-
-    issues_opened = defaultdict(int)
-    issues_closed = defaultdict(int)
-    days_open = defaultdict(int)
 
     for issue in bug_issues:
         opened_at = issue['opened_at'].date() if issue['opened_at'] else None
@@ -163,6 +178,7 @@ def calculate_github_issue_metrics(project_id, start_date, end_date=None):
     issues = df.to_dict('index')
 
     for day in issues:
+        logger.info('Project(%s): Github Issue %s', project_id, day)
         # save the metrics to db
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
@@ -178,7 +194,7 @@ def calculate_github_issue_metrics(project_id, start_date, end_date=None):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Finished calculate_github_issue_metrics for project %s', project_id)
+    logger.info('Finished calculate_github_issue_metrics for project %s (%s)', project_id)
 
 
 @shared_task
