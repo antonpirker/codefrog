@@ -84,6 +84,9 @@ def ingest_code_metrics(project_id, repo_dir, start_date):
 
     # If we are not at the end, start ingesting the next chunk
     if current_date < last_commit_date:
+        if start_date == current_date:
+            current_date = end_date
+
         ingest_code_metrics.apply_async(kwargs={
             'project_id': project_id,
             'repo_dir': repo_dir,

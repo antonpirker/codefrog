@@ -54,7 +54,6 @@ class Project(models.Model):
             }
         )
 
-        """
         if self.has_github_issues:
             ingest_github_issues(  # Todo: call async
                 project_id=self.pk,
@@ -78,7 +77,7 @@ class Project(models.Model):
             repo_owner=self.external_services['github_issues']['repo_owner'],
             repo_name=self.external_services['github_issues']['repo_name'],
         )
-        """
+
 
 
 class Metric(models.Model):
