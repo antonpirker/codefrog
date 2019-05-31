@@ -199,13 +199,19 @@ def calculate_github_issue_metrics(project_id):
 
 
 @shared_task
-def ingest_github_tags(project_id, repo_owner, repo_name):
+def ingest_github_tags(project_id, repo_owner, repo_name, page=1):
     logger.info('Starting ingest_github_tags for project %s.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
+    params.update({
+        'per_page': str(GITHUB_ISSUES_PER_PAGE),
+        'page': page,
+    })
 
     list_tags_url = f'/repos/{repo_owner}/{repo_name}/git/refs/tags'
     url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
+
+    pages_processed = 0
 
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
@@ -224,7 +230,7 @@ def ingest_github_tags(project_id, repo_owner, repo_name):
                 tag_date = tag_content['tagger']['date']
 
             logger.info(
-                'Saving Release for project(%s) / %s / %s',
+                'project(%s): Github Tag %s %s',
                 project_id,
                 tag_name,
                 tag_date,
@@ -246,17 +252,36 @@ def ingest_github_tags(project_id, repo_owner, repo_name):
         except KeyError:
             pass
 
+        pages_processed += 1
+        if pages_processed >= PAGES_PER_CHUNK:
+            ingest_github_tags.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                    'page': page + pages_processed,
+                }
+            )
+            return
+
+
     logger.info('Finished ingest_github_tags for project %s.', project_id)
 
 
 @shared_task
-def ingest_github_releases(project_id, repo_owner, repo_name):
+def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
     logger.info('Starting ingest_github_releases for project %s.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
+    params.update({
+        'per_page': str(GITHUB_ISSUES_PER_PAGE),
+        'page': page,
+    })
 
     list_tags_url = f'/repos/{repo_owner}/{repo_name}/releases'
     url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
+
+    pages_processed = 0
 
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
@@ -268,7 +293,7 @@ def ingest_github_releases(project_id, repo_owner, repo_name):
             tag_url = item['html_url']
 
             logger.info(
-                'Saving Release for project(%s) / %s / %s',
+                'project(%s): Github Release %s %s',
                 project_id,
                 tag_name,
                 tag_date,
@@ -290,5 +315,17 @@ def ingest_github_releases(project_id, repo_owner, repo_name):
                     break
         except KeyError:
             pass
+
+        pages_processed += 1
+        if pages_processed >= PAGES_PER_CHUNK:
+            ingest_github_releases.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                    'page': page + pages_processed,
+                }
+            )
+            return
 
     logger.info('Finished ingest_github_releases for project %s.', project_id)

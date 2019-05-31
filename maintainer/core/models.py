@@ -47,7 +47,7 @@ class Project(models.Model):
     def import_data(self, start_date=None):
         from ingest.tasks.git import ingest_code_metrics
         from ingest.tasks.github import ingest_github_issues
-
+        from ingest.tasks.github import ingest_github_releases, ingest_github_tags
         """
         ingest_code_metrics.apply_async(
             kwargs={
@@ -56,7 +56,6 @@ class Project(models.Model):
                 'start_date': start_date,
             }
         )
-        """
 
         if self.has_github_issues:
             ingest_github_issues.apply_async(
@@ -66,9 +65,9 @@ class Project(models.Model):
                     'repo_name': self.external_services['github_issues']['repo_name'],
                 }
             )
-
         """
-        ingest_github_releases.apply_async(  # Todo: call async
+
+        ingest_github_releases.apply_async(
             kwargs={
                 'project_id': self.pk,
                 'repo_owner': self.external_services['github_issues']['repo_owner'],
@@ -76,15 +75,13 @@ class Project(models.Model):
             }
         )
 
-        ingest_github_tags(  # Todo: call async
+        ingest_github_tags.apply_async(
             kwargs={
                 'project_id': self.pk,
                 'repo_owner': self.external_services['github_issues']['repo_owner'],
                 'repo_name': self.external_services['github_issues']['repo_name'],
             }
         )
-        """
-
 
 
 class Metric(models.Model):
