@@ -64,6 +64,7 @@
                 options: {
                     fill: false,
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         xAxes: [{
                             type: 'time',
@@ -116,10 +117,7 @@
 
 <body>
     <small>
-        {% for project in projects %}
-            <a href="{% url 'project-detail' project.slug %}">{{ project.name }}</a>
-            {% if not forloop.last %} | {% endif %}
-        {% endfor %}
+        <a href="{% url 'index' %}">Home</a>
     </small>
 
     <h1>Project: {{ project.name }}</h1>
