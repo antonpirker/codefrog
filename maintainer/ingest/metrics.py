@@ -1,4 +1,4 @@
-from ingest.git import fetch_code_metrics
+from ingest.tasks.git import fetch_code_metrics
 
 
 def code_metrics(project, start_date=None):

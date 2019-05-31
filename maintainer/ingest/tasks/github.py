@@ -7,6 +7,7 @@ from collections import defaultdict
 
 import pandas as pd
 import requests
+from celery import shared_task
 from django.utils import timezone
 
 from core.models import Metric, Release
@@ -36,6 +37,7 @@ GITHUB_BUG_ISSUE_LABELS = [
 ]
 
 
+@shared_task
 def ingest_github_issues(project_id, repo_owner, repo_name, start_date=None):
     logger.info('Starting ingest_code_metrics for project %s', project_id)
 
@@ -91,6 +93,7 @@ def ingest_github_issues(project_id, repo_owner, repo_name, start_date=None):
     logger.info('Finished ingest_code_metrics for project %s', project_id)
 
 
+@shared_task
 def calculate_github_issue_metrics(project_id, start_date, end_date=None):
     logger.info('Starting calculate_github_issue_metrics for project %s', project_id)
 
@@ -178,6 +181,7 @@ def calculate_github_issue_metrics(project_id, start_date, end_date=None):
     logger.info('Finished calculate_github_issue_metrics for project %s', project_id)
 
 
+@shared_task
 def ingest_github_tags(project_id, repo_owner, repo_name):
     logger.info('Starting ingest_github_tags for project %s', project_id)
 
@@ -211,6 +215,7 @@ def ingest_github_tags(project_id, repo_owner, repo_name):
             Release.objects.update_or_create(
                 project_id=project_id,
                 timestamp=tag_date,
+                type='git_tag',
                 name=tag_name,
             )
 
@@ -227,6 +232,7 @@ def ingest_github_tags(project_id, repo_owner, repo_name):
     logger.info('Finished ingest_github_tags for project %s', project_id)
 
 
+@shared_task
 def ingest_github_releases(project_id, repo_owner, repo_name):
     logger.info('Starting ingest_github_releases for project %s', project_id)
 
@@ -253,6 +259,7 @@ def ingest_github_releases(project_id, repo_owner, repo_name):
             Release.objects.update_or_create(
                 project_id=project_id,
                 timestamp=tag_date,
+                type='github_release',
                 name=tag_name,
                 url=tag_url,
             )

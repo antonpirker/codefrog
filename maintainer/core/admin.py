@@ -30,7 +30,6 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
         for project in queryset:
             project.clone_repo()
             project.import_data()
-            project.import_releases()
             self.message_user(request, f'Import of {project.name} started.')
     import_project.short_description = 'Import Project'
 
