@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from django.contrib.postgres.fields import JSONField
@@ -48,6 +49,16 @@ class Project(models.Model):
         from ingest.tasks.git import ingest_code_metrics
         from ingest.tasks.github import ingest_github_issues
         from ingest.tasks.github import ingest_github_releases, ingest_github_tags
+        from ingest.tasks.github import update_github_issues
+
+        update_github_issues.apply_async(
+            kwargs={
+                'project_id': self.pk,
+                'repo_owner': self.external_services['github_issues']['repo_owner'],
+                'repo_name': self.external_services['github_issues']['repo_name'],
+                'start_date': datetime.date(2019, 2, 1),
+            }
+        )
         """
         ingest_code_metrics.apply_async(
             kwargs={
@@ -65,7 +76,6 @@ class Project(models.Model):
                     'repo_name': self.external_services['github_issues']['repo_name'],
                 }
             )
-        """
 
         ingest_github_releases.apply_async(
             kwargs={
@@ -82,7 +92,7 @@ class Project(models.Model):
                 'repo_name': self.external_services['github_issues']['repo_name'],
             }
         )
-
+        """
 
 class Metric(models.Model):
     project = models.ForeignKey(

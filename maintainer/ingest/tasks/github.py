@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -7,6 +8,7 @@ from collections import defaultdict
 import pandas as pd
 import requests
 from celery import shared_task
+from dateutil.parser import parse
 
 from core.models import Metric, Release
 from ingest.models import RawIssue
@@ -114,8 +116,83 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
 
 
 @shared_task
-def calculate_github_issue_metrics(project_id):
+def update_github_issues(project_id, repo_owner, repo_name, start_date):
+    logger.info('Starting update_github_issues for project %s.', project_id)
+    start_date = parse(start_date)
+
+    params = GITHUB_API_DEFAULT_PARAMS
+    params.update({
+        'state': 'all',
+        'sort': 'updated',
+        'direction': 'asc',
+        'per_page': str(GITHUB_ISSUES_PER_PAGE),
+        'since': datetime.datetime.combine(start_date, datetime.time.min).isoformat()
+    })
+
+    list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
+    url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
+
+    min_date = None
+
+    while url:
+        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        issues = json.loads(r.content)
+
+        for issue in issues:
+            issue_number = issue['number']
+            issue_created_at = parse(issue['created_at']) if issue['created_at'] else None
+            issue_closed_at = parse(issue['closed_at']) if issue['closed_at'] else None
+
+            try:
+                labels = [label['name'] for label in issue['labels']]
+            except TypeError:
+                labels = []
+
+            logger.info(
+                'Project(%s): UPDATE RawIssue %s',
+                project_id,
+                issue_created_at,
+            )
+            RawIssue.objects.update_or_create(
+                project_id=project_id,
+                issue_refid=issue_number,
+                defaults={
+                    'opened_at': issue_created_at,
+                    'closed_at': issue_closed_at,
+                    'labels': labels,
+                }
+            )
+
+            min_date = min_date or issue_created_at
+            if issue_created_at < min_date:
+                min_date = issue_created_at
+
+        # get url of next page (if any)
+        url = None
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
+
+    calculate_github_issue_metrics.apply_async(
+        kwargs={
+            'project_id': project_id,
+            'start_date': min_date,
+        }
+    )
+
+    logger.info('Finished update_github_issues for project %s.', project_id)
+
+
+@shared_task
+def calculate_github_issue_metrics(project_id, start_date=None):
     logger.info('Starting calculate_github_issue_metrics for project %s.', project_id)
+
+    start_date = parse(start_date) if start_date else datetime.date(1970, 1, 1)
 
     issues_opened = defaultdict(int)
     issues_closed = defaultdict(int)
@@ -123,6 +200,7 @@ def calculate_github_issue_metrics(project_id):
 
     bug_issues = RawIssue.objects.filter(
         project_id=project_id,
+        opened_at__date__gte=start_date,
         labels__contained_by=GITHUB_BUG_ISSUE_LABELS,
     ).order_by('opened_at').values(
         'issue_refid',
