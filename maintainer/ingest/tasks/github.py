@@ -42,12 +42,12 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 @shared_task
 def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
-    logger.info('Starting ingest_github_issues for project %s', project_id)
+    logger.info('Starting ingest_github_issues for project %s.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
         'state': 'all',
-        'sort': 'created',
+        'sort': 'updated',
         'direction': 'asc',
         'per_page': str(GITHUB_ISSUES_PER_PAGE),
         'page': page,
@@ -110,12 +110,12 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
         }
     )
 
-    logger.info('Finished ingest_github_issues for project %s (%s)', project_id)
+    logger.info('Finished ingest_github_issues for project %s.', project_id)
 
 
 @shared_task
 def calculate_github_issue_metrics(project_id):
-    logger.info('Starting calculate_github_issue_metrics for project %s (%s)', project_id)
+    logger.info('Starting calculate_github_issue_metrics for project %s.', project_id)
 
     issues_opened = defaultdict(int)
     issues_closed = defaultdict(int)
@@ -176,6 +176,7 @@ def calculate_github_issue_metrics(project_id):
 
     # create a python dict
     issues = df.to_dict('index')
+    del df
 
     for day in issues:
         logger.info('Project(%s): Github Issue %s', project_id, day)
@@ -194,12 +195,12 @@ def calculate_github_issue_metrics(project_id):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Finished calculate_github_issue_metrics for project %s (%s)', project_id)
+    logger.info('Finished calculate_github_issue_metrics for project %s.', project_id)
 
 
 @shared_task
 def ingest_github_tags(project_id, repo_owner, repo_name):
-    logger.info('Starting ingest_github_tags for project %s', project_id)
+    logger.info('Starting ingest_github_tags for project %s.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
 
@@ -245,12 +246,12 @@ def ingest_github_tags(project_id, repo_owner, repo_name):
         except KeyError:
             pass
 
-    logger.info('Finished ingest_github_tags for project %s', project_id)
+    logger.info('Finished ingest_github_tags for project %s.', project_id)
 
 
 @shared_task
 def ingest_github_releases(project_id, repo_owner, repo_name):
-    logger.info('Starting ingest_github_releases for project %s', project_id)
+    logger.info('Starting ingest_github_releases for project %s.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
 
@@ -290,4 +291,4 @@ def ingest_github_releases(project_id, repo_owner, repo_name):
         except KeyError:
             pass
 
-    logger.info('Finished ingest_github_releases for project %s', project_id)
+    logger.info('Finished ingest_github_releases for project %s.', project_id)
