@@ -59,6 +59,23 @@
                 }]
             }
 
+            const releases = [
+                {% for release in releases %}
+                    {
+                        type: "line",
+                        mode: "vertical",
+                        scaleID: "x-axis-0",
+                        value: moment("{{ release.timestamp|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'),
+                        borderColor: "red",
+                        label: {
+                            content: "{{ release.name }}",
+                            enabled: true,
+                            position: "bottom"
+                        }
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+
             const options = {
                 type: 'bar',
                 data: data,
@@ -110,21 +127,8 @@
                         }
                     },
                     annotation: {
-                        annotations: [
-                          {
-                            type: "line",
-                            mode: "vertical",
-                            scaleID: "x-axis-0",
-                            value: "2019-05-01 00:00:00",
-                            borderColor: "red",
-                            label: {
-                              content: "V2.2.4",
-                              enabled: true,
-                              position: "bottom"
-                            }
-                          }
-                        ]
-                      }
+                        annotations: releases
+                    }
                 }
             }
             const chart = new Chart(ctx, options);

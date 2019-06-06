@@ -5,7 +5,7 @@ from collections import defaultdict
 from celery import shared_task
 from dateutil.parser import parse
 
-from core.models import Metric
+from core.models import Metric, Release
 from core.utils import run_shell_command
 from ingest.models import RawCodeChange
 
@@ -163,6 +163,7 @@ def calculate_code_metrics(project_id, start_date=None):
 
     logger.info('Finished calculate_code_metrics for project %s', project_id)
 
+
 def get_complexity_change(source_dir, git_commit_hash):
     """
 
@@ -217,3 +218,45 @@ def get_complexity_change(source_dir, git_commit_hash):
             complexity_removed[file_name] += len(line) - len(line.lstrip())
 
     return complexity_added, complexity_removed
+
+
+@shared_task
+def ingest_git_tags(project_id, repo_dir):
+    logger.info('Starting ingest_git_tags for project %s.', project_id)
+
+    cmd = (
+        f'git tag --list '
+        f'--format "%(refname:strip=2);%(taggerdate);%(committerdate)"'
+    )
+    output = run_shell_command(cmd, cwd=repo_dir)
+    tags = [line for line in output.split('\n') if line]
+
+    for tag in tags:
+        tag_name, tagger_date, committer_date = tag.split(';')
+
+        try:
+            tagger_date = parse(tagger_date)
+        except ValueError:
+            tagger_date = None
+
+        try:
+            committer_date = parse(committer_date)
+        except ValueError:
+            committer_date = None
+
+        tag_date = tagger_date or committer_date
+
+        logger.debug(
+            'project(%s): Git Tag %s %s',
+            project_id,
+            tag_name,
+            tag_date,
+        )
+        Release.objects.update_or_create(
+            project_id=project_id,
+            timestamp=tag_date,
+            type='git_tag',
+            name=tag_name,
+        )
+
+    logger.info('Finished ingest_git_tags for project %s.', project_id)

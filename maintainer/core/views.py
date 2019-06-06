@@ -24,7 +24,7 @@ def project_detail(request, slug):
         raise Http404('Project does not exist')
 
     today = timezone.now()
-    begin = today - datetime.timedelta(days=30*3)
+    begin = today - datetime.timedelta(days=30*12*3)
 
     metrics = Metric.objects.filter(
         project=project,

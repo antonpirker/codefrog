@@ -1,10 +1,13 @@
 import os
+import logging
 
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 
 from core.utils import run_shell_command
+
+logger = logging.getLogger(__name__)
 
 
 class Project(models.Model):
@@ -40,17 +43,21 @@ class Project(models.Model):
         :return: None
         """
         if os.path.exists(self.repo_dir):
+            logger.info('Start pulling new changes of %s.', self.slug)
             cmd = f'git pull'
             run_shell_command(cmd, cwd=self.repo_dir)
+            logger.info('Finished pulling new changes of %s.', self.slug)
             return
 
+        logger.info('Start cloning %s.', self.slug)
         cmd = f'git clone {self.git_url} {self.repo_dir}'
         run_shell_command(cmd)
+        logger.info('Finished cloning %s.', self.slug)
 
     def import_data(self, start_date=None):
-        from ingest.tasks.git import ingest_code_metrics
+        from ingest.tasks.git import ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_issues
-        from ingest.tasks.github import ingest_github_releases, ingest_github_tags
+        from ingest.tasks.github import ingest_github_releases
         from ingest.tasks.github import update_github_issues
 
         update_from = start_date or self.last_update
@@ -60,6 +67,13 @@ class Project(models.Model):
                 'project_id': self.pk,
                 'repo_dir': self.repo_dir,
                 'start_date': update_from,
+            }
+        )
+
+        ingest_git_tags.apply_async(
+            kwargs={
+                'project_id': self.pk,
+                'repo_dir': self.repo_dir,
             }
         )
 
@@ -86,14 +100,6 @@ class Project(models.Model):
                 )
 
             ingest_github_releases.apply_async(
-                kwargs={
-                    'project_id': self.pk,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                }
-            )
-
-            ingest_github_tags.apply_async(
                 kwargs={
                     'project_id': self.pk,
                     'repo_owner': repo_owner,

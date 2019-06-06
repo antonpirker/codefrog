@@ -56,7 +56,7 @@ class MetricAdmin(ModelAdminWithJSONWidget):
 @admin.register(Release)
 class ReleaseAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'project', 'timestamp', 'name', 'url',
+        'project', 'timestamp', 'name', 'type', 'url',
     )
     list_filter = (
         'project', 'timestamp',

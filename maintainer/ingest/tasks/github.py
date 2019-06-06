@@ -277,75 +277,6 @@ def calculate_github_issue_metrics(project_id, start_date=None):
 
 
 @shared_task
-def ingest_github_tags(project_id, repo_owner, repo_name, page=1):
-    logger.info('Starting ingest_github_tags for project %s.', project_id)
-
-    params = GITHUB_API_DEFAULT_PARAMS
-    params.update({
-        'per_page': str(GITHUB_ISSUES_PER_PAGE),
-        'page': page,
-    })
-
-    list_tags_url = f'/repos/{repo_owner}/{repo_name}/git/refs/tags'
-    url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
-
-    pages_processed = 0
-
-    while url:
-        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
-        content = json.loads(r.content)
-
-        for item in content:
-            tag_name = item['ref'].rpartition('/')[2]
-            tag_url = '%s?%s' % (item['object']['url'], urllib.parse.urlencode(params))
-
-            r2 = requests.get(tag_url, headers=GITHUB_API_DEFAULT_HEADERS)
-            tag_content = json.loads(r2.content)
-
-            try:
-                tag_date = tag_content['author']['date']
-            except KeyError:
-                tag_date = tag_content['tagger']['date']
-
-            logger.info(
-                'project(%s): Github Tag %s %s',
-                project_id,
-                tag_name,
-                tag_date,
-            )
-            Release.objects.update_or_create(
-                project_id=project_id,
-                timestamp=tag_date,
-                type='git_tag',
-                name=tag_name,
-            )
-
-        url = None
-        try:
-            links = requests.utils.parse_header_links(r.headers['Link'])
-            for link in links:
-                if link['rel'] == 'next':
-                    url = link['url']
-                    break
-        except KeyError:
-            pass
-
-        pages_processed += 1
-        if pages_processed >= PAGES_PER_CHUNK:
-            ingest_github_tags.apply_async(
-                kwargs={
-                    'project_id': project_id,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                    'page': page + pages_processed,
-                }
-            )
-            return
-
-    logger.info('Finished ingest_github_tags for project %s.', project_id)
-
-
-@shared_task
 def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
     logger.info('Starting ingest_github_releases for project %s.', project_id)
 
@@ -365,7 +296,6 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
         releases = json.loads(r.content)
 
         for release in releases:
-            print(release)
             tag_name = release['tag_name']
             tag_date = release['published_at']
             tag_url = release['html_url']
