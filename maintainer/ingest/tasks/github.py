@@ -342,7 +342,6 @@ def ingest_github_tags(project_id, repo_owner, repo_name, page=1):
             )
             return
 
-
     logger.info('Finished ingest_github_tags for project %s.', project_id)
 
 

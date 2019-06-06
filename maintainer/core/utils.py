@@ -10,14 +10,14 @@ def run_shell_command(cmd, cwd=None):
     """
     Runs a shell command and returns the commands output as string.
     """
-    logger.debug(f'Running: {cmd}')
-    command = subprocess.run([cmd], cwd=cwd, shell=True, capture_output=True)
-    output = command.stdout.strip().decode('utf-8')
+    logger.debug(f'Command: {cmd}')
+    try:
+        output = subprocess.check_output(cmd, cwd=cwd, shell=True)
+    except subprocess.CalledProcessError as err:
+        logger.error(f'Non zero exit code running: {err.cmd}')
+        output = err.output
 
-    if command.stderr:
-        logger.error(f'Error running shell command "{cmd}": {command.stderr}')
-
-    return output
+    return output.decode('utf-8')
 
 
 def resample(queryset, frequency):
