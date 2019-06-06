@@ -5,4 +5,5 @@ from core import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('project/<slug:slug>', views.project_detail, name='project-detail'),
+    path('project/<slug:slug>/<slug:zoom>', views.project_detail, name='project-detail-zoomed'),
 ]

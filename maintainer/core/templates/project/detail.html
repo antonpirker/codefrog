@@ -1,6 +1,11 @@
 <!DOCTYPE HTML>
 <html>
 <head>
+    <style>
+        a {
+            color: rgba(16,112,224,0.85)
+        }
+    </style>
     <script type="text/javascript">
         //colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
         colors = ['#DD0F7E', '#009BBE', 'rgba(168, 218, 0, 0.6)', '#F2E205', '#EE5A02'];
@@ -147,6 +152,16 @@
     </small>
 
     <h1>Project: {{ project.name }}</h1>
+
+    <p>
+        Zoom:
+        {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
+        {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
+        {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
+        {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
+        {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
+        {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
+    </p>
     <canvas id="main-chart"></canvas>
 </body>
 </html>

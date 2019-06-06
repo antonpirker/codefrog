@@ -17,14 +17,23 @@ def index(request):
     return HttpResponse(rendered)
 
 
-def project_detail(request, slug):
+def project_detail(request, slug, zoom=None):
     try:
         project = Project.objects.get(slug=slug)
     except Project.DoesNotExist:
         raise Http404('Project does not exist')
 
     today = timezone.now()
-    begin = today - datetime.timedelta(days=30*12*3)
+    zoom = zoom or '1M'
+    time_deltas = {
+        '1M': datetime.timedelta(days=30 * 1),
+        '3M': datetime.timedelta(days=30 * 3),
+        '6M': datetime.timedelta(days=30 * 6),
+        '1Y': datetime.timedelta(days=365),
+        'YTD': datetime.timedelta(days=today.timetuple().tm_yday),
+        'ALL': datetime.timedelta(days=365 * 30),
+    }
+    begin = today - time_deltas.get(zoom, datetime.timedelta(days=30 * 1))
 
     metrics = Metric.objects.filter(
         project=project,
@@ -44,6 +53,7 @@ def project_detail(request, slug):
     context = {
         'projects': Project.objects.all().order_by('name'),
         'project': project,
+        'zoom': zoom,
         'metrics': resample(metrics, 'D'),
         'releases': releases,
     }
