@@ -82,3 +82,5 @@ gunicorn.pid
 *.dump
 
 *.sqlite3
+
+settings.py
