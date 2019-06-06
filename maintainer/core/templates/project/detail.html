@@ -30,6 +30,7 @@
                     backgroundColor: colors[0],
                     pointRadius: 0,
                     lineTension: 0,
+                    cubicInterpolationMode: 'monotone',
                     yAxisID: "y-axis-0",
                 },{
                     fill: false,
@@ -67,6 +68,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         xAxes: [{
+                            "id": "x-axis-0",
                             type: 'time',
                             time: {
                                 parser: 'YYYY-MM-DD HH:mm:ss',
@@ -94,6 +96,9 @@
                             display: false
                         }]
                     },
+                    legend: {
+                        position: 'bottom'
+                    },
                     plugins: {
                         zoom: {
                             zoom: {
@@ -103,7 +108,23 @@
                                 speed: 0.1,
                             }
                         }
-                    }
+                    },
+                    annotation: {
+                        annotations: [
+                          {
+                            type: "line",
+                            mode: "vertical",
+                            scaleID: "x-axis-0",
+                            value: "2019-05-01 00:00:00",
+                            borderColor: "red",
+                            label: {
+                              content: "V2.2.4",
+                              enabled: true,
+                              position: "bottom"
+                            }
+                          }
+                        ]
+                      }
                 }
             }
             const chart = new Chart(ctx, options);
@@ -113,6 +134,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
 </head>
 
 <body>

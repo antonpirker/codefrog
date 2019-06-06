@@ -1,7 +1,10 @@
+import datetime
+
 from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 
-from core.models import Metric, Project
+from core.models import Metric, Project, Release
 from core.utils import resample
 
 
@@ -20,8 +23,12 @@ def project_detail(request, slug):
     except Project.DoesNotExist:
         raise Http404('Project does not exist')
 
+    today = timezone.now()
+    begin = today - datetime.timedelta(days=30*3)
+
     metrics = Metric.objects.filter(
         project=project,
+        date__gte=begin,
     ).order_by('date').values(
         'date',
         'metrics__complexity',
@@ -29,10 +36,16 @@ def project_detail(request, slug):
         'metrics__github_bug_issues_avg_days_open',
     )
 
+    releases = Release.objects.filter(
+        project=project,
+        timestamp__gte=begin,
+    )
+
     context = {
         'projects': Project.objects.all().order_by('name'),
         'project': project,
-        'metrics': resample(metrics, 'W'),
+        'metrics': resample(metrics, 'D'),
+        'releases': releases,
     }
 
     rendered = render_to_string('project/detail.html', context=context)
