@@ -1,6 +1,7 @@
-import os
 import logging
+import os
 
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
@@ -28,7 +29,7 @@ class Project(models.Model):
 
     @property
     def repo_dir(self):
-        return os.path.join('/git_projects', self.repo_name)
+        return os.path.join(settings.GIT_REPO_DIR, self.repo_name)
 
     @property
     def has_github_issues(self):
