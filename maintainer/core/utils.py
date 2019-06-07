@@ -59,8 +59,11 @@ def resample(queryset, frequency):
     })
     df = df.fillna(0)
 
-    # round data
-    df = df.round(0)
+    # Normalize complexity value to between 0..1
+    df['complexity'] = (df['complexity'] - df['complexity'].min()) / (df['complexity'].max() - df['complexity'].min())
+
+    # Round number of days open
+    df['github_bug_issues_avg_days_open'] = df['github_bug_issues_avg_days_open'].round(0)
 
     df['date'] = df.index
     metrics = df.to_dict('records')
