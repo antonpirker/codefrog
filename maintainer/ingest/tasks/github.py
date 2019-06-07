@@ -44,7 +44,7 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 @shared_task
 def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
-    logger.info('Starting ingest_github_issues for project %s.', project_id)
+    logger.info('Project(%s): Starting ingest_github_issues.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
@@ -70,7 +70,7 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
             except TypeError:
                 labels = []
 
-            logger.info(
+            logger.debug(
                 'Project(%s): RawIssue %s',
                 project_id,
                 issue['created_at'],
@@ -112,12 +112,12 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
         }
     )
 
-    logger.info('Finished ingest_github_issues for project %s.', project_id)
+    logger.info('Project(%s): Finished ingest_github_issues.', project_id)
 
 
 @shared_task
 def update_github_issues(project_id, repo_owner, repo_name, start_date):
-    logger.info('Starting update_github_issues for project %s.', project_id)
+    logger.info('Project(%s): Starting update_github_issues.', project_id)
     start_date = parse(start_date)
 
     params = GITHUB_API_DEFAULT_PARAMS
@@ -148,7 +148,7 @@ def update_github_issues(project_id, repo_owner, repo_name, start_date):
             except TypeError:
                 labels = []
 
-            logger.info(
+            logger.debug(
                 'Project(%s): UPDATE RawIssue %s',
                 project_id,
                 issue_created_at,
@@ -185,12 +185,12 @@ def update_github_issues(project_id, repo_owner, repo_name, start_date):
         }
     )
 
-    logger.info('Finished update_github_issues for project %s.', project_id)
+    logger.info('Project(%s): Finished update_github_issues.', project_id)
 
 
 @shared_task
 def calculate_github_issue_metrics(project_id, start_date=None):
-    logger.info('Starting calculate_github_issue_metrics for project %s.', project_id)
+    logger.info('Project(%s): Starting calculate_github_issue_metrics.', project_id)
 
     start_date = parse(start_date) if start_date else datetime.date(1970, 1, 1)
 
@@ -257,7 +257,7 @@ def calculate_github_issue_metrics(project_id, start_date=None):
     del df
 
     for day in issues:
-        logger.info('Project(%s): Github Issue %s', project_id, day)
+        logger.debug('Project(%s): Github Issue %s.', project_id, day)
         # save the metrics to db
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
@@ -273,12 +273,12 @@ def calculate_github_issue_metrics(project_id, start_date=None):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Finished calculate_github_issue_metrics for project %s.', project_id)
+    logger.info('Project(%s): Finished calculate_github_issue_metrics.', project_id)
 
 
 @shared_task
 def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
-    logger.info('Starting ingest_github_releases for project %s.', project_id)
+    logger.info('Project(%s): Starting ingest_github_releases.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
@@ -300,8 +300,8 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
             tag_date = release['published_at']
             tag_url = release['html_url']
 
-            logger.info(
-                'project(%s): Github Release %s %s',
+            logger.debug(
+                'Project(%s): Github Release %s %s.',
                 project_id,
                 tag_name,
                 tag_date,
@@ -336,4 +336,4 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
             )
             return
 
-    logger.info('Finished ingest_github_releases for project %s.', project_id)
+    logger.info('Project(%s): Finished ingest_github_releases.', project_id)

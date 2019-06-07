@@ -50,22 +50,19 @@ class Project(models.Model):
 
         ingest = group(
             ingest_code_metrics.s(
-#                project_id=self.pk,
                 repo_dir=self.repo_dir,
                 start_date=update_from,
             ),
 
             ingest_git_tags.s(
-#                project_id=self.pk,
                 repo_dir=self.repo_dir,
             ),
         )
 
         chain(clone, ingest).apply_async()
 
-        """
         if self.has_github_issues:
-            repo_owner = self.external_services['github_issues']['repo_owner'],
+            repo_owner = self.external_services['github_issues']['repo_owner']
             repo_name = self.external_services['github_issues']['repo_name']
 
             if update_from:
@@ -93,7 +90,6 @@ class Project(models.Model):
                     'repo_name': repo_name,
                 }
             )
-        """
 
         self.last_update = timezone.now()
         self.save()
