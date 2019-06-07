@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from collections import defaultdict
 
 from celery import shared_task
@@ -16,6 +17,32 @@ DAYS_PER_CHUNK = 30
 
 
 @shared_task
+def clone_repo(project_id, git_url, repo_dir):
+    """
+    Clone the remote git repository to local directory.
+
+    If the directory already exists only a `git pull` is done.
+
+    :return: None
+    """
+    logger.info('Project(%s): Starting clone_repo.', project_id)
+
+    if os.path.exists(repo_dir):
+        logger.info('Project(%s): Repo Exists. Start pulling new changes.', project_id)
+        cmd = f'git pull'
+        run_shell_command(cmd, cwd=repo_dir)
+        logger.info('Project(%s): Finished pulling new changes.', project_id)
+    else:
+        logger.info('Project(%s): Start cloning.', project_id)
+        cmd = f'git clone {git_url} {repo_dir}'
+        run_shell_command(cmd)
+        logger.info('Project(%s): Finished cloning.', project_id)
+
+    logger.info('Project(%s): Finished clone_repo.', project_id)
+
+    return project_id
+
+@shared_task
 def ingest_code_metrics(project_id, repo_dir, start_date=None):
     """
 
@@ -24,7 +51,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     :param start_date:
     :return:
     """
-    logger.info('Starting ingest_code_metrics for project %s (%s)', project_id, start_date)
+    logger.info('Project(%s): Starting ingest_code_metrics(%s).', project_id, start_date)
 
     start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)
 
@@ -41,9 +68,10 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     current_date = start_date
 
     logger.info(
-        f'Running ingest_code_metrics '
-        f'from {start_date.strftime("%Y-%m-%d")} '
-        f'to {end_date.strftime("%Y-%m-%d")}'
+        f'Project(%s): Running ingest_code_metrics from %s to %s.',
+        project_id,
+        start_date.strftime("%Y-%m-%d"),
+        end_date.strftime("%Y-%m-%d"),
     )
 
     # get git commits for date range
@@ -75,7 +103,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
                     complexity_removed=removed[file_name],
                 )
         except ValueError as err:
-            logger.error('Error saving RawCodeChange: %s', err)
+            logger.error('Project(%s): Error saving RawCodeChange: %s', project_id, err)
 
         current_date = timestamp.date() \
             if timestamp.date() > current_date else current_date
@@ -102,12 +130,12 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
             'start_date': current_date,
         })
 
-    logger.info('Finished ingest_code_metrics for project %s', project_id)
+    logger.info('Project(%s): Finished ingest_code_metrics.', project_id)
 
 
 @shared_task
 def calculate_code_metrics(project_id, start_date=None):
-    logger.info('Starting calculate_code_metrics for project %s (%s)', project_id, start_date)
+    logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
 
     start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)
     end_date = start_date + datetime.timedelta(days=DAYS_PER_CHUNK)
@@ -123,9 +151,10 @@ def calculate_code_metrics(project_id, start_date=None):
     change_frequency = defaultdict(int)
 
     logger.info(
-        f'Running calculate_code_metrics '
-        f'from {start_date.strftime("%Y-%m-%d")} '
-        f'to {end_date.strftime("%Y-%m-%d")}'
+        f'Project(%s): Running calculate_code_metrics from %s to %s.',
+        project_id,
+        start_date.strftime("%Y-%m-%d"),
+        end_date.strftime("%Y-%m-%d"),
     )
 
     code_changes = RawCodeChange.objects.filter(
@@ -161,7 +190,7 @@ def calculate_code_metrics(project_id, start_date=None):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Finished calculate_code_metrics for project %s', project_id)
+    logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
 
 
 def get_complexity_change(source_dir, git_commit_hash):
@@ -222,7 +251,7 @@ def get_complexity_change(source_dir, git_commit_hash):
 
 @shared_task
 def ingest_git_tags(project_id, repo_dir):
-    logger.info('Starting ingest_git_tags for project %s.', project_id)
+    logger.info('Project(%s): Starting ingest_git_tags.', project_id)
 
     cmd = (
         f'git tag --list '
@@ -247,7 +276,7 @@ def ingest_git_tags(project_id, repo_dir):
         tag_date = tagger_date or committer_date
 
         logger.debug(
-            'project(%s): Git Tag %s %s',
+            'Project(%s): Git Tag %s %s',
             project_id,
             tag_name,
             tag_date,
@@ -259,4 +288,4 @@ def ingest_git_tags(project_id, repo_dir):
             name=tag_name,
         )
 
-    logger.info('Finished ingest_git_tags for project %s.', project_id)
+    logger.info('Project(%s): Finished ingest_git_tags.', project_id)

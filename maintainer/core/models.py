@@ -1,12 +1,11 @@
 import logging
 import os
 
+from celery import chain, group
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
-
-from core.utils import run_shell_command
 
 logger = logging.getLogger(__name__)
 
@@ -35,49 +34,36 @@ class Project(models.Model):
     def has_github_issues(self):
         return 'github_issues' in self.external_services
 
-    def clone_repo(self):
-        """
-        Clone the remote git repository to local directory.
-
-        If the directory already exists only a `git pull` is done.
-
-        :return: None
-        """
-        if os.path.exists(self.repo_dir):
-            logger.info('Start pulling new changes of %s.', self.slug)
-            cmd = f'git pull'
-            run_shell_command(cmd, cwd=self.repo_dir)
-            logger.info('Finished pulling new changes of %s.', self.slug)
-            return
-
-        logger.info('Start cloning %s.', self.slug)
-        cmd = f'git clone {self.git_url} {self.repo_dir}'
-        run_shell_command(cmd)
-        logger.info('Finished cloning %s.', self.slug)
-
     def import_data(self, start_date=None):
-        from ingest.tasks.git import ingest_code_metrics, ingest_git_tags
+        from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_issues
         from ingest.tasks.github import ingest_github_releases
         from ingest.tasks.github import update_github_issues
 
         update_from = start_date or self.last_update
 
-        ingest_code_metrics.apply_async(
-            kwargs={
-                'project_id': self.pk,
-                'repo_dir': self.repo_dir,
-                'start_date': update_from,
-            }
+        clone = clone_repo.s(
+            project_id=self.pk,
+            git_url=self.git_url,
+            repo_dir=self.repo_dir,
         )
 
-        ingest_git_tags.apply_async(
-            kwargs={
-                'project_id': self.pk,
-                'repo_dir': self.repo_dir,
-            }
+        ingest = group(
+            ingest_code_metrics.s(
+#                project_id=self.pk,
+                repo_dir=self.repo_dir,
+                start_date=update_from,
+            ),
+
+            ingest_git_tags.s(
+#                project_id=self.pk,
+                repo_dir=self.repo_dir,
+            ),
         )
 
+        chain(clone, ingest).apply_async()
+
+        """
         if self.has_github_issues:
             repo_owner = self.external_services['github_issues']['repo_owner'],
             repo_name = self.external_services['github_issues']['repo_name']
@@ -107,6 +93,7 @@ class Project(models.Model):
                     'repo_name': repo_name,
                 }
             )
+        """
 
         self.last_update = timezone.now()
         self.save()
