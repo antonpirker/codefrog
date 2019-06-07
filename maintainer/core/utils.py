@@ -59,6 +59,9 @@ def resample(queryset, frequency):
     })
     df = df.fillna(0)
 
+    # round data
+    df = df.round(0)
+
     df['date'] = df.index
     metrics = df.to_dict('records')
     return metrics
