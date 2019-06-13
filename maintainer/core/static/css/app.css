@@ -1,0 +1,13 @@
+.button.primary {
+    background: rgb(4, 116, 113);
+}
+.button.primary:hover, .button.primary:focus {
+    background: rgb(30, 142, 139);
+}
+a {
+    color: rgb(4, 116, 113);
+}
+a:hover, a:focus {
+    color: rgb(30, 142, 139);
+}
+

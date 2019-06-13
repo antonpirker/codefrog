@@ -1,23 +1,82 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <style>
-        a {
-            color: rgba(16,112,224,0.85)
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
-</head>
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Codefrog - Manage your technical debt. Keep code quality high, and time to market low.</title>
+        <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
+        <link rel="stylesheet" href="{% static "css/app.css" %} ">
+    </head>
+    <body>
+        <div class="grid-container">
+            <!-- Header -->
+            <div class="grid-x grid-margin-x">
+                <div class="large-12 cell text-center medium-text-left">
+                    <h1>Codefrog</h1>
+                </div>
+            </div>
 
-<body>
-    <small>
-        {% for project in projects %}
-            <a href="{% url 'project-detail' project.slug %}">{{ project.name }}</a>
-            {% if not forloop.last %} | {% endif %}
-        {% endfor %}
-    </small>
-</body>
+            <!-- Tag line-->
+            <div class="grid-x grid-margin-x" style="margin-top: 5em;">
+                <div class="large-12 cell text-center">
+                        <h2>Manage your technical dept.</h2>
+                        <h2>Keep code quality high,</h2>
+                        <h2>and lead time low.</h2>
+                </div>
+            </div>
+
+            <!-- E-mail form -->
+            <div class="grid-x grid-margin-x" style="margin-top: 4em;">
+                <div class="large-4 medium-4 cell">
+                </div>
+                <div class="large-4 medium-4 cell">
+                    <form>
+                        <div class="grid-x grid-padding-x">
+                            <div class="large-12 cell">
+                                <input type="text" placeholder="Your e-mail" />
+                            </div>
+                            <div class="large-12 cell">
+                                <button type="button" class="primary expanded button">Notfiy me when Codefrog is ready</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- show cases -->
+            <div class="grid-x grid-margin-x" style="margin-top: 4em;">
+                <div class="large-12 cell text-center">
+                    <h3>Check out the show cases:</h3>
+
+                    <div class="grid-x grid-padding-x">
+                      <div class="large-4 medium-4 cell">
+                        <p><h4><a href="/project/rails">Ruby on Rails</a></h4>
+                            <br />A web-application framework that includes everything needed to create database-backed web applications.
+                        </p>
+                      </div>
+                      <div class="large-4 medium-4 cell">
+                        <p><h4><a href="/project/vscode">Visual Studio Code</a></h4>
+                            <br />A code editor optimized for building and debugging modern web and cloud applications.
+                        </p>
+                      </div>
+                      <div class="large-4 medium-4 cell">
+                        <p><h4><a href="/project/kubernetes">Kubernetes</a></h4>
+                            <br />Kubernetes (K8s) is an open-source system for automating deployment, scaling, and management of containerized applications.
+                        </p>
+                      </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="grid-x grid-padding-x grid-padding-y text-center" style="margin-top: 25em;">
+                <div class="large-12 cell text-center" style="color: #999;">
+                    Made with 🐸 by Anton Pirker. Contact:&nbsp;<a href="mailto:anton@ignaz.at">anton@ignaz.at</a>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
