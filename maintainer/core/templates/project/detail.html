@@ -1,18 +1,14 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <style>
-        * {
-            font-family: inherit;
-        }
-        html {
-            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-            color: #333;
-        }
-        a {
-            color: rgba(16,112,224,0.85)
-        }
-    </style>
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Codefrog - Manage your technical debt. Keep code quality high. Minimize lead time.</title>
+        <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
+        <link rel="stylesheet" href="{% static "css/app.css" %} ">
+    </head>
     <script type="text/javascript">
         //colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
         colors = ['#DD0F7E', '#009BBE', 'rgba(168, 218, 0, 0.6)', '#F2E205', '#EE5A02'];
@@ -94,7 +90,7 @@
                 options: {
                     fill: false,
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
                     scales: {
                         xAxes: [{
                             "id": "x-axis-0",
@@ -154,21 +150,37 @@
 </head>
 
 <body>
-    <small>
-        <a href="{% url 'index' %}">Home</a>
-    </small>
+    <div class="grid-container">
+        <!-- Header -->
+        <div class="grid-x grid-margin-x grid-padding-y">
+            <div class="large-12 cell">
+                <a href="{% url 'index' %}">Codefrog</a>
+            </div>
+        </div>
 
-    <h1>Project: {{ project.name }}</h1>
+        <!-- Headline -->
+        <div class="grid-x grid-margin-x">
+            <div class="large-12 cell">
+                <h1>{{ project.name }}</h1>
+            </div>
+        </div>
 
-    <p>
-        Zoom:
-        {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
-        {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
-        {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
-        {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
-        {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
-        {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
-    </p>
-    <canvas id="main-chart"></canvas>
+        <!-- Trends -->
+        <div class="grid-x grid-margin-x">
+            <div class="large-12 cell">
+                <h2>Trends</h2>
+                <p>
+                    Zoom:
+                    {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
+                    {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
+                    {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
+                    {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
+                    {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
+                    {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
+                </p>
+                <canvas id="main-chart"></canvas>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
