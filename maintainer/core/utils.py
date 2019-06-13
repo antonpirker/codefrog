@@ -20,7 +20,7 @@ def run_shell_command(cmd, cwd=None):
     return output.decode('utf-8')
 
 
-def resample(queryset, frequency):
+def resample_metrics(queryset, frequency):
     """
     Resamples the data in queryset to a given frequency
 
@@ -70,3 +70,21 @@ def resample(queryset, frequency):
     df['date'] = df.index
     metrics = df.to_dict('records')
     return metrics
+
+
+def resample_releases(queryset, frequency):
+    df = pd.DataFrame.from_records(queryset)
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df = df.set_index('timestamp')
+
+    df = df.resample(frequency).agg({
+        'name': 'last',
+    })
+
+    df['timestamp'] = df.index
+
+    # remove NaN rows
+    df = df[pd.notnull(df['name'])]
+
+    releases = df.to_dict('records')
+    return releases

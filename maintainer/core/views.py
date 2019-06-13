@@ -5,8 +5,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 from core.models import Metric, Project, Release
-from core.utils import resample
-
+from core.utils import resample_metrics, resample_releases
 
 MONTH = 30
 YEAR = 365
@@ -65,12 +64,18 @@ def project_detail(request, slug, zoom=None):
         'metrics__github_bug_issues_now_open',
         'metrics__github_bug_issues_avg_days_open',
     )
-    metrics = resample(metrics, frequency)
+    if metrics.count() > 0:
+        metrics = resample_metrics(metrics, frequency)
 
     releases = Release.objects.filter(
         project=project,
         timestamp__gte=begin,
+    ).order_by('timestamp').values(
+        'timestamp',
+        'name',
     )
+    if releases.count() > 0:
+        releases = resample_releases(releases, frequency)
 
     # Render the HTML and send to client.
     context = {
