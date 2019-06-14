@@ -60,8 +60,8 @@ def resample_metrics(queryset, frequency):
     df = df.fillna(0)
 
     # Normalize complexity value to between 0..1 and round to 2 decimals
-    df['complexity'] = (df['complexity'] - df['complexity'].min()) / \
-                       (df['complexity'].max() - df['complexity'].min())
+    #df['complexity'] = (df['complexity'] - df['complexity'].min()) / \
+    #                   (df['complexity'].max() - df['complexity'].min())
     df['complexity'] = df['complexity'].round(2)
 
     # Round number of days open

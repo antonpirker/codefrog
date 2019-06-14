@@ -96,13 +96,14 @@
                         xAxes: [{
                             "id": "x-axis-0",
                             type: 'time',
+                            distribution: 'linear',
                             time: {
                                 parser: 'YYYY-MM-DD HH:mm:ss',
                                 displayFormats: {
                                     day: 'LL',
-                                    week: 'ww/YYYY',
+                                    week: '[Week] WW - YYYY',
                                     month: 'MMM YYYY',
-                                    quarter: 'Q YYYY',
+                                    quarter: '[Q]Q - YYYY',
                                     year: 'YYYY'
                                 },
                             },
@@ -137,6 +138,22 @@
                     },
                     annotation: {
                         annotations: releases
+                    },
+                    tooltips: {
+                        callbacks: {
+                            title: function(tooltipItem, data) {
+                                const frequency = '{{ frequency }}';
+                                const formatStrings = {
+                                    'D': 'LL',
+                                    'W': '[Week] WW - YYYY',
+                                    'M': 'MMM YYYY',
+                                    'Q': '[Q]Q - YYYY'
+                                };
+                                let date = moment(tooltipItem[0].xLabel);
+                                title = date.format(formatStrings[frequency] || 'D');
+                                return title;
+                            }
+                        }
                     }
                 }
             };
@@ -177,7 +194,7 @@
 
         <!-- Trends -->
         <div class="grid-x grid-margin-x grid-padding-y">
-            <div class="large-6 cell">
+            <div class="large-3 cell">
                 Zoom:
                 {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
                 {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
@@ -185,6 +202,9 @@
                 {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
                 {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
                 {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
+            </div>
+            <div class="large-3 cell">
+                (Currenty frequency: {{ frequency }})
             </div>
             <div class="large-5 small-9 cell large-text-right">
                 Show releases on chart?
