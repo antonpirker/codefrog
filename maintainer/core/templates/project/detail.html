@@ -91,7 +91,7 @@
                 options: {
                     fill: false,
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     scales: {
                         xAxes: [{
                             "id": "x-axis-0",
@@ -221,7 +221,9 @@
             </div>
 
             <div class="large-12 cell">
-                <canvas id="main-chart"></canvas>
+                <div class="chart-container">
+                    <canvas id="main-chart"></canvas>
+                </div>
             </div>
         </div>
     </div>

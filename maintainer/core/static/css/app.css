@@ -15,7 +15,20 @@ a {
 a:hover, a:focus {
     color: rgb(30, 142, 139);
 }
-
 input:checked ~ .switch-paddle {
     background: rgb(4, 116, 113);
+}
+
+@media all and (orientation:portrait) {
+    .chart-container {
+        position: relative;
+        height: 50vh;
+    }
+}
+
+@media all and (orientation:landscape) {
+    .chart-container {
+        position: relative;
+        height: 40vh;
+    }
 }
