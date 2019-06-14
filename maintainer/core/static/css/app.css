@@ -11,3 +11,6 @@ a:hover, a:focus {
     color: rgb(30, 142, 139);
 }
 
+input:checked ~ .switch-paddle {
+    background: rgb(4, 116, 113);
+}

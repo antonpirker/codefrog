@@ -26,47 +26,47 @@
                     {% endfor %}
                 ],
                 datasets: [{
-                    fill: false,
-                    borderDash: [10, 5],
-                    label: 'Complexity',
+                    label: 'System complexity',
                     type: 'line',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
+                    fill: false,
                     borderColor: colors[0],
+                    borderDash: [10, 5],
                     backgroundColor: colors[0],
-                    pointRadius: 0,
+                    pointRadius: 4,
                     lineTension: 0,
                     cubicInterpolationMode: 'monotone',
                     yAxisID: "y-axis-0",
                 },{
-                    fill: false,
-                    label: 'Defects in issue tracker',
+                    label: 'Tickets in issue tracker',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.github_bug_issues_now_open|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
+                    fill: false,
                     borderColor: colors[2],
                     backgroundColor: colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
                 },{
-                    fill: false,
-                    label: 'Avg days to fix defect',
+                    label: 'Days to close ticket',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.github_bug_issues_avg_days_open|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
+                    fill: false,
                     borderColor: colors[1],
                     backgroundColor: colors[1],
                     lineTension: 0,
                     yAxisID: "y-axis-2",
                 }]
-            }
+            };
 
             const releases = [
                 {% for release in releases %}
@@ -83,7 +83,7 @@
                         }
                     }{% if not forloop.last %},{% endif %}
                 {% endfor %}
-            ]
+            ];
 
             const options = {
                 type: 'bar',
@@ -139,7 +139,7 @@
                         annotations: releases
                     }
                 }
-            }
+            };
             const chart = new Chart(ctx, options);
         }
     </script>
@@ -166,22 +166,60 @@
             </div>
         </div>
 
+        <!-- Project -->
+        <div class="grid-x grid-margin-x">
+            <div class="large-12 cell text-right">
+                {% if project.repo_url %}
+                    <small><a href="{{ project.repo_url }}" target="_blank">Code Repository</a></small>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Trends -->
         <div class="grid-x grid-margin-x">
+            <div class="large-6 cell">
+                Zoom:
+                {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
+                {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
+                {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
+                {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
+                {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
+                {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
+            </div>
+            <div class="large-5 small-9 cell large-text-right">
+                Show releases on chart?
+            </div>
+            <div class="large-1 small-3 cell text-right">
+                <div class="switch tiny">
+                    <input class="switch-input" id="show_releases" type="checkbox" name="show_releases" {% if show_releases %}checked{% endif %}>
+                    <label class="switch-paddle" for="show_releases">
+                        <span class="show-for-sr">Show releases on chart?</span>
+                        <span class="switch-active" aria-hidden="true">Yes</span>
+                        <span class="switch-inactive" aria-hidden="true">No</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="large-12 cell">
-                <h2>Trends</h2>
-                <p>
-                    Zoom:
-                    {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
-                    {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
-                    {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
-                    {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
-                    {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
-                    {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
-                </p>
                 <canvas id="main-chart"></canvas>
             </div>
         </div>
     </div>
+    <script>
+        var releaseSwitch = document.querySelector('#show_releases');
+        releaseSwitch.onclick = function() {
+            oldUrl = window.location.href;
+            if(releaseSwitch.checked) {
+                newUrl = oldUrl.replace('/no-releases', '');
+            } else {
+                if(!oldUrl.match(/\/no\-releases$/)) {
+                    newUrl = oldUrl + '/no-releases';
+                } else {
+                    newUrl = oldUrl;
+                }
+            }
+            window.location.replace(newUrl);
+        };
+    </script>
 </body>
 </html>
