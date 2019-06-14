@@ -168,15 +168,15 @@
 
         <!-- Project -->
         <div class="grid-x grid-margin-x">
-            <div class="large-12 cell text-right">
+            <div class="large-12 cell large-text-right">
                 {% if project.repo_url %}
-                    <small><a href="{{ project.repo_url }}" target="_blank">Code Repository</a></small>
+                    <a href="{{ project.repo_url }}" target="_blank">Code Repository</a>
                 {% endif %}
             </div>
         </div>
 
         <!-- Trends -->
-        <div class="grid-x grid-margin-x">
+        <div class="grid-x grid-margin-x grid-padding-y">
             <div class="large-6 cell">
                 Zoom:
                 {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}

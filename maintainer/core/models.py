@@ -31,6 +31,23 @@ class Project(models.Model):
         return os.path.join(settings.GIT_REPO_DIR, self.repo_name)
 
     @property
+    def repo_url(self):
+        url = None
+        if self.has_github_issues:
+            url = f'https://github.com/{self.github_repo_owner}/{self.github_repo_name}/'
+        return url
+
+    @property
+    def github_repo_owner(self):
+        return self.external_services['github_issues']['repo_owner'] \
+            if 'github_issues' in self.external_services else None
+
+    @property
+    def github_repo_name(self):
+        return self.external_services['github_issues']['repo_name'] \
+            if 'github_issues' in self.external_services else None
+
+    @property
     def has_github_issues(self):
         return 'github_issues' in self.external_services
 
@@ -62,15 +79,12 @@ class Project(models.Model):
         chain(clone, ingest).apply_async()
 
         if self.has_github_issues:
-            repo_owner = self.external_services['github_issues']['repo_owner']
-            repo_name = self.external_services['github_issues']['repo_name']
-
             if update_from:
                 update_github_issues.apply_async(
                     kwargs={
                         'project_id': self.pk,
-                        'repo_owner': repo_owner,
-                        'repo_name': repo_name,
+                        'repo_owner': self.github_repo_owner,
+                        'repo_name': self.github_repo_name,
                         'start_date': update_from,
                     }
                 )
@@ -78,16 +92,16 @@ class Project(models.Model):
                 ingest_github_issues.apply_async(
                     kwargs={
                         'project_id': self.pk,
-                        'repo_owner': repo_owner,
-                        'repo_name': repo_name,
+                        'repo_owner': self.github_repo_owner,
+                        'repo_name': self.github_repo_name,
                     }
                 )
 
             ingest_github_releases.apply_async(
                 kwargs={
                     'project_id': self.pk,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
+                    'repo_owner': self.github_repo_owner,
+                    'repo_name': self.github_repo_name,
                 }
             )
 

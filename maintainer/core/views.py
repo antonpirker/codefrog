@@ -20,7 +20,7 @@ def index(request):
     return HttpResponse(rendered)
 
 
-def project_detail(request, slug, zoom=None):
+def project_detail(request, slug, zoom=None, release_flag=None):
     try:
         project = Project.objects.get(slug=slug)
     except Project.DoesNotExist:
@@ -77,11 +77,16 @@ def project_detail(request, slug, zoom=None):
     if releases.count() > 0:
         releases = resample_releases(releases, frequency)
 
+    if release_flag == 'no-releases':
+        releases = []
+
     # Render the HTML and send to client.
     context = {
         'projects': Project.objects.all().order_by('name'),
         'project': project,
         'zoom': zoom,
+        'frequency': frequency,
+        'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
         'releases': releases,
     }

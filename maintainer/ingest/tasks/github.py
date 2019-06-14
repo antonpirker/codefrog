@@ -44,7 +44,7 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 @shared_task
 def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
-    logger.info('Project(%s): Starting ingest_github_issues.', project_id)
+    logger.info('Project(%s): Starting ingest_github_issues. (Page: %s)', project_id, page)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
@@ -62,26 +62,41 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
 
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        if r.status_code != 200:
+            logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
+            ingest_github_issues.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                    'page': page,
+                },
+                countdown=10,
+            )
+            return
+
         issues = json.loads(r.content)
 
         for issue in issues:
-            try:
-                labels = [label['name'] for label in issue['labels']]
-            except TypeError:
-                labels = []
+            is_pull_request = 'pull_request' in issue
+            if not is_pull_request:
+                try:
+                    labels = [label['name'] for label in issue['labels']]
+                except TypeError:
+                    labels = []
 
-            logger.debug(
-                'Project(%s): RawIssue %s',
-                project_id,
-                issue['created_at'],
-            )
-            RawIssue.objects.update_or_create(
-                project_id=project_id,
-                issue_refid=issue['number'],
-                opened_at=issue['created_at'],
-                closed_at=issue['closed_at'],
-                labels=labels,
-            )
+                logger.debug(
+                    'Project(%s): RawIssue %s',
+                    project_id,
+                    issue['created_at'],
+                )
+                RawIssue.objects.update_or_create(
+                    project_id=project_id,
+                    issue_refid=issue['number'],
+                    opened_at=issue['created_at'],
+                    closed_at=issue['closed_at'],
+                    labels=labels,
+                )
 
         # get url of next page (if any)
         url = None
@@ -112,7 +127,7 @@ def ingest_github_issues(project_id, repo_owner, repo_name, page=1):
         }
     )
 
-    logger.info('Project(%s): Finished ingest_github_issues.', project_id)
+    logger.info('Project(%s): Finished ingest_github_issues. (Page: %s)', project_id, page)
 
 
 @shared_task
@@ -136,10 +151,27 @@ def update_github_issues(project_id, repo_owner, repo_name, start_date):
 
     while url:
         r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        if r.status_code != 200:
+            logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
+            update_github_issues.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                    'start_date': start_date,
+                },
+                countdown=10,
+            )
+            return
+
         issues = json.loads(r.content)
 
         for issue in issues:
-            issue_number = issue['number']
+            try:
+                issue_number = issue['number']
+            except TypeError as err:
+                import ipdb; ipdb.set_trace()
+
             issue_created_at = parse(issue['created_at']) if issue['created_at'] else None
             issue_closed_at = parse(issue['closed_at']) if issue['closed_at'] else None
 
@@ -198,17 +230,17 @@ def calculate_github_issue_metrics(project_id, start_date=None):
     issues_closed = defaultdict(int)
     days_open = defaultdict(int)
 
-    bug_issues = RawIssue.objects.filter(
+    issues = RawIssue.objects.filter(
         project_id=project_id,
         opened_at__date__gte=start_date,
-        labels__contained_by=GITHUB_BUG_ISSUE_LABELS,
+#        labels__contained_by=GITHUB_BUG_ISSUE_LABELS,  # currently we count all issues
     ).order_by('opened_at').values(
         'issue_refid',
         'opened_at',
         'closed_at',
     )
 
-    for issue in bug_issues:
+    for issue in issues:
         opened_at = issue['opened_at'].date() if issue['opened_at'] else None
         closed_at = issue['closed_at'].date() if issue['closed_at'] else None
 
