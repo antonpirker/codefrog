@@ -1,4 +1,4 @@
-body {
+body.bg {
     background-image: url('/static/images/bg4.jpg');
     background-repeat: no-repeat;
     background-size: cover;
