@@ -19,6 +19,14 @@ input:checked ~ .switch-paddle {
     background: rgb(4, 116, 113);
 }
 
+.header {
+    background: rgb(4, 116, 113);
+}
+
+.header a, .header a:hover, .header a:focus {
+    color: #fff;
+}
+
 @media all and (orientation:portrait) {
     .chart-container {
         position: relative;

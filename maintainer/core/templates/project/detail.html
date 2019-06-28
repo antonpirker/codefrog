@@ -133,6 +133,7 @@
                         position: 'bottom'
                     },
                     plugins: {
+/*
                         zoom: {
                             zoom: {
                                 enabled: true,
@@ -141,6 +142,7 @@
                                 speed: 0.1,
                             }
                         }
+ */
                     },
                     annotation: {
                         annotations: releases
@@ -174,23 +176,26 @@
 </head>
 
 <body>
-    <div class="grid-container">
-        <!-- Header -->
-        <div class="grid-x grid-margin-x grid-padding-y">
-            <div class="large-12 cell">
-                <a href="{% url 'index' %}">Codefrog</a>
+    <div class="header">
+        <div class="grid-container">
+            <!-- Header -->
+            <div class="grid-x grid-margin-x grid-padding-y text-center large-text-left">
+                <div class="large-12 cell">
+                    <a href="{% url 'index' %}">Codefrog</a>
+                </div>
             </div>
         </div>
-
-        <!-- Headline -->
+    </div>
+    <div class="grid-container">
+        <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
                 <h1>{{ project.name }}</h1>
             </div>
         </div>
 
-        <!-- Project -->
-        <div class="grid-x grid-margin-x">
+        <!-- Project Links -->
+        <div class="grid-x grid-margin-x show-for-large">
             <div class="large-12 cell large-text-right">
                 {% if project.repo_url %}
                     <a href="{{ project.repo_url }}" target="_blank">Code Repository</a>
@@ -200,7 +205,7 @@
 
         <!-- Trends -->
         <div class="grid-x grid-margin-x grid-padding-y">
-            <div class="large-3 cell">
+            <div class="large-3 small-6 cell">
                 Zoom:
                 {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
                 {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
@@ -209,7 +214,7 @@
                 {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
                 {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
             </div>
-            <div class="large-3 cell">
+            <div class="large-3 small-6 cell text-right large-text-left">
                 (Currenty frequency: {{ frequency }})
             </div>
             <div class="large-5 small-9 cell large-text-right">
