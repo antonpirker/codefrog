@@ -146,7 +146,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
                     current_node = child_node
 
                 else:
-                    COMPLEXITY_THRESSHOLD = 5000
+                    COMPLEXITY_THRESSHOLD = 2000
 
                     complexity = get_file_complexity(full_path)
                     if complexity < min_complexity:
@@ -154,17 +154,23 @@ def project_detail(request, slug, zoom=None, release_flag=None):
                     if complexity > max_complexity:
                         max_complexity = complexity
 
-                    changes = get_file_changes(full_path, project)
-                    if changes < min_changes:
-                        min_changes = changes
-                    if changes > max_changes:
-                        max_changes = changes
-
                     if complexity < COMPLEXITY_THRESSHOLD:
+                        changes = get_file_changes(full_path, project)
+                        if changes < min_changes:
+                            min_changes = changes
+                        if changes > max_changes:
+                            max_changes = changes
+
+                        repo_link = '{}blame/master{}'.format(
+                            project.repo_url,
+                            full_path.replace(project.repo_dir, ''),
+                        ).replace('//', '/')
+
                         child_node = {
                             'name': node_name,
                             'size': complexity,
                             'changes': changes,
+                            'repo_link': repo_link,
                         }
                         children.append(child_node)
 

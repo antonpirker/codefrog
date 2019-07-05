@@ -210,16 +210,24 @@
                       d3.event.stopPropagation();
 
                       path = root.path(d);
-                      out = "";
+                      filePath = "";
                       for(let i=1; i<path.length; i++) {
                           //console.log(path[i]);
-                          out += path[i].data.name;
+                          filePath += path[i].data.name;
                           if(i<path.length-1) {
-                              out += "/"
+                              filePath += "/"
                           }
                       }
+
+                      console.log(d)
                       d3.select('#source-information').html("");
-                      d3.select('#source-information').append('h4').text(out);
+                      d3.select('#source-information').append('h4').text(filePath)
+                          .insert('small')
+                          .text(' ')
+                          .insert('a')
+                          .text('[Show in Repo]')
+                          .attr('href', d.data.repo_link)
+                          .attr('target', '_blank');
                       d3.select('#source-information').append('p').text('Add here details of file, like complexity over time. add the authors as a pie-chart in the focused bubble, add link to github');
                   }
               });
@@ -343,9 +351,21 @@
         </div>
 
         <!-- State of the system -->
-        <div class="grid-x grid-margin-x" style="padding-top: 3em;">
-            <div class="large-12 cell">
+        <div class="grid-x grid-margin-x align-bottom" style="padding-top: 3em;">
+            <div class="large-6 cell">
                 <h2>Current state of the system</h2>
+            </div>
+            <div class="large-3 cell">
+                <span class="change_frequency_gradient"></span> <br/>
+                Change frequency
+            </div>
+            <div class="large-3 cell">
+                <span class=circle1></span>
+                <span class=circle2></span>
+                <span class=circle3></span>
+                <span class=circle4></span>
+                <span class=circle5></span> <br/>
+                Code complexity
             </div>
         </div>
 

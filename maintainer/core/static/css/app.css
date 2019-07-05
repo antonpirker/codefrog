@@ -46,3 +46,59 @@ input:checked ~ .switch-paddle {
         height: 40vh;
     }
 }
+
+
+.change_frequency_gradient {
+    width: 10em;
+    height: 1em;
+    display: inline-block;
+    background: rgba(255,204,204,1);
+    background: -moz-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -webkit-gradient(left top, right top, color-stop(0%, rgba(255,204,204,1)), color-stop(100%, rgba(255,0,0,1)));
+    background: -webkit-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -o-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -ms-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: linear-gradient(to right, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffcccc', endColorstr='#ff0000', GradientType=1 );
+}
+
+.circle1 {
+    height: 0.5em;
+    width: 0.5em;
+    border-radius: 50%;
+    display: inline-block;
+    background: #ececec;
+    border: 1px solid #444;
+}
+.circle2 {
+    height: 1em;
+    width: 1em;
+    border-radius: 50%;
+    display: inline-block;
+    background: #ececec;
+    border: 1px solid #444;
+}
+.circle3 {
+    height: 1.5em;
+    width: 1.5em;
+    border-radius: 50%;
+    display: inline-block;
+    background: #ececec;
+    border: 1px solid #444;
+}
+.circle4 {
+    height: 2em;
+    width: 2em;
+    border-radius: 50%;
+    display: inline-block;
+    background: #ececec;
+    border: 1px solid #444;
+}
+.circle5 {
+    height: 2.5em;
+    width: 2.5em;
+    border-radius: 50%;
+    display: inline-block;
+    background: #ececec;
+    border: 1px solid #444;
+}
