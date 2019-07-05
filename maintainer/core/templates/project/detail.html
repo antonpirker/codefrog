@@ -132,18 +132,6 @@
                     legend: {
                         position: 'bottom'
                     },
-                    plugins: {
-/*
-                        zoom: {
-                            zoom: {
-                                enabled: true,
-                                drag: true,
-                                mode: 'x',
-                                speed: 0.1,
-                            }
-                        }
- */
-                    },
                     annotation: {
                         annotations: releases
                     },
@@ -172,7 +160,7 @@
 
             var heatmapColour = d3.scaleLinear()
                 .domain([0, 1])
-                .range(["#ffcccc", "#cc0000"])
+                .range(["#ffcccc", "#ff0000"])
                 .interpolate(d3.interpolateHcl);
 
             var c = d3.scaleLinear().domain([{{ min_changes }}, {{ max_changes }}/2]).range([0,1]);
@@ -209,10 +197,32 @@
             .data(root.descendants().slice(1))
             .join("circle")
               .attr("fill", d => d.children ? color(d.depth) : heatmapColour(c(d.data.changes)))
-              .attr("pointer-events", d => !d.children ? "none" : null)
-              .on("mouseover", function() { d3.select(this).attr("stroke", "#000"); })
-              .on("mouseout", function() { d3.select(this).attr("stroke", null); })
-              .on("click", d => focus !== d && (zoom(d), d3.event.stopPropagation()));
+              .attr("pointer-events", d => !d.children ? null : null)
+              .on("mouseover", function(d) {
+                  d3.select(this).attr("stroke", "#000");
+              })
+              .on("mouseout", function() {
+                  d3.select(this).attr("stroke", null);
+              })
+              .on("click", function(d) {
+                  if(focus !== d) {
+                      zoom(d);
+                      d3.event.stopPropagation();
+
+                      path = root.path(d);
+                      out = "";
+                      for(let i=1; i<path.length; i++) {
+                          //console.log(path[i]);
+                          out += path[i].data.name;
+                          if(i<path.length-1) {
+                              out += "/"
+                          }
+                      }
+                      d3.select('#source-information').html("");
+                      d3.select('#source-information').append('h4').text(out);
+                      d3.select('#source-information').append('p').text('Add here details of file, like complexity over time. add the authors as a pie-chart in the focused bubble, add link to github');
+                  }
+              });
 
           const label = svg.append("g")
               .style("font", "10px sans-serif")
@@ -332,18 +342,23 @@
             </div>
         </div>
 
-        <!-- Project Headline -->
+        <!-- State of the system -->
         <div class="grid-x grid-margin-x" style="padding-top: 3em;">
             <div class="large-12 cell">
                 <h2>Current state of the system</h2>
             </div>
         </div>
 
-        <!-- complexity -->
+        <!-- Graph -->
         <div class="grid-x grid-margin-x grid-padding-y" style="padding: 0 1em;">
-            <div class="large-12 cell">
-                <div id="source-chart-container">
+            <div class="large-8 cell">
+                <div id="source-chart-container"></div>
+            </div>
+            <div class="large-4 cell">
+                <div id="source-information">
+                    <h1></h1>
                 </div>
+            </div>
         </div>
 
     </div>

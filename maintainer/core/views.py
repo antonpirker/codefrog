@@ -13,6 +13,10 @@ from ingest.models import RawCodeChange
 MONTH = 30
 YEAR = 365
 
+EXCLUDE = [
+    '/.git/',
+]
+
 
 def index(request):
     context = {
@@ -115,6 +119,8 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
             full_path = os.path.join(root_dir, f)
+            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
+                continue
             parts = [part for part in full_path.split(os.sep) if part]
             parts = parts[len(project.repo_dir.split(os.sep)) - 2:]
             current_node = root
