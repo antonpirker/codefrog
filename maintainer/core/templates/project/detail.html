@@ -206,8 +206,10 @@
               })
               .on("click", function(d) {
                   if(focus !== d) {
-                      zoom(d);
-                      d3.event.stopPropagation();
+                      if(d.children) {
+                          zoom(d);
+                          d3.event.stopPropagation();
+                      }
 
                       path = root.path(d);
                       filePath = "";
