@@ -221,14 +221,14 @@
 
                       console.log(d)
                       d3.select('#source-information').html("");
-                      d3.select('#source-information').append('h4').text(filePath)
-                          .insert('small')
-                          .text(' ')
-                          .insert('a')
+                      d3.select('#source-information').append('h4')
+                          .text(filePath)
+                      d3.select('#source-information').append('a')
                           .text('[Show in Repo]')
                           .attr('href', d.data.repo_link)
                           .attr('target', '_blank');
-                      d3.select('#source-information').append('p').text('Add here details of file, like complexity over time. add the authors as a pie-chart in the focused bubble, add link to github');
+                      d3.select('#source-information').append('p')
+                          .text('Add here details of file, like complexity and changes over time. add the authors as a pie-chart in the focused bubble. Add the ability to zoom into the functions inside the file');
                   }
               });
 
@@ -274,8 +274,6 @@
                 .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
                 .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
           }
-
-          //return svg.node();
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
