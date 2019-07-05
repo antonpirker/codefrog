@@ -213,7 +213,7 @@ def get_complexity_change(source_dir, git_commit_hash):
         files_changed = run_shell_command(cmd, cwd=source_dir)
 
     for file_name in files_changed.split('\n'):
-        if not file_name:
+        if not file_name or not os.path.exists(file_name):
             continue
 
         # lines added

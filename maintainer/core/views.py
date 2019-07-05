@@ -1,4 +1,6 @@
 import datetime
+import os
+import json
 
 from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
@@ -6,6 +8,7 @@ from django.utils import timezone
 
 from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
+from ingest.models import RawCodeChange
 
 MONTH = 30
 YEAR = 365
@@ -80,6 +83,85 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     if release_flag == 'no-releases':
         releases = []
 
+    root = {
+        'name': 'root',
+        'children': [],
+    }
+
+    def get_file_complexity(filename):
+        complexity = 0
+        with open(filename) as file:
+            try:
+                for line in file:
+                    complexity += len(line) - len(line.lstrip())
+            except UnicodeDecodeError:
+                # TODO: This should only happen for binary files like jpg,
+                #  but could be potential a real hard to find bug if the complexity is always wrong.
+                pass
+
+        return complexity
+
+    def get_file_changes(filename, project):
+        return RawCodeChange.objects.filter(
+            project=project,
+            file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
+        ).count()
+
+    min_complexity = 0
+    max_complexity = 0
+    min_changes = 0
+    max_changes = 0
+
+    for root_dir, dirs, files in os.walk(project.repo_dir):
+        for f in files:
+            full_path = os.path.join(root_dir, f)
+            parts = [part for part in full_path.split(os.sep) if part]
+            parts = parts[len(project.repo_dir.split(os.sep)) - 2:]
+            current_node = root
+            for idx, part in enumerate(parts):
+                children = current_node['children']
+                node_name = part
+
+                if idx + 1 < len(parts):
+                    child_node = {
+                        'name': node_name,
+                        'children': []
+                    }
+
+                    found_child = False
+                    for child in children:
+                        if child['name'] == node_name:
+                            child_node = child
+                            found_child = True
+                            break
+
+                    if not found_child:
+                        children.append(child_node)
+                    current_node = child_node
+
+                else:
+                    COMPLEXITY_THRESSHOLD = 5000
+
+                    complexity = get_file_complexity(full_path)
+                    if complexity < min_complexity:
+                        min_complexity = complexity
+                    if complexity > max_complexity:
+                        max_complexity = complexity
+
+                    changes = get_file_changes(full_path, project)
+                    if changes < min_changes:
+                        min_changes = changes
+                    if changes > max_changes:
+                        max_changes = changes
+
+                    if complexity < COMPLEXITY_THRESSHOLD:
+                        child_node = {
+                            'name': node_name,
+                            'size': complexity,
+                            'changes': changes,
+                        }
+                        children.append(child_node)
+
     # Render the HTML and send to client.
     context = {
         'projects': Project.objects.all().order_by('name'),
@@ -89,6 +171,11 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
         'releases': releases,
+        'data_tree': json.dumps(root),
+        'min_complexity': min_complexity,
+        'max_complexity': max_complexity,
+        'min_changes': min_changes,
+        'max_changes': max_changes,
     }
 
     rendered = render_to_string('project/detail.html', context=context)
