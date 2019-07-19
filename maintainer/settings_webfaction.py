@@ -8,7 +8,7 @@ ALLOWED_HOSTS = [
 
 DEBUG = False
 
-CELERY_TASK_ALWAYS_EAGER = not DEBUG
+CELERY_TASK_ALWAYS_EAGER = DEBUG
 
 STATIC_ROOT = '/home/codefrog/webapps/codefrog_io_static/'
 
