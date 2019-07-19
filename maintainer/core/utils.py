@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from datetime import timedelta
 
 import pandas as pd
 
@@ -89,3 +90,8 @@ def resample_releases(queryset, frequency):
 
     releases = df.to_dict('records')
     return releases
+
+
+def daterange(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)

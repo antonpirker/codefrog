@@ -7,7 +7,7 @@ from celery import shared_task
 from dateutil.parser import parse
 
 from core.models import Metric, Release
-from core.utils import run_shell_command
+from core.utils import daterange, run_shell_command
 from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
@@ -87,10 +87,8 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     for code_change in code_changes:
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
         timestamp = parse(timestamp)
-
         added, removed = get_complexity_change(repo_dir, git_commit_hash)
         file_names = list(set(list(added.keys()) + list(removed.keys())))
-
         try:
             for file_name in file_names:
                 logger.debug('Project(%s): RawCodeChange %s', project_id, timestamp)
@@ -104,11 +102,10 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
                 )
         except ValueError as err:
             logger.error('Project(%s): Error saving RawCodeChange: %s', project_id, err)
-
         current_date = timestamp.date() \
             if timestamp.date() > current_date else current_date
 
-
+    # Calculate code metrics for this chunk.
     calculate_code_metrics.apply_async(kwargs={
         'project_id': project_id,
         'start_date': start_date,
@@ -124,13 +121,18 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
         if start_date <= current_date:
             current_date = end_date
 
+        logger.info(
+            'Project(%s): Calling ingest_code_metrics for next chunk. (start_date=%s)',
+            project_id,
+            start_date,
+        )
         ingest_code_metrics.apply_async(kwargs={
             'project_id': project_id,
             'repo_dir': repo_dir,
             'start_date': current_date,
         })
 
-    logger.info('Project(%s): Finished ingest_code_metrics.', project_id)
+    logger.info('Project(%s): Finished ingest_code_metrics(%s).', project_id, start_date)
 
 
 @shared_task
@@ -190,8 +192,38 @@ def calculate_code_metrics(project_id, start_date=None):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
+    # Fill gaps in metrics (so there is one Metric object for every day
+    # that has all the metrics filled out)
+    try:
+        old_metric = Metric.objects.get(date=(start_date - datetime.timedelta(days=1)))
+        old_complexity = old_metric.metrics['complexity']
+        old_change_frequency = old_metric.metrics['change_frequency']
+    except (Metric.DoesNotExist, KeyError):
+        old_complexity = 0
+        old_change_frequency = 0
 
+    for day in daterange(start_date, end_date):
+        metric, _ = Metric.objects.get_or_create(
+            project_id=project_id,
+            date=day,
+        )
+        metric_json = metric.metrics
+        if not metric_json:
+            metric_json = {}
+
+        metric_json['complexity'] = metric_json['complexity'] \
+            if 'complexity' in metric_json and metric_json['complexity']\
+            else old_complexity
+        metric_json['change_frequency'] = metric_json['change_frequency'] \
+            if 'change_frequency' in metric_json and metric_json['change_frequency'] \
+            else old_change_frequency
+        metric.metrics = metric_json
+        metric.save()
+
+        old_complexity = metric_json['complexity']
+        old_change_frequency = metric_json['change_frequency']
+
+    logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
 
 def get_complexity_change(source_dir, git_commit_hash):
     """
@@ -213,14 +245,15 @@ def get_complexity_change(source_dir, git_commit_hash):
         files_changed = run_shell_command(cmd, cwd=source_dir)
 
     for file_name in files_changed.split('\n'):
-        if not file_name or not os.path.exists(file_name):
+        full_file_name = os.path.join(source_dir, file_name)
+        if not file_name or not os.path.exists(full_file_name):
             continue
 
         # lines added
         # the `|| true` forces a exit code of 0,
         # because grep returns an exit code of 1 if no lines matches.
         cmd = f'git config merge.renameLimit 99999 ' \
-            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{file_name}" ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{full_file_name}" ' \
             f'| grep -v "^+++ " | grep "^+" || true'
         lines_added = run_shell_command(cmd, cwd=source_dir)
 
@@ -235,7 +268,7 @@ def get_complexity_change(source_dir, git_commit_hash):
         # the `|| true` forces a exit code of 0,
         # because grep returns an exit code of 1 if no lines matches.
         cmd = f'git config merge.renameLimit 99999 ' \
-            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{file_name}" ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{full_file_name}" ' \
             f'| grep -v "^--- " | grep "^-" || true'
         lines_removed = run_shell_command(cmd, cwd=source_dir)
 
