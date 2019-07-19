@@ -6,6 +6,10 @@ ALLOWED_HOSTS = [
     '.codefrog.io',
 ]
 
+DEBUG = False
+
+CELERY_TASK_ALWAYS_EAGER = not DEBUG
+
 STATIC_ROOT = '/home/codefrog/webapps/codefrog_io_static/'
 
 DB_PASSWORD = os.environ['CODEFROG_DB_PASSWORD'] \
