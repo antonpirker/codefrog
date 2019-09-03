@@ -42,10 +42,22 @@
                     cubicInterpolationMode: 'monotone',
                     yAxisID: "y-axis-0",
                 },{
-                    label: 'Tickets in issue tracker',
+                    label: 'Other issues in issue tracker',
                     data: [
                         {% for metric in metrics %}
-                            {{ metric.github_bug_issues_now_open|default:0 }}{% if not forloop.last %},{% endif %}
+                            {{ metric.github_other_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: colors[1],
+                    backgroundColor: colors[1],
+                    lineTension: 0,
+                    yAxisID: "y-axis-1",
+                },{
+                    label: 'Bugs in issue tracker',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.github_bug_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
                     fill: false,
@@ -97,6 +109,7 @@
                             "id": "x-axis-0",
                             type: 'time',
                             distribution: 'linear',
+                            stacked: true,
                             time: {
                                 parser: 'YYYY-MM-DD HH:mm:ss',
                                 displayFormats: {
@@ -118,6 +131,7 @@
                         },{
                             "id": "y-axis-1",
                             display: false,
+                            stacked: true,
                             ticks: {
                                 beginAtZero: true
                             }

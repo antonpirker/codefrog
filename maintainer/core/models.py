@@ -4,7 +4,7 @@ import os
 from celery import chain, group
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
-from django.db import models
+from django.db import models, connection
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)

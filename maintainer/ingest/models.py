@@ -22,6 +22,26 @@ class RawIssue(models.Model):
         )
 
 
+class OpenIssue(models.Model):
+    project = models.ForeignKey(
+        'core.Project',
+        on_delete=models.CASCADE,
+    )
+    query_time = models.DateTimeField()
+
+    issue_refid = models.CharField(max_length=100)
+
+    labels = ArrayField(
+        models.CharField(max_length=255),
+        default=list,
+    )
+
+    class Meta:
+        unique_together = (
+            ('project', 'issue_refid', ),
+        )
+
+
 class RawCodeChange(models.Model):
     project = models.ForeignKey(
         'core.Project',

@@ -44,8 +44,8 @@ def resample_metrics(queryset, frequency):
 
     df = df.resample(frequency).agg({
         'complexity': 'last',  # take the last complexity in the week
-        'github_bug_issues_avg_days_open': 'last',  # avg number of days a issue was open
-        'github_bug_issues_now_open': 'last',  # the number of open issues at the end of the week
+        'github_bug_issues_open': 'last',  # the number of open bug issues at the end of the week
+        'github_other_issues_open': 'last',  # avg number of other open issues
 
         #'loc': 'last',  # take the number of lines of code at the end of the week
         #'complexity_per_loc': 'last',
@@ -64,9 +64,6 @@ def resample_metrics(queryset, frequency):
     #df['complexity'] = (df['complexity'] - df['complexity'].min()) / \
     #                   (df['complexity'].max() - df['complexity'].min())
     df['complexity'] = df['complexity'].round(2)
-
-    # Round number of days open
-    df['github_bug_issues_avg_days_open'] = df['github_bug_issues_avg_days_open'].round(2)
 
     df = df.fillna(0)
     df['date'] = df.index
