@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+export DEBIAN_FRONTEND=noninteractive
+
 update-locale LC_ALL="en_US.utf8"
 
-echo "Install generic nice stuff..."
+echo "-------------------------------------------------------------------------"
+echo "###### Install generic nice stuff..." && tput sgr0 && echo ""
 
 sudo apt-get update --quiet
 sudo apt-get install -y --no-install-recommends \
@@ -21,20 +24,15 @@ sudo apt-get install -y --no-install-recommends \
     rsync
 
 
-echo "Install tools for running the system..."
-
-apt-get install -y --no-install-recommends \
-    redis-server
-
-
-echo "Install tools for code analysis..."
+echo "-------------------------------------------------------------------------"
+echo "###### Install tools for code analysis..." && tput sgr0 && echo ""
 
 apt-get install -y --no-install-recommends \
     git \
     cloc
 
-
-echo "Install prerequisites for pyenv..."
+echo "-------------------------------------------------------------------------"
+echo "###### Install prerequisites for pyenv..." && tput sgr0 && echo ""
 
 apt-get install -y \
     make \
@@ -51,4 +49,16 @@ apt-get install -y \
     libffi-dev \
     liblzma-dev
 
-ln -s /vagrant /maintainer
+
+echo "-------------------------------------------------------------------------"
+echo "###### Install tools for running the system..." && tput sgr0 && echo ""
+
+#apt-get install -y --no-install-recommends \
+#    redis-server
+
+
+echo "-------------------------------------------------------------------------"
+echo "###### Setup Database ..." && tput sgr0 && echo ""
+
+runuser -l  postgres -c "psql -c \"CREATE ROLE maintainer with PASSWORD 'maintainer' LOGIN;\""
+runuser -l  postgres -c "psql -c \"CREATE DATABASE maintainer OWNER maintainer;\""

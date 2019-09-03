@@ -37,3 +37,8 @@ echo "Install project requirements "
 pip install --upgrade pip
 pip install --disable-pip-version-check -r /maintainer/requirements/dev.txt
 
+
+echo "Running migrations "
+
+cd /maintainer/maintainer
+./manage.py migrate

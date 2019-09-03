@@ -3,7 +3,7 @@
 
 Vagrant.configure("2") do |config|
     # basic config
-    config.vm.hostname = "maintainer-dev-server"
+    config.vm.hostname = "maintainer-dev"
     config.vm.box = "generic/ubuntu1804"
 
     # forwarded ports
@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
     config.vm.network :forwarded_port, guest: 5432, host: 5432
 
     # synched folders
-    config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    config.vm.synced_folder ".", "/maintainer", type: "virtualbox"
     config.vm.synced_folder "/home/anton/data/business/Projects/Formunauts/donut/Code", "/projects", type: "virtualbox"
 
     # provisioning
