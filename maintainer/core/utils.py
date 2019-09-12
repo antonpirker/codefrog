@@ -92,3 +92,11 @@ def resample_releases(queryset, frequency):
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
+
+
+def foo(num):
+    out = num
+    if num < 10:
+        out = out / num
+
+    return out
