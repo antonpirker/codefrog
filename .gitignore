@@ -46,11 +46,6 @@ pip-delete-this-directory.txt
 *.log
 *.pot
 
-# donation stuff
-/server/static_collect/
-/server/media_uploads/
-/server/django-donut/settings/local.py
-
 /media_uploads/
 /media/
 /static/
@@ -82,5 +77,3 @@ gunicorn.pid
 *.dump
 
 *.sqlite3
-
-settings.py
