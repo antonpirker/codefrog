@@ -10,6 +10,7 @@ import requests
 from celery import shared_task
 from dateutil.parser import parse
 from django.utils import timezone
+from django.conf import settings
 
 from core.models import Metric, Release
 from ingest.models import RawIssue, OpenIssue
@@ -26,12 +27,10 @@ GITHUB_API_DEFAULT_HEADERS = {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'Maintainer',
 }
-GITHUB_CLIENT_ID = os.environ['GITHUB_CLIENT_ID'] if 'GITHUB_CLIENT_ID' in os.environ else None
-GITHUB_CLIENT_SECRET = os.environ['GITHUB_CLIENT_SECRET'] if 'GITHUB_CLIENT_SECRET' in os.environ else None
 
 GITHUB_API_DEFAULT_PARAMS = {
-    'client_id': GITHUB_CLIENT_ID,
-    'client_secret': GITHUB_CLIENT_SECRET,
+    'client_id': settings.GITHUB_CLIENT_ID,
+    'client_secret': settings.GITHUB_CLIENT_SECRET,
 }
 
 GITHUB_BUG_ISSUE_LABELS = [
