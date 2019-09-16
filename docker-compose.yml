@@ -1,0 +1,45 @@
+version: "3.5"
+services:
+    gunicorn:
+        image: maintainer/gunicorn:latest
+        build:
+            context: ./
+            dockerfile: Dockerfile-gunicorn
+            args:
+                - SECRET_KEY=${SECRET_KEY}
+                - DATABASE_URL=${DATABASE_URL}
+                - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+        ports:
+            - "80:8000"
+        depends_on:
+            - redis
+            - postgres
+        links:
+            - redis
+            - postgres
+
+    celery-worker:
+        image: maintainer/celery-worker:latest
+        build:
+            context: ./
+            dockerfile: Dockerfile-celery-worker
+            args:
+                - SECRET_KEY=${SECRET_KEY}
+                - DATABASE_URL=${DATABASE_URL}
+                - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+        links:
+            - redis
+
+    redis:
+        image: redis:5-buster
+
+    postgres:
+        image: postgres:10-alpine
+        ports:
+            - "5433:5432"
+        volumes:
+            - ./postgres-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: dbuser
+            POSTGRES_PASSWORD: dbuser
+            POSTGRES_DB: dbname
