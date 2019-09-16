@@ -5,11 +5,12 @@ django-environ==0.4.5
 django-extensions==2.1.6
 django-json-widget==0.2.0
 GitPython==2.1.11
+gunicorn==19.9.0
 ipdb
 lizard==1.15.6
 numpy==1.16.2
 pandas==0.24.2
-psycopg2==2.8.2
+psycopg2-binary==2.8.3
 python-dateutil==2.8.0
 pytz==2019.1
 redis==3.2.1

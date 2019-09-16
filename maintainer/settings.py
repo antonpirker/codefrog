@@ -13,7 +13,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default='localhost')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
 
 
 # Application definition
@@ -158,10 +158,13 @@ LOGGING = {
 
 
 # Celery
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 5
-CELERY_WORKER_MAX_MEMORY_PER_CHILD = 500 * 1000
-CELERY_TASK_ALWAYS_EAGER = DEBUG
+CELERY_BROKER_URL = \
+    env.url('CELERY_BROKER_URL', default='redis://localhost:6379/0').geturl()
+CELERY_WORKER_MAX_TASKS_PER_CHILD = \
+    env.int('CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
+    env.int('CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1000)
+CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
 
 
 # Github Setup
