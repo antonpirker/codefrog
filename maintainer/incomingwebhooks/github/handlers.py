@@ -1,3 +1,5 @@
+from random import randrange
+
 from incomingwebhooks.github.utils import create_check_run, get_access_token
 
 
@@ -14,104 +16,72 @@ def check_suite__requested(payload):
         payload['repository']['id'],
     )
 
-    # create check run
+    # Tell Github we queued our check
     payload = {
-        'name': 'Complexity1',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'details_url': 'https://codefrog.io/projects/atom',
-        'started_at': '2019-10-10T14:33:54Z',
-        'completed_at': '2019-10-10T14:34:49Z',
-        'conclusion': 'neutral',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased by 50%',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity2',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'conclusion': 'success',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity3',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'conclusion': 'failure',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity4',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'conclusion': 'cancelled',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity5',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'conclusion': 'timed_out',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity6',
-        'head_sha': commit_sha_after,
-        'status': 'completed',
-        'conclusion': 'action_required',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity increased',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
-    }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-    payload = {
-        'name': 'Complexity7',
+        'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'queued',
-        'conclusion': 'action_required',  # success, failure, neutral, cancelled, timed_out, or action_required
-        'output': {
-            'title': 'Complexity queued',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
-        }
     }
-    create_check_run(repository_full_name, installation_access_token, payload)
+    out = create_check_run(repository_full_name, installation_access_token, payload)
 
+    # Actually start the check
     payload = {
-        'name': 'Complexity8',
+        'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'in_progress',
-        'conclusion': 'action_required',  # success, failure, neutral, cancelled, timed_out, or action_required
+    }
+    out = create_check_run(repository_full_name, installation_access_token, payload)
+
+    # Get the before and after code
+
+    # Calculate complexity before
+    # TODO: really check out the source and run calculation
+    complexity_before = 100
+
+    # Calculate complexity after
+    # TODO: really check out the source and run calculation
+    complexity_after = randrange(93, 106)
+
+    # Calculate change
+    complexity_change = round((100/complexity_before) * complexity_after - 100, 1)
+
+    # Tell Github the change complexity and that the check is not completed.
+    sunny = '🌞'  # U+1F31E
+    party_cloudy = '⛅'  # U+26C5
+    cloudy = '☁'  # U+2601
+    stormy = '⛈'  # U+26C8
+    unknown = ''  # nothing :)
+
+    if complexity_change <= 0:
+        icon = sunny
+    elif 0 < complexity_change <= 2.5:
+        icon = party_cloudy
+    elif 2.5 < complexity_change <= 5:
+        icon = cloudy
+    elif complexity_change > 5:
+        icon = stormy
+    else:
+        icon = unknown
+
+    conclusion = 'neutral' if complexity_change > 0 else 'success'
+
+    title = f'{icon} Complexity: {complexity_change:+.1f}%' if complexity_change > 0 \
+        else f'{icon} Complexity: {complexity_change:+.1f}%'
+    summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
+        This is not a good sign. Maybe see if you can refactor your code
+        a little to have less complexity.""" if complexity_change > 0 \
+        else f"""You have decreased your complexity of the system by {complexity_change:+.1f}%.
+        Well done!"""
+
+    payload = {
+        'name': 'Complexity',
+        'head_sha': commit_sha_after,
+        'status': 'completed',
+        'conclusion': conclusion,
         'output': {
-            'title': '🌩🌩🌩🌩🌩🌞 🌤 🌥 🌧 🌩 😃 🙂 😐 😟 😭 Complexity queued',
-            'summary': 'You have increased your complexity of the system by 11%. This is not a good sign. Maybe see if you can refactor your code a little to have less complexity.',
+            'title': title,
+            'summary': summary,
         }
     }
-    create_check_run(repository_full_name, installation_access_token, payload)
-
-
+    out = create_check_run(repository_full_name, installation_access_token, payload)
+    return out

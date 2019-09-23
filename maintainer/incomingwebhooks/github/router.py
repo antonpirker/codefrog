@@ -12,9 +12,14 @@ def github_hook(request):
     event = request.headers['X-Github-Event']
     payload = json.loads(request.body)
     action = payload['action']
+    print(f'RECEIVED GITHUB HOOK:  {event}/{action}')
 
     handlers_module = import_module('%s.handlers' % __name__.rpartition('.')[0])
     handler_name = f'{event}__{action}'
-    handler = getattr(handlers_module, handler_name)
-    out = handler(payload)
+    try:
+        handler = getattr(handlers_module, handler_name)
+        out = handler(payload)
+    except AttributeError:
+        out = f'Unknown! Github event: {event} / action: {action}'
+
     return out
