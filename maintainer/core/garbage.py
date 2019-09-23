@@ -73,7 +73,7 @@ def dependencies_python(root_dir):
     direct_dependencies = len(dependencies_direct)
     indirect_dependencies = len(dependencies_indirect)
 
-    # TODO: eigentlich heißt das "density of the network" oder "density of transitive closure graph"
+    # eigentlich heißt das "density of the network" oder "density of transitive closure graph"
     #  oder "architectual complexity"
 
     return (
