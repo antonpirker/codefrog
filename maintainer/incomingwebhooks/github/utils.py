@@ -1,9 +1,13 @@
+import hashlib
+import hmac
 import json
 import time
 
 import jwt
 import requests
 from django.conf import settings
+from django.http import Http404
+from django.utils.crypto import constant_time_compare
 
 
 def get_jwt_token():
@@ -62,3 +66,23 @@ def create_check_run(repository_full_name, installation_access_token, payload):
 
     out = requests.post(api_url, data=json.dumps(payload), headers=headers)
     return out
+
+
+def check_github_webhook_secret(func):
+    """
+    Check if the request actually was sent by GitHub.
+    """
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        secret = settings.GITHUB_WEBHOOK_SECRET.encode()
+        signature = request.headers['X-Hub-Signature']
+        h = hmac.new(secret, digestmod=hashlib.sha1)
+        h.update(request.body)
+        my_signature = 'sha1=%s' % h.hexdigest()
+
+        if not constant_time_compare(my_signature, signature):
+            raise Http404()
+
+        return func(*args, **kwargs)
+
+    return wrapper

@@ -176,10 +176,9 @@ GITHUB_CLIENT_SECRET = env.str('GITHUB_CLIENT_SECRET', default=None)
 GITHUB_APP_IDENTIFIER = env.int('GITHUB_APP_IDENTIFIER', default=None)
 GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET', default=None)
 GITHUB_PRIVATE_KEY = env.str('GITHUB_PRIVATE_KEY', multiline=True, default=None).encode()
-
+GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET')
 
 # Maintainer Setup
 GIT_REPO_DIR = env.str('GIT_REPO_DIR', default=os.path.join(BASE_DIR, 'git_repos'))
 if not os.path.exists(GIT_REPO_DIR):
     os.makedirs(GIT_REPO_DIR)
-

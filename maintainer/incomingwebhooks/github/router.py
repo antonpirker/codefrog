@@ -1,7 +1,10 @@
 import json
 from importlib import import_module
 
+from incomingwebhooks.github.utils import check_github_webhook_secret
 
+
+@check_github_webhook_secret
 def github_hook(request):
     """
     Receives all Github web hooks and calls the correct handler for web hook.

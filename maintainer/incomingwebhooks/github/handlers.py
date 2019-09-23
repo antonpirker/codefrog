@@ -2,6 +2,33 @@ from random import randrange
 
 from incomingwebhooks.github.utils import create_check_run, get_access_token
 
+def installation__created(payload):
+    # Here is a list of all repositories that are available in the user
+    # payload['installation']['id']
+    # payload['repositories']
+    #
+    # {
+    # 		"id": 5193607,
+    # 		"node_id": "MDEwOlJlcG9zaXRvcnk1MTkzNjA3",
+    # 		"name": "django-fiber",
+    # 		"full_name": "antonpirker/django-fiber",
+    # 		"private": false
+    # 	}
+    #
+    # payload['sender']['avatar_url'] bild von dem der installiert hat.
+    # payload['sender']['id'] id on github
+    # payload['sender']['login'] username
+    print("### INSTALLATION / CREATED")
+
+
+def integration_installation__created(payload):
+    # deprecated event. is succeeded by installation_created
+    pass
+
+
+def installation__deleted(payload):
+    print("### INSTALLATION / DELETED")
+
 
 def check_suite__requested(payload):
     event = 'check_suite'

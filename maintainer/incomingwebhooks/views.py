@@ -5,6 +5,7 @@ import tempfile
 import requests
 from django.conf import settings
 from django.http import HttpResponse
+from django.http.response import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
@@ -58,9 +59,44 @@ def gitlab_merge_request(request):
 
 @csrf_exempt
 def hook(request):
+    print('########## hook')
+    print('-----------------------------------------------------------')
+    print('request.headers: %s ' % request.headers)
+    print('-----------------------------------------------------------')
+    print('request.body: %s' % request.body)
+    print('-----------------------------------------------------------')
+
     if 'X-Github-Event' in request.headers:
         msg = github_hook(request)
     else:
         msg = 'Not implemented yet.'
 
     return HttpResponse(msg)
+
+
+@csrf_exempt
+def authorization(request):
+    print('########## authorization')
+    print('-----------------------------------------------------------')
+    print('request.headers: %s ' % request.headers)
+    print('-----------------------------------------------------------')
+    print('request.body: %s' % request.body)
+    print('-----------------------------------------------------------')
+
+    msg = 'OK'
+    return HttpResponse(msg)
+
+
+@csrf_exempt
+def setup(request):
+    print('########## setup')
+    print('-----------------------------------------------------------')
+    print('request.headers: %s ' % request.headers)
+    print('-----------------------------------------------------------')
+    print('request.body: %s' % request.body)
+    print('-----------------------------------------------------------')
+    # request.GET: <QueryDict: {'installation_id': ['2115097'], 'setup_action': ['install']}>
+
+    # Redirect back to where request came from
+    url = request.META['HTTP_REFERER']
+    return HttpResponseRedirect(url)
