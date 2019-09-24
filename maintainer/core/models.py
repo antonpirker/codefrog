@@ -6,11 +6,28 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models, connection
 from django.utils import timezone
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile',
+    )
+    github_app_installation_refid = models.IntegerField()
+
+
 class Project(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+    )
+    private = models.BooleanField(default=True)
+    source = models.CharField(max_length=10, blank=True, default='')
     slug = models.SlugField(max_length=40)
     name = models.CharField(max_length=100)
     git_url = models.CharField(max_length=255)

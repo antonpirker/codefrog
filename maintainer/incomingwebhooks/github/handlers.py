@@ -1,24 +1,63 @@
+import secrets
 from random import randrange
 
-from incomingwebhooks.github.utils import create_check_run, get_access_token
+from django.contrib.auth.models import User
+
+from core.models import Project, UserProfile
+from incomingwebhooks.github.utils import create_check_run, get_access_token, \
+    get_repository
+
 
 def installation__created(payload):
-    # Here is a list of all repositories that are available in the user
-    # payload['installation']['id']
-    # payload['repositories']
-    #
-    # {
-    # 		"id": 5193607,
-    # 		"node_id": "MDEwOlJlcG9zaXRvcnk1MTkzNjA3",
-    # 		"name": "django-fiber",
-    # 		"full_name": "antonpirker/django-fiber",
-    # 		"private": false
-    # 	}
-    #
-    # payload['sender']['avatar_url'] bild von dem der installiert hat.
-    # payload['sender']['id'] id on github
-    # payload['sender']['login'] username
     print("### INSTALLATION / CREATED")
+
+    import ipdb;
+    ipdb.set_trace()
+    # create a user in our database
+    user, created = User.objects.get_or_create(
+        username=payload['sender']['login'],
+        is_staff=False,
+        is_active=True,
+        is_superuser=False,
+        defaults={
+            'password': secrets.token_urlsafe(90),
+        },
+    )
+    profile, created = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={
+            'github_app_installation_refid': payload['installation']['id'],
+        },
+    )
+
+    # add all repositories to the user
+    for repository in payload['repositories']:
+        # TODO: currently now working because "Resource not accessible by integration" error.
+        """
+        repository_data = get_repository(
+            payload['installation']['id'],
+            repository['id'],
+            repository['full_name'],
+        )
+        """
+
+        project, created = Project.objects.get_or_create(
+            user=user,
+            slug=repository['name'],
+            name=repository['full_name'],
+            source='github',
+            defaults={
+                'private': repository['private'],
+            },
+        )
+
+        if created:
+            project.external_services = {
+                'github': {
+                    'repository_id': repository['id']
+                }
+            }
+            project.save()
 
 
 def integration_installation__created(payload):
@@ -70,7 +109,7 @@ def check_suite__requested(payload):
     complexity_after = randrange(93, 106)
 
     # Calculate change
-    complexity_change = round((100/complexity_before) * complexity_after - 100, 1)
+    complexity_change = round((100 / complexity_before) * complexity_after - 100, 1)
 
     # Tell Github the change complexity and that the check is not completed.
     sunny = '🌞'  # U+1F31E
