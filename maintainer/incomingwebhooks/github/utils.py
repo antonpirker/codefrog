@@ -27,7 +27,7 @@ def create_jwt():
     return token
 
 
-def get_access_token(installation_id, repository_id):
+def get_access_token(installation_id):
     """
     Authenticate as a Github App and get an installation access token.
     """
@@ -40,18 +40,8 @@ def get_access_token(installation_id, repository_id):
     api_base_url = 'https://api.github.com'
     api_url = f'{api_base_url}{url}'
 
-    payload = {
-        "repository_ids": [repository_id],
-        "permissions": {
-            "metadata": "read",
-            "checks": "write",
-            "contents": "read",
-        }
-    }
-
-    out = requests.post(api_url, data=json.dumps(payload), headers=headers)
+    out = requests.post(api_url, headers=headers)
     out = json.loads(out.content)
-    import ipdb; ipdb.set_trace()
     token = out['token']
     print("Installation access token: %s" % token)
     return token
@@ -70,8 +60,10 @@ def create_check_run(repository_full_name, installation_access_token, payload):
     out = requests.post(api_url, data=json.dumps(payload), headers=headers)
     return out
 
-def get_repository(installation_id, repository_id, repository_full_name):
-    installation_access_token = get_access_token(installation_id, repository_id)
+
+def get_repository(installation_id, repository_full_name):
+    # TODO: move method to class so the access token is not created over and over again.
+    installation_access_token = get_access_token(installation_id)
 
     url = f'/repos/{repository_full_name}'
     api_base_url = 'https://api.github.com'
@@ -81,8 +73,8 @@ def get_repository(installation_id, repository_id, repository_full_name):
         'Authorization': 'token %s' % installation_access_token,
     }
 
-    out = requests.post(api_url, headers=headers)
-    return out
+    out = requests.get(api_url, headers=headers)
+    return json.loads(out.content)
 
 
 def check_github_webhook_secret(func):

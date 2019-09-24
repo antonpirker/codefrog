@@ -28,7 +28,7 @@ class Project(models.Model):
     )
     private = models.BooleanField(default=True)
     source = models.CharField(max_length=10, blank=True, default='')
-    slug = models.SlugField(max_length=40)
+    slug = models.SlugField(max_length=255)
     name = models.CharField(max_length=100)
     git_url = models.CharField(max_length=255)
 

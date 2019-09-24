@@ -10,9 +10,6 @@ from incomingwebhooks.github.utils import create_check_run, get_access_token, \
 
 def installation__created(payload):
     print("### INSTALLATION / CREATED")
-
-    import ipdb;
-    ipdb.set_trace()
     # create a user in our database
     user, created = User.objects.get_or_create(
         username=payload['sender']['login'],
@@ -32,20 +29,17 @@ def installation__created(payload):
 
     # add all repositories to the user
     for repository in payload['repositories']:
-        # TODO: currently now working because "Resource not accessible by integration" error.
-        """
         repository_data = get_repository(
             payload['installation']['id'],
-            repository['id'],
             repository['full_name'],
         )
-        """
 
         project, created = Project.objects.get_or_create(
             user=user,
-            slug=repository['name'],
-            name=repository['full_name'],
             source='github',
+            slug=repository_data['full_name'].replace('/', '-'),
+            name=repository_data['name'],
+            git_url=repository_data['clone_url'],
             defaults={
                 'private': repository['private'],
             },
