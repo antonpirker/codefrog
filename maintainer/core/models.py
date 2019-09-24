@@ -24,6 +24,7 @@ class Project(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
+        related_name='projects',
         null=True, blank=True,
     )
     private = models.BooleanField(default=True)
@@ -63,6 +64,13 @@ class Project(models.Model):
     def github_repo_name(self):
         return self.external_services['github_issues']['repo_name'] \
             if 'github_issues' in self.external_services else None
+
+    @property
+    def github_repo_full_name(self):
+        if 'github.com' in self.git_url:
+            return '/'.join(self.git_url.replace('.git', '').split('/')[-2:])
+
+        return None
 
     @property
     def has_github_issues(self):
