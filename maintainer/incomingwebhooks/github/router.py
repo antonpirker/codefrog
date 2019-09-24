@@ -21,7 +21,7 @@ def github_hook(request):
     handler_name = f'{event}__{action}'
     try:
         handler = getattr(handlers_module, handler_name)
-        out = handler(payload)
+        out = handler(payload, request)
     except AttributeError:
         out = f'Unknown! Github event: {event} / action: {action}'
 

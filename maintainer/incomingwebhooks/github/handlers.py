@@ -2,13 +2,14 @@ import secrets
 from random import randrange
 
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 from core.models import Project, UserProfile
 from incomingwebhooks.github.utils import create_check_run, get_access_token, \
     get_repository
 
 
-def installation__created(payload):
+def installation__created(payload, request=None):
     print("### INSTALLATION / CREATED")
     # create a user in our database
     user, created = User.objects.get_or_create(
@@ -54,16 +55,16 @@ def installation__created(payload):
             project.save()
 
 
-def integration_installation__created(payload):
+def integration_installation__created(payload, request=None):
     # deprecated event. is succeeded by installation_created
     pass
 
 
-def installation__deleted(payload):
+def installation__deleted(payload, request=None):
     print("### INSTALLATION / DELETED")
 
 
-def check_suite__requested(payload):
+def check_suite__requested(payload, request=None):
     event = 'check_suite'
     action = 'requested'
 
@@ -73,24 +74,23 @@ def check_suite__requested(payload):
 
     installation_access_token = get_access_token(
         payload['installation']['id'],
-        payload['repository']['id'],
     )
 
     # Tell Github we queued our check
-    payload = {
+    check_run_payload = {
         'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'queued',
     }
-    out = create_check_run(repository_full_name, installation_access_token, payload)
+    out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
 
     # Actually start the check
-    payload = {
+    check_run_payload = {
         'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'in_progress',
     }
-    out = create_check_run(repository_full_name, installation_access_token, payload)
+    out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
 
     # Get the before and after code
 
@@ -133,15 +133,19 @@ def check_suite__requested(payload):
         else f"""You have decreased your complexity of the system by {complexity_change:+.1f}%.
         Well done!"""
 
-    payload = {
+    project = Project.objects.get(external_services__github__repository_id=payload['repository']['id'])
+    details_url = request.build_absolute_uri(reverse('project-detail', kwargs={'slug': project.slug}))
+
+    check_run_payload = {
         'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'completed',
+        'details_url': details_url,
         'conclusion': conclusion,
         'output': {
             'title': title,
             'summary': summary,
         }
     }
-    out = create_check_run(repository_full_name, installation_access_token, payload)
+    out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
     return out
