@@ -1,10 +1,15 @@
+import shutil
+import os
 import secrets
 from random import randrange
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from git import Repo
 
 from core.models import Project, UserProfile
+from core.utils import get_path_complexity
 from incomingwebhooks.github.utils import create_check_run, get_access_token, \
     get_repository
 
@@ -92,20 +97,29 @@ def check_suite__requested(payload, request=None):
     }
     out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
 
-    # Get the before and after code
+    # Get the source code
+    git_url = f'https://x-access-token:{installation_access_token}@github.com/{repository_full_name}.git'
+    repo_dir = os.path.join(settings.GIT_REPO_DIR, repository_full_name)
+
+    if os.path.exists(repo_dir):
+        shutil.rmtree(repo_dir)
+    if not os.path.exists(repo_dir):
+        os.makedirs(repo_dir)
+
+    repo = Repo.clone_from(git_url, repo_dir)
 
     # Calculate complexity before
-    # TODO: really check out the source and run calculation
-    complexity_before = 100
+    repo.git.reset('--hard', commit_sha_before)
+    complexity_before = get_path_complexity(repo_dir)
 
     # Calculate complexity after
-    # TODO: really check out the source and run calculation
-    complexity_after = randrange(93, 106)
+    repo.git.reset('--hard', commit_sha_after)
+    complexity_after = get_path_complexity(repo_dir)
 
     # Calculate change
     complexity_change = round((100 / complexity_before) * complexity_after - 100, 1)
 
-    # Tell Github the change complexity and that the check is not completed.
+    # Tell Github the change complexity and that the check is now completed.
     sunny = '🌞'  # U+1F31E
     party_cloudy = '⛅'  # U+26C5
     cloudy = '☁'  # U+2601
@@ -114,24 +128,35 @@ def check_suite__requested(payload, request=None):
 
     if complexity_change <= 0:
         icon = sunny
+        summary = f"""You have decreased your complexity of the system by {complexity_change:+.1f}%.
+        Well done! You are on the right tracks to make your project more maintainable!"""
+        conclusion = 'success'
+
     elif 0 < complexity_change <= 2.5:
         icon = party_cloudy
+        summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
+        This is OK."""
+        conclusion = 'neutral'
+
     elif 2.5 < complexity_change <= 5:
         icon = cloudy
+        summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
+        This is OK if you implement some new features. Just make sure, that you keep an eye on the overall complexity."""
+        conclusion = 'neutral'
+
     elif complexity_change > 5:
         icon = stormy
+        summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
+        This is not a good sign. Maybe see if you can refactor your code
+        a little to have less complexity."""
+        conclusion = 'neutral'
+
     else:
         icon = unknown
+        summary = f"""I do not know the complexity in your system has changed. Strange thing..."""
+        conclusion = 'neutral'
 
-    conclusion = 'neutral' if complexity_change > 0 else 'success'
-
-    title = f'{icon} Complexity: {complexity_change:+.1f}%' if complexity_change > 0 \
-        else f'{icon} Complexity: {complexity_change:+.1f}%'
-    summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
-        This is not a good sign. Maybe see if you can refactor your code
-        a little to have less complexity.""" if complexity_change > 0 \
-        else f"""You have decreased your complexity of the system by {complexity_change:+.1f}%.
-        Well done!"""
+    title = f'{icon} Complexity: {complexity_change:+.1f}%'
 
     project = Project.objects.get(external_services__github__repository_id=payload['repository']['id'])
     details_url = request.build_absolute_uri(reverse('project-detail', kwargs={'slug': project.slug}))

@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 from datetime import timedelta
 
@@ -94,9 +95,28 @@ def daterange(start_date, end_date):
         yield start_date + timedelta(n)
 
 
-def foo(num):
-    out = num
-    if num < 10:
-        out = out / num
+def get_file_complexity(filename):
+    complexity = 0
+    with open(filename) as file:
+        try:
+            for line in file:
+                complexity += len(line) - len(line.lstrip())
+        except UnicodeDecodeError:
+            # TODO: This should only happen for binary files like jpg,
+            #  but could be potential a real hard to find bug if the complexity is always wrong.
+            pass
 
-    return out
+    return complexity
+
+
+def get_path_complexity(path):
+    complexity = 0
+    from core.views import EXCLUDE
+    for root_dir, dirs, files in os.walk(path):
+        for f in files:
+            full_path = os.path.join(root_dir, f)
+            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
+                continue
+            complexity += get_file_complexity(full_path)
+
+    return complexity
