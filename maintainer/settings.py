@@ -170,6 +170,7 @@ CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
 
 
 # Github Setup
+# TODO: can these be removed?
 GITHUB_CLIENT_ID = env.str('GITHUB_CLIENT_ID', default=None)
 GITHUB_CLIENT_SECRET = env.str('GITHUB_CLIENT_SECRET', default=None)
 
@@ -182,6 +183,7 @@ GITHUB_AUTH_REDIRECT_URI = env.str('GITHUB_AUTH_REDIRECT_URI', default=None)
 GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET', default=None)
 GITHUB_PRIVATE_KEY = env.str('GITHUB_PRIVATE_KEY', multiline=True, default=None).encode()
 GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET')
+
 
 # Maintainer Setup
 GIT_REPO_DIR = env.str('GIT_REPO_DIR', default=os.path.join(BASE_DIR, 'git_repos'))

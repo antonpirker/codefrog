@@ -214,6 +214,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     return HttpResponse(html)
 
 
+# TODO: this needs to be under the user and checked, that only the logged in user can do this to her own projects
 def project_toggle(request, slug):
     try:
         project = Project.objects.get(slug=slug)
