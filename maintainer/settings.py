@@ -46,6 +46,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'urls'
 
+LOGOUT_REDIRECT_URL = '/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -174,6 +176,9 @@ GITHUB_CLIENT_SECRET = env.str('GITHUB_CLIENT_SECRET', default=None)
 
 # Github App Setup
 GITHUB_APP_IDENTIFIER = env.int('GITHUB_APP_IDENTIFIER', default=None)
+GITHUB_APP_CLIENT_ID = env.str('GITHUB_APP_CLIENT_ID', default=None)
+GITHUB_APP_CLIENT_SECRET = env.str('GITHUB_APP_CLIENT_SECRET', default=None)
+GITHUB_AUTH_REDIRECT_URI = env.str('GITHUB_AUTH_REDIRECT_URI', default=None)
 GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET', default=None)
 GITHUB_PRIVATE_KEY = env.str('GITHUB_PRIVATE_KEY', multiline=True, default=None).encode()
 GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET')

@@ -38,33 +38,10 @@
                         <td>Email:</td>
                         <td>{{ user.email }}</td>
                     </tr>
-                    <tr>
-                        <td>Password:</td>
-                        <td>CHANGE PASSWORD LINK</td>
-                    </tr>
-
                 </table>
             </div>
 
-            <!-- Projects -->
-            <div class="large-12 cell">
-                <h2>Projects</h2>
-            </div>
-
-            <div class="large-12 cell">
-                <table>
-                    {% for project in projects %}
-                        <tr>
-                            <td>
-                                <h3 style="margin: 0;">{{ project.github_repo_full_name }}</h3>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-                </ul>
-            </div>
         </div>
-
     </div>
     <script>
 </body>

@@ -4,12 +4,19 @@ import tempfile
 
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.auth import login
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
+from django.urls import reverse
+from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
+from core.models import Project
 from incomingwebhooks.github.router import github_hook
+from incomingwebhooks.github.utils import get_user_access_token, get_user, \
+    get_installations, get_installation_repositories
 
 
 @csrf_exempt
@@ -83,8 +90,44 @@ def authorization(request):
     print('request.body: %s' % request.body)
     print('-----------------------------------------------------------')
 
-    msg = 'OK'
-    return HttpResponse(msg)
+    state = request.GET.get('state', None)
+    code = request.GET.get('code', None)
+
+    # TODO: compare the state with the state we create in the index page. (if we did not create a state in the index (the pap was installed from github.com) there is no state, so both must be none
+
+    # get information about the user
+    access_token = get_user_access_token(code, state)
+    user_data = get_user(access_token)
+    username = user_data['login']
+    email = user_data['email']
+
+    user, created = User.objects.update_or_create(
+        username=username,
+        defaults={
+            'email': email,
+        }
+    )
+
+    login(request, user)
+
+    # import projects of the user
+    installations = get_installations(access_token)
+    for installation in installations['installations']:
+        installation_id = installation['id']
+        repositories = get_installation_repositories(access_token, installation_id)
+        for repository in repositories['repositories']:
+            project, created = Project.objects.get_or_create(
+                user=user,
+                source='github',
+                slug=slugify(repository['full_name'].replace('/', '-')),
+                name=repository['name'],
+                git_url=repository['clone_url'],
+                defaults={
+                    'private': repository['private'],
+                },
+            )
+
+    return HttpResponseRedirect(reverse('index'))
 
 
 @csrf_exempt

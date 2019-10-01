@@ -27,6 +27,7 @@ class Project(models.Model):
         null=True, blank=True,
     )
     private = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     source = models.CharField(max_length=10, blank=True, default='')
     slug = models.SlugField(max_length=255)
     name = models.CharField(max_length=100)

@@ -1,9 +1,11 @@
 import datetime
 import json
 import os
+import secrets
 
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -21,12 +23,24 @@ EXCLUDE = [
 
 
 def index(request):
+    if request.user.is_authenticated:
+        projects = request.user.projects.all().order_by('-active', 'name')
+    else:
+        projects = Project.objects.none()
+
     context = {
         'user': request.user,
-        'projects': Project.objects.all().order_by('name'),
+        'projects': projects,
+        'github_app_client_id': settings.GITHUB_APP_CLIENT_ID,
+        'github_redirect_uri': settings.GITHUB_AUTH_REDIRECT_URI,
+        'github_state': secrets.token_urlsafe(50),
     }
 
-    html = render_to_string('index.html', context=context)
+    if request.user.is_authenticated:
+        html = render_to_string('index.html', context=context)
+    else:
+        html = render_to_string('landing.html', context=context)
+
     return HttpResponse(html)
 
 
@@ -198,6 +212,21 @@ def project_detail(request, slug, zoom=None, release_flag=None):
 
     html = render_to_string('project/detail.html', context=context)
     return HttpResponse(html)
+
+
+def project_toggle(request, slug):
+    try:
+        project = Project.objects.get(slug=slug)
+    except Project.DoesNotExist:
+        raise Http404('Project does not exist')
+
+    if project.private:
+        raise Http404('Project does not exist')
+
+    project.active = not project.active
+    project.save()
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
 @only_matching_authenticated_users

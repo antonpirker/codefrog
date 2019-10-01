@@ -6,6 +6,7 @@ from random import randrange
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils.text import slugify
 from git import Repo
 
 from core.models import Project, UserProfile
@@ -43,11 +44,11 @@ def installation__created(payload, request=None):
         project, created = Project.objects.get_or_create(
             user=user,
             source='github',
-            slug=repository_data['full_name'].replace('/', '-'),
+            slug=slugify(repository_data['full_name'].replace('/', '-')),
             name=repository_data['name'],
             git_url=repository_data['clone_url'],
             defaults={
-                'private': repository['private'],
+                'private': repository_data['private'],
             },
         )
 

@@ -1,3 +1,4 @@
+from urllib.parse import parse_qs
 import hashlib
 import hmac
 import json
@@ -45,6 +46,62 @@ def get_access_token(installation_id):
     token = out['token']
     print("Installation access token: %s" % token)
     return token
+
+
+def get_user_access_token(code, state):
+    api_url = f'https://github.com/login/oauth/access_token'
+
+    payload = {
+        'client_id': settings.GITHUB_APP_CLIENT_ID,
+        'client_secret': settings.GITHUB_APP_CLIENT_SECRET,
+        'redirect_url': settings.GITHUB_AUTH_REDIRECT_URI,
+        'code': code,
+        'state': state,
+    }
+
+    out = requests.post(api_url, data=payload)
+    data = parse_qs(out.content.decode())
+    access_token = data['access_token'][0]
+
+    return access_token
+
+
+def get_user(access_token):
+    api_url = f'https://api.github.com/user'
+
+    headers = {
+        'Authorization': 'token %s' % access_token,
+    }
+
+    out = requests.get(api_url, headers=headers)
+
+    return json.loads(out.content)
+
+
+def get_installations(access_token):
+    api_url = f'https://api.github.com/user/installations'
+
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'token %s' % access_token,
+    }
+
+    out = requests.get(api_url, headers=headers)
+
+    return json.loads(out.content)
+
+
+def get_installation_repositories(access_token, installations_id):
+    api_url = f'https://api.github.com/user/installations/{installations_id}/repositories'
+
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'token %s' % access_token,
+    }
+
+    out = requests.get(api_url, headers=headers)
+
+    return json.loads(out.content)
 
 
 def create_check_run(repository_full_name, installation_access_token, payload):
