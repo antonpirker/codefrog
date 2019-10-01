@@ -214,22 +214,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     return HttpResponse(html)
 
 
-# TODO: this needs to be under the user and checked, that only the logged in user can do this to her own projects
-def project_toggle(request, slug):
-    try:
-        project = Project.objects.get(slug=slug)
-    except Project.DoesNotExist:
-        raise Http404('Project does not exist')
-
-    if project.private:
-        raise Http404('Project does not exist')
-
-    project.active = not project.active
-    project.save()
-
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-
-
 @only_matching_authenticated_users
 def user_settings(request, username):
     try:
@@ -265,3 +249,27 @@ def project_settings(request, username, project_slug):
     }
     html = render_to_string('settings/project.html', context=context)
     return HttpResponse(html)
+
+
+@only_matching_authenticated_users
+def project_toggle(request, username, project_slug):
+    try:
+        project = Project.objects.get(slug=project_slug)
+    except Project.DoesNotExist:
+        raise Http404('Project does not exist')
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise Http404('User does not exist')
+
+    if not user.projects.filter(pk=project.pk).exists():
+        raise Http404('Project does not belong to user')
+
+    project.active = not project.active
+    project.save()
+
+    if project.active:
+        pass
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))

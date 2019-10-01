@@ -6,10 +6,6 @@ import django.contrib.auth.views as auth_views
 urlpatterns = [
     path('', views.index, name='index'),
 
-    # project actions
-    path('project/<slug:slug>/toggle',
-        views.project_toggle, name='project-toggle'),
-
     # project details
     path('project/<slug:slug>/<slug:zoom>/<slug:release_flag>',
         views.project_detail, name='project-detail-zoomed-release'),
@@ -23,6 +19,10 @@ urlpatterns = [
         views.user_settings, name='user-settings'),
     path('settings/<slug:username>/project/<slug:project_slug>',
         views.project_settings, name='project-settings'),
+
+    # settings actions
+    path('settings/<slug:username>/project/<slug:project_slug>/toggle',
+        views.project_toggle, name='project-toggle'),
 
     path('accounts/', include('django.contrib.auth.urls')),
 ]
