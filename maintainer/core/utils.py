@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 from datetime import timedelta
+from django.core.exceptions import PermissionDenied
 
 import pandas as pd
 
@@ -120,3 +121,23 @@ def get_path_complexity(path):
             complexity += get_file_complexity(full_path)
 
     return complexity
+
+
+def only_matching_authenticated_users(func):
+    """
+    Check if the user is authenticated and matching with the username in the URL
+    """
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        user = request.user
+
+        if not user.is_superuser:
+            is_correct_user = user.is_authenticated \
+                              and user.username == kwargs['username']
+
+            if not is_correct_user:
+                raise PermissionDenied()
+
+        return func(*args, **kwargs)
+
+    return wrapper

@@ -13,21 +13,39 @@
 
 <body>
     <div class="header">
-        <div class="grid-container" style="height: 4em;">
+        <div class="grid-container">
             <!-- Header -->
             <div class="grid-x grid-margin-x grid-padding-y text-center large-text-left">
-                <div class="large-11 cell">
+                <div class="large-12 cell">
                     <a href="{% url 'index' %}">Codefrog</a>
                 </div>
-                <div class="large-1 cell text-right">
-                    <a href="{% url 'user_settings' user %}" style="font-size: 3em; margin-top: -0.35em; display: block;">⚙</a>
-                </div>
-
             </div>
         </div>
     </div>
     <div class="grid-container">
         <div class="grid-x grid-margin-x">
+            <div class="large-12 cell">
+                <h1>Settings</h1>
+            </div>
+
+            <div class="large-12 cell">
+                <table>
+                    <tr>
+                        <td>Username:</td>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                    <tr>
+                        <td>Email:</td>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <td>Password:</td>
+                        <td>CHANGE PASSWORD LINK</td>
+                    </tr>
+
+                </table>
+            </div>
+
             <!-- Projects -->
             <div class="large-12 cell">
                 <h2>Projects</h2>
@@ -39,9 +57,6 @@
                         <tr>
                             <td>
                                 <h3 style="margin: 0;">{{ project.github_repo_full_name }}</h3>
-                            </td>
-                            <td class="text-right">
-                                <a href="" class="button primary" style="margin: 0;">activate</a>
                             </td>
                         </tr>
                     {% endfor %}

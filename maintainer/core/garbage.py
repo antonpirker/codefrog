@@ -345,5 +345,5 @@ def old_index_view(request):
         'metric_stats': metric_stats,
     }
 
-    rendered = render_to_string('index.html', context=context)
+    rendered = render_to_string('landing.html', context=context)
     return HttpResponse(rendered)

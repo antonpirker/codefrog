@@ -1,13 +1,15 @@
 import datetime
-import os
 import json
+import os
 
+from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 
 from core.models import Metric, Project, Release
-from core.utils import resample_metrics, resample_releases
+from core.utils import only_matching_authenticated_users, resample_metrics, \
+    resample_releases
 from ingest.models import RawCodeChange
 
 MONTH = 30
@@ -20,17 +22,21 @@ EXCLUDE = [
 
 def index(request):
     context = {
+        'user': request.user,
         'projects': Project.objects.all().order_by('name'),
     }
 
-    rendered = render_to_string('index.html', context=context)
-    return HttpResponse(rendered)
+    html = render_to_string('index.html', context=context)
+    return HttpResponse(html)
 
 
 def project_detail(request, slug, zoom=None, release_flag=None):
     try:
         project = Project.objects.get(slug=slug)
     except Project.DoesNotExist:
+        raise Http404('Project does not exist')
+
+    if project.private:
         raise Http404('Project does not exist')
 
     today = timezone.now()
@@ -190,5 +196,42 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'max_changes': max_changes,
     }
 
-    rendered = render_to_string('project/detail.html', context=context)
-    return HttpResponse(rendered)
+    html = render_to_string('project/detail.html', context=context)
+    return HttpResponse(html)
+
+
+@only_matching_authenticated_users
+def user_settings(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise Http404('User does not exist')
+
+    context = {
+        'user': user,
+        'projects': user.projects.all().order_by('name'),
+    }
+    html = render_to_string('settings/user.html', context=context)
+    return HttpResponse(html)
+
+
+@only_matching_authenticated_users
+def project_settings(request, username, project_slug):
+    try:
+        project = Project.objects.get(slug=project_slug)
+    except Project.DoesNotExist:
+        raise Http404('Project does not exist')
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise Http404('User does not exist')
+
+    if not user.projects.filter(pk=project.pk).exists():
+        raise Http404('Project does not belong to user')
+
+    context = {
+        'project': project,
+    }
+    html = render_to_string('settings/project.html', context=context)
+    return HttpResponse(html)
