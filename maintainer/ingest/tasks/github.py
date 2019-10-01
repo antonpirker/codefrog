@@ -1,19 +1,15 @@
 import datetime
 import json
 import logging
-import os
 import urllib
-from collections import defaultdict
 
-import pandas as pd
 import requests
 from celery import shared_task
-from dateutil.parser import parse
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
 
 from core.models import Metric, Release
-from ingest.models import RawIssue, OpenIssue
+from ingest.models import OpenIssue
 
 logger = logging.getLogger(__name__)
 

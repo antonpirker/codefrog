@@ -186,6 +186,6 @@ GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET')
 
 
 # Maintainer Setup
-GIT_REPO_DIR = env.str('GIT_REPO_DIR', default=os.path.join(BASE_DIR, 'git_repos'))
+GIT_REPO_DIR = env.str('GIT_REPO_DIR', default='/tmp/git_repos')
 if not os.path.exists(GIT_REPO_DIR):
     os.makedirs(GIT_REPO_DIR)

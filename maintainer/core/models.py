@@ -83,7 +83,6 @@ class Project(models.Model):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_issues
         from ingest.tasks.github import ingest_github_releases
-        from ingest.tasks.github import update_github_issues
 
         update_from = start_date or self.last_update
 
@@ -107,24 +106,6 @@ class Project(models.Model):
         chain(clone, ingest).apply_async()
 
         if self.has_github_issues:
-            if update_from:
-                update_github_issues.apply_async(
-                    kwargs={
-                        'project_id': self.pk,
-                        'repo_owner': self.github_repo_owner,
-                        'repo_name': self.github_repo_name,
-                        'start_date': update_from,
-                    }
-                )
-            else:
-                ingest_github_issues.apply_async(
-                    kwargs={
-                        'project_id': self.pk,
-                        'repo_owner': self.github_repo_owner,
-                        'repo_name': self.github_repo_name,
-                    }
-                )
-
             ingest_github_releases.apply_async(
                 kwargs={
                     'project_id': self.pk,
