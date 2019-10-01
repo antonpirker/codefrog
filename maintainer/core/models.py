@@ -50,6 +50,9 @@ class Project(models.Model):
 
     @property
     def repo_url(self):
+        if self.source == 'github':
+            return self.git_url.replace('.git', '')
+
         url = None
         if self.has_github_issues:
             url = f'https://github.com/{self.github_repo_owner}/{self.github_repo_name}/'
