@@ -81,9 +81,10 @@ class Project(models.Model):
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases
+        from ingest.tasks.github import ingest_github_releases, ingest_raw_github_issues
 
         update_from = start_date or self.last_update
+        repo_owner, repo_name = self.github_repo_full_name.split('/')
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -92,13 +93,18 @@ class Project(models.Model):
         )
 
         ingest = group(
-            ingest_code_metrics.s(
-                repo_dir=self.repo_dir,
-                start_date=update_from,
-            ),
+#            ingest_code_metrics.s(
+#                repo_dir=self.repo_dir,
+#                start_date=update_from,
+#            ),
 
-            ingest_git_tags.s(
-                repo_dir=self.repo_dir,
+#            ingest_git_tags.s(
+#                repo_dir=self.repo_dir,
+#            ),
+
+            ingest_raw_github_issues.s(
+                repo_owner=repo_owner,
+                repo_name=repo_name,
             ),
         )
 

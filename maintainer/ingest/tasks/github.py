@@ -6,9 +6,11 @@ import urllib
 import requests
 from celery import shared_task
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Release
+from core.utils import daterange
 from ingest.models import OpenIssue, RawIssue
 
 logger = logging.getLogger(__name__)
@@ -176,43 +178,59 @@ def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None)
         except KeyError:
             pass
 
+    calculate_github_issue_metrics.apply_async(
+        kwargs={
+            'project_id': project_id,
+        },
+    )
     logger.info('Project(%s): Finished ingest_raw_github_issues.', project_id)
 
 
 @shared_task
-def calculate_github_issue_metrics(project_id, query_date=None):
-    logger.info('Project(%s): Starting calculate_github_issue_metrics (query_date=%s).', project_id, query_date.strftime("%Y-%m-%d") if query_date else query_date)
+def calculate_github_issue_metrics(project_id):
+    logger.info('Project(%s): Starting calculate_github_issue_metrics.', project_id)
 
-    query_date = query_date if query_date else datetime.date(1970, 1, 1)
-
-    issues = OpenIssue.objects.filter(
+    issues = RawIssue.objects.filter(
         project_id=project_id,
-        query_time__date=query_date,
-    )
+    ).order_by('opened_at', 'closed_at')
 
-    num_bugs = 0
+    start_date = issues.first().opened_at
+    end_date = timezone.now()
 
-    for issue in issues:
-        is_bug = bool({str.casefold(x) for x in GITHUB_BUG_ISSUE_LABELS} &
-                      {str.casefold(x) for x in issue.labels})
+    for day in daterange(start_date, end_date):
+        # open issues
+        open_issues = issues.filter(
+            Q(opened_at__date__lte=day)
+            & (Q(closed_at__isnull=True) | Q(closed_at__date__gte=day))
+        )
+        count_open_issues = open_issues.count()
+        age_opened_issues = sum([i.get_age(at_date=day) for i in open_issues])
 
-        if is_bug:
-            num_bugs += 1
+        # closed issues
+        closed_issues = issues.filter(closed_at__isnull=False, closed_at__date__lte=day)
+        count_closed_issues = closed_issues.count()
+        age_closed_issues = sum([i.get_age() for i in closed_issues])
 
-    metric, _ = Metric.objects.get_or_create(
-        project_id=project_id,
-        date=query_date,
-    )
+        # age
+        try:
+            age = (age_closed_issues+age_opened_issues)/(count_closed_issues+count_open_issues)
+        except ZeroDivisionError:
+            age = 0
 
-    metric_json = metric.metrics
-    if not metric_json:
-        metric_json = {}
-    metric_json['github_bug_issues_open'] = num_bugs
-    metric_json['github_other_issues_open'] = len(issues) - num_bugs
-    metric.metrics = metric_json
-    metric.save()
+        metric, _ = Metric.objects.get_or_create(
+            project_id=project_id,
+            date=day,
+        )
 
-    logger.info('Project(%s): Finished calculate_github_issue_metrics (query_date=%s).', project_id, query_date.strftime("%Y-%m-%d") if query_date else query_date)
+        metric_json = metric.metrics
+        if not metric_json:
+            metric_json = {}
+        metric_json['github_issues_open'] = count_open_issues
+        metric_json['github_issue_age'] = age
+        metric.metrics = metric_json
+        metric.save()
+
+    logger.info('Project(%s): Finished calculate_github_issue_metrics.', project_id)
 
 
 @shared_task

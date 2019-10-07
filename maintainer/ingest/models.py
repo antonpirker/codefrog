@@ -16,6 +16,17 @@ class RawIssue(models.Model):
         default=list,
     )
 
+    def get_age(self, at_date=None):
+        if self.closed_at and at_date:
+            closed = min(self.closed_at, at_date)
+        else:
+            closed = self.closed_at or at_date
+
+        closed = closed.replace(hour=0, minute=0, second=0, microsecond=0)
+        opened = self.opened_at.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        return (closed-opened).days
+
     class Meta:
         unique_together = (
             ('project', 'issue_refid', ),
