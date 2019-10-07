@@ -81,7 +81,6 @@ class Project(models.Model):
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
-        from ingest.tasks.github import ingest_github_issues
         from ingest.tasks.github import ingest_github_releases
 
         update_from = start_date or self.last_update
@@ -117,6 +116,10 @@ class Project(models.Model):
         self.last_update = timezone.now()
         self.save()
 
+    def import_open_github_issues(self):
+        from ingest.tasks.github import ingest_open_github_issues
+        owner, repo_name = self.github_repo_full_name.split('/')
+        ingest_open_github_issues(self.id, owner, repo_name)
 
 class Metric(models.Model):
     project = models.ForeignKey(
