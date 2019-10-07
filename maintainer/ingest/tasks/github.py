@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from core.models import Metric, Release
-from ingest.models import OpenIssue
+from ingest.models import OpenIssue, RawIssue
 
 logger = logging.getLogger(__name__)
 
@@ -103,16 +103,19 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 
 
 @shared_task
-def ingest_github_issues(project_id, repo_owner, repo_name):
-    logger.info('Project(%s): Starting ingest_github_issues.', project_id)
+def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None):
+    logger.info('Project(%s): Starting ingest_raw_github_issues.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
-        'state': 'open',
+        'state': 'all',
         'sort': 'created',
         'direction': 'asc',
         'per_page': str(GITHUB_ISSUES_PER_PAGE),
     })
+
+    if start_date:
+        params['since'] = start_date.isoformat()
 
     list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
     url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
@@ -122,7 +125,7 @@ def ingest_github_issues(project_id, repo_owner, repo_name):
         if r.status_code != 200:
             logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
             # retry
-            ingest_github_issues.apply_async(
+            ingest_raw_github_issues.apply_async(
                 kwargs={
                     'project_id': project_id,
                     'repo_owner': repo_owner,
@@ -142,11 +145,24 @@ def ingest_github_issues(project_id, repo_owner, repo_name):
                 except TypeError:
                     labels = []
 
-                OpenIssue.objects.update_or_create(
+                opened_at = datetime.datetime.strptime(
+                    issue['created_at'],
+                    '%Y-%m-%dT%H:%M:%SZ',
+                ).replace(tzinfo=timezone.utc)
+
+                closed_at = datetime.datetime.strptime(
+                    issue['closed_at'],
+                    '%Y-%m-%dT%H:%M:%SZ',
+                ).replace(tzinfo=timezone.utc)
+
+                RawIssue.objects.update_or_create(
                     project_id=project_id,
-                    query_time=timezone.now(),
                     issue_refid=issue['number'],
-                    labels=labels,
+                    opened_at=opened_at,
+                    defaults={
+                        'closed_at': closed_at,
+                        'labels': labels,
+                    }
                 )
 
         # get url of next page (if any)
@@ -160,11 +176,7 @@ def ingest_github_issues(project_id, repo_owner, repo_name):
         except KeyError:
             pass
 
-    calculate_github_issue_metrics(
-        project_id=project_id,
-        query_date=timezone.now().date(),
-    )
-    logger.info('Project(%s): Finished ingest_github_issues.', project_id)
+    logger.info('Project(%s): Finished ingest_raw_github_issues.', project_id)
 
 
 @shared_task

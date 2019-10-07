@@ -121,6 +121,12 @@ class Project(models.Model):
         owner, repo_name = self.github_repo_full_name.split('/')
         ingest_open_github_issues(self.id, owner, repo_name)
 
+    def import_raw_github_issues(self, start_date=None):
+        from ingest.tasks.github import ingest_raw_github_issues
+        owner, repo_name = self.github_repo_full_name.split('/')
+        ingest_raw_github_issues(self.id, owner, repo_name, start_date)
+
+
 class Metric(models.Model):
     project = models.ForeignKey(
         'Project',
