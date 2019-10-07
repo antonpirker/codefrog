@@ -2,9 +2,14 @@ import logging
 import os
 import subprocess
 from datetime import timedelta
+
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 
 import pandas as pd
+from django.http import Http404
+
+from core.models import Project
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +142,32 @@ def only_matching_authenticated_users(func):
 
             if not is_correct_user:
                 raise PermissionDenied()
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+def add_user_and_project(func):
+    """
+    Add the project to the view.
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            project = Project.objects.get(slug=kwargs['project_slug'])
+        except Project.DoesNotExist:
+            raise Http404('Project does not exist')
+
+        try:
+            user = User.objects.get(username=kwargs['username'])
+        except User.DoesNotExist:
+            raise Http404('User does not exist')
+
+        if not user.projects.filter(pk=project.pk).exists():
+            raise Http404('Project does not belong to user')
+
+        kwargs['user'] = user
+        kwargs['project'] = project
 
         return func(*args, **kwargs)
 

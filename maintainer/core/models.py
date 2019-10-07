@@ -77,7 +77,7 @@ class Project(models.Model):
 
     @property
     def has_github_issues(self):
-        return 'github_issues' in self.external_services
+        return self.external_services and 'github_issues' in self.external_services
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags

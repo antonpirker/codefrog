@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from core.models import Metric, Project, Release
 from core.utils import only_matching_authenticated_users, resample_metrics, \
-    resample_releases
+    resample_releases, add_user_and_project
 from ingest.models import RawCodeChange
 
 MONTH = 30
@@ -230,20 +230,8 @@ def user_settings(request, username):
 
 
 @only_matching_authenticated_users
-def project_settings(request, username, project_slug):
-    try:
-        project = Project.objects.get(slug=project_slug)
-    except Project.DoesNotExist:
-        raise Http404('Project does not exist')
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        raise Http404('User does not exist')
-
-    if not user.projects.filter(pk=project.pk).exists():
-        raise Http404('Project does not belong to user')
-
+@add_user_and_project
+def project_settings(request, username, project_slug, user, project):
     context = {
         'project': project,
     }
@@ -252,24 +240,12 @@ def project_settings(request, username, project_slug):
 
 
 @only_matching_authenticated_users
-def project_toggle(request, username, project_slug):
-    try:
-        project = Project.objects.get(slug=project_slug)
-    except Project.DoesNotExist:
-        raise Http404('Project does not exist')
-
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        raise Http404('User does not exist')
-
-    if not user.projects.filter(pk=project.pk).exists():
-        raise Http404('Project does not belong to user')
-
+@add_user_and_project
+def project_toggle(request, username, project_slug, user, project):
     project.active = not project.active
     project.save()
 
     if project.active:
-        pass
+        project.import_data()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))

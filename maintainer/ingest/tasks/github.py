@@ -40,6 +40,7 @@ GITHUB_BUG_ISSUE_LABELS = [
     'regression',
 ]
 
+
 @shared_task
 def ingest_github_issues(project_id, repo_owner, repo_name):
     logger.info('Project(%s): Starting ingest_github_issues.', project_id)
