@@ -197,6 +197,11 @@ def calculate_github_issue_metrics(project_id):
         project_id=project_id,
     ).order_by('opened_at', 'closed_at')
 
+    if issues.count() == 0:
+        logger.info('Project(%s): No issues found. Aborting.', project_id)
+        logger.info('Project(%s): Finished calculate_github_issue_metrics.', project_id)
+        return
+
     start_date = issues.first().opened_at
     end_date = timezone.now()
 

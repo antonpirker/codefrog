@@ -53,7 +53,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     """
     logger.info('Project(%s): Starting ingest_code_metrics(%s).', project_id, start_date)
 
-    start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)
+    start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
 
     # get first commit date
     cmd = (
@@ -195,7 +195,10 @@ def calculate_code_metrics(project_id, start_date=None):
     # Fill gaps in metrics (so there is one Metric object for every day
     # that has all the metrics filled out)
     try:
-        old_metric = Metric.objects.get(date=(start_date - datetime.timedelta(days=1)))
+        old_metric = Metric.objects.get(
+            project_id=project_id,
+            date=(start_date - datetime.timedelta(days=1)),
+        )
         old_complexity = old_metric.metrics['complexity']
         old_change_frequency = old_metric.metrics['change_frequency']
     except (Metric.DoesNotExist, KeyError):
