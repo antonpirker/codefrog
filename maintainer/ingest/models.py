@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 
 class RawIssue(models.Model):
@@ -63,3 +64,4 @@ class RawCodeChange(models.Model):
     author = models.CharField(max_length=255)
     complexity_added = models.PositiveIntegerField()
     complexity_removed = models.PositiveIntegerField()
+

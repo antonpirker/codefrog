@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from core.models import Metric, Project, Release
 from core.utils import only_matching_authenticated_users, resample_metrics, \
-    resample_releases, add_user_and_project
+    resample_releases, add_user_and_project, run_shell_command
 from ingest.models import RawCodeChange
 
 MONTH = 30
@@ -131,6 +131,22 @@ def project_detail(request, slug, zoom=None, release_flag=None):
             file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
         ).count()
 
+    def get_file_ownership(filename, project):
+        cmd = f'git shortlog -s -n -e -- {filename}'
+        output = run_shell_command(cmd, cwd=project.repo_dir)
+        output = [line for line in output.split('\n') if line]
+
+        ownerships = []
+
+        for line in output:
+            lines, author = line.lstrip().split('\t')
+            ownerships.append({
+                'author': author,
+                'lines:': int(lines),
+            })
+
+        return ownerships
+
     min_complexity = 0
     max_complexity = 0
     min_changes = 0
@@ -186,13 +202,17 @@ def project_detail(request, slug, zoom=None, release_flag=None):
                             full_path.replace(project.repo_dir, ''),
                         ).replace('//', '/')
 
+                        ownership = get_file_ownership(full_path, project)
+
                         child_node = {
                             'name': node_name,
                             'size': complexity,
                             'changes': changes,
+                            'ownership': ownership,
                             'repo_link': repo_link,
                         }
                         children.append(child_node)
+
 
     # Render the HTML and send to client.
     context = {

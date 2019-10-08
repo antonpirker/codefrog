@@ -93,14 +93,17 @@ class Project(models.Model):
         )
 
         ingest = group(
-#            ingest_code_metrics.s(
+#            ingest_code_ownership.s(
 #                repo_dir=self.repo_dir,
-#                start_date=update_from,
 #            ),
+            ingest_code_metrics.s(
+                repo_dir=self.repo_dir,
+                start_date=update_from,
+            ),
 
-#            ingest_git_tags.s(
-#                repo_dir=self.repo_dir,
-#            ),
+            ingest_git_tags.s(
+                repo_dir=self.repo_dir,
+            ),
 
             ingest_raw_github_issues.s(
                 repo_owner=repo_owner,
