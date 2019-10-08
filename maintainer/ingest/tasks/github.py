@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Release
-from core.utils import daterange
+from core.utils import date_range
 from ingest.models import OpenIssue, RawIssue
 
 logger = logging.getLogger(__name__)
@@ -200,7 +200,7 @@ def calculate_github_issue_metrics(project_id):
     start_date = issues.first().opened_at
     end_date = timezone.now()
 
-    for day in daterange(start_date, end_date):
+    for day in date_range(start_date, end_date):
         # open issues
         open_issues = issues.filter(
             Q(opened_at__date__lte=day)

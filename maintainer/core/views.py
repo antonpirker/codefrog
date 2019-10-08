@@ -9,10 +9,11 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
-from core.utils import only_matching_authenticated_users, resample_metrics, \
-    resample_releases, add_user_and_project, run_shell_command
-from ingest.models import RawCodeChange
+from core.utils import get_file_changes, get_file_complexity, \
+    get_file_ownership, resample_metrics, \
+    resample_releases
 
 MONTH = 30
 YEAR = 365
@@ -111,41 +112,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'name': 'root',
         'children': [],
     }
-
-    def get_file_complexity(filename):
-        complexity = 0
-        with open(filename) as file:
-            try:
-                for line in file:
-                    complexity += len(line) - len(line.lstrip())
-            except UnicodeDecodeError:
-                # TODO: This should only happen for binary files like jpg,
-                #  but could be potential a real hard to find bug if the complexity is always wrong.
-                pass
-
-        return complexity
-
-    def get_file_changes(filename, project):
-        return RawCodeChange.objects.filter(
-            project=project,
-            file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
-        ).count()
-
-    def get_file_ownership(filename, project):
-        cmd = f'git shortlog -s -n -e -- {filename}'
-        output = run_shell_command(cmd, cwd=project.repo_dir)
-        output = [line for line in output.split('\n') if line]
-
-        ownerships = []
-
-        for line in output:
-            lines, author = line.lstrip().split('\t')
-            ownerships.append({
-                'author': author,
-                'lines:': int(lines),
-            })
-
-        return ownerships
 
     min_complexity = 0
     max_complexity = 0

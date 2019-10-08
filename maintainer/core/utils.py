@@ -3,13 +3,9 @@ import os
 import subprocess
 from datetime import timedelta
 
-from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
-
 import pandas as pd
-from django.http import Http404
 
-from core.models import Project
+from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +24,69 @@ def run_shell_command(cmd, cwd=None):
     return output.decode('utf-8')
 
 
+def date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)
+
+
+def get_file_complexity(filename):
+    complexity = 0
+    with open(filename) as file:
+        try:
+            for line in file:
+                complexity += len(line) - len(line.lstrip())
+        except UnicodeDecodeError:
+            # TODO: This should only happen for binary files like jpg,
+            #  but could be potential a real hard to find bug
+            #  if the complexity is always wrong.
+            pass
+
+    return complexity
+
+
+def get_file_changes(filename, project):
+    return RawCodeChange.objects.filter(
+        project=project,
+        file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
+    ).count()
+
+
+def get_file_ownership(filename, project):
+    cmd = f'git shortlog -s -n -e -- {filename}'
+    output = run_shell_command(cmd, cwd=project.repo_dir)
+    output = [line for line in output.split('\n') if line]
+
+    ownerships = []
+
+    for line in output:
+        lines, author = line.lstrip().split('\t')
+        ownerships.append({
+            'author': author,
+            'lines:': int(lines),
+        })
+
+    return ownerships
+
+
+def get_path_complexity(path):
+    complexity = 0
+    from core.views import EXCLUDE
+    for root_dir, dirs, files in os.walk(path):
+        for f in files:
+            full_path = os.path.join(root_dir, f)
+            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
+                continue
+            complexity += get_file_complexity(full_path)
+
+    return complexity
+
+
 def resample_metrics(queryset, frequency):
     """
     Resamples the data in queryset to a given frequency
 
     The strings to specify are the ones of the Pandas library.
-    A list of possible strings can be found here: 
+    A list of possible strings can be found here:
     https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#dateoffset-objects
     """
     def rename_column(val):
@@ -94,81 +147,3 @@ def resample_releases(queryset, frequency):
 
     releases = df.to_dict('records')
     return releases
-
-
-def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n)
-
-
-def get_file_complexity(filename):
-    complexity = 0
-    with open(filename) as file:
-        try:
-            for line in file:
-                complexity += len(line) - len(line.lstrip())
-        except UnicodeDecodeError:
-            # TODO: This should only happen for binary files like jpg,
-            #  but could be potential a real hard to find bug if the complexity is always wrong.
-            pass
-
-    return complexity
-
-
-def get_path_complexity(path):
-    complexity = 0
-    from core.views import EXCLUDE
-    for root_dir, dirs, files in os.walk(path):
-        for f in files:
-            full_path = os.path.join(root_dir, f)
-            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
-                continue
-            complexity += get_file_complexity(full_path)
-
-    return complexity
-
-
-def only_matching_authenticated_users(func):
-    """
-    Check if the user is authenticated and matching with the username in the URL
-    """
-    def wrapper(*args, **kwargs):
-        request = args[0]
-        user = request.user
-
-        if not user.is_superuser:
-            is_correct_user = user.is_authenticated \
-                              and user.username == kwargs['username']
-
-            if not is_correct_user:
-                raise PermissionDenied()
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def add_user_and_project(func):
-    """
-    Add the project to the view.
-    """
-    def wrapper(*args, **kwargs):
-        try:
-            project = Project.objects.get(slug=kwargs['project_slug'])
-        except Project.DoesNotExist:
-            raise Http404('Project does not exist')
-
-        try:
-            user = User.objects.get(username=kwargs['username'])
-        except User.DoesNotExist:
-            raise Http404('User does not exist')
-
-        if not user.projects.filter(pk=project.pk).exists():
-            raise Http404('Project does not belong to user')
-
-        kwargs['user'] = user
-        kwargs['project'] = project
-
-        return func(*args, **kwargs)
-
-    return wrapper

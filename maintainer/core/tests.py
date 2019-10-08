@@ -2,7 +2,7 @@ import datetime
 
 from django.test import TestCase
 
-from maintainer.core.utils import daterange, foo
+from maintainer.core.utils import date_range, foo
 
 
 class DateRangeTestCase(TestCase):
@@ -10,7 +10,7 @@ class DateRangeTestCase(TestCase):
         start_date = datetime.datetime.now().date()
         end_date = start_date + datetime.timedelta(days=3)
 
-        generator = daterange(start_date, end_date)
+        generator = date_range(start_date, end_date)
         one = next(generator)
         self.assertEqual(one, start_date + datetime.timedelta(days=0))
         two = next(generator)

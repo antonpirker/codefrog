@@ -60,31 +60,34 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest = group(
-            ingest_code_metrics.s(
-                repo_dir=self.repo_dir,
-                start_date=update_from,
-            ),
+            # todo: reactivate and fix
+            #ingest_code_metrics.s(
+            #    repo_dir=self.repo_dir,
+            #    start_date=update_from,
+            #),
 
             ingest_git_tags.s(
                 repo_dir=self.repo_dir,
             ),
 
-            ingest_raw_github_issues.s(
-                repo_owner=repo_owner,
-                repo_name=repo_name,
-            ),
+            # todo: reactivate and fix
+            #ingest_raw_github_issues.s(
+            #    repo_owner=repo_owner,
+            #    repo_name=repo_name,
+            #),
         )
 
         chain(clone, ingest).apply_async()
 
-        if self.on_github:
-            ingest_github_releases.apply_async(
-                kwargs={
-                    'project_id': self.pk,
-                    'repo_owner': self.github_repo_owner,
-                    'repo_name': self.github_repo_name,
-                }
-            )
+        # todo: reactivate and fix
+        #if self.on_github:
+            #ingest_github_releases.apply_async(
+            #    kwargs={
+            #        'project_id': self.pk,
+            #        'repo_owner': self.github_repo_owner,
+            #        'repo_name': self.github_repo_name,
+            #    }
+            #)
 
         self.last_update = timezone.now()
         self.save()

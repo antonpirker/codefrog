@@ -7,7 +7,7 @@ from celery import shared_task
 from dateutil.parser import parse
 
 from core.models import Metric, Release
-from core.utils import daterange, run_shell_command
+from core.utils import date_range, run_shell_command
 from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
@@ -202,7 +202,7 @@ def calculate_code_metrics(project_id, start_date=None):
         old_complexity = 0
         old_change_frequency = 0
 
-    for day in daterange(start_date, end_date):
+    for day in date_range(start_date, end_date):
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
             date=day,
