@@ -152,10 +152,13 @@ def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None)
                     '%Y-%m-%dT%H:%M:%SZ',
                 ).replace(tzinfo=timezone.utc)
 
-                closed_at = datetime.datetime.strptime(
-                    issue['closed_at'],
-                    '%Y-%m-%dT%H:%M:%SZ',
-                ).replace(tzinfo=timezone.utc)
+                if issue['closed_at']:
+                    closed_at = datetime.datetime.strptime(
+                        issue['closed_at'],
+                        '%Y-%m-%dT%H:%M:%SZ',
+                    ).replace(tzinfo=timezone.utc)
+                else:
+                    closed_at = None
 
                 RawIssue.objects.update_or_create(
                     project_id=project_id,
