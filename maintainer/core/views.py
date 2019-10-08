@@ -198,7 +198,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
                             max_changes = changes
 
                         repo_link = '{}blame/master{}'.format(
-                            project.repo_url,
+                            project.github_repo_url,
                             full_path.replace(project.repo_dir, ''),
                         ).replace('//', '/')
 

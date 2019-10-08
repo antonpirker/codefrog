@@ -7,6 +7,8 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 
+from core.mixins import GithubMixin
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +21,7 @@ class UserProfile(models.Model):
     github_app_installation_refid = models.IntegerField()
 
 
-class Project(models.Model):
+class Project(GithubMixin, models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -41,43 +43,8 @@ class Project(models.Model):
         return self.name
 
     @property
-    def repo_name(self):
-        return self.git_url.rpartition('/')[2].replace('.git', '')
-
-    @property
     def repo_dir(self):
-        return os.path.join(settings.GIT_REPO_DIR, self.repo_name)
-
-    @property
-    def repo_url(self):
-        if self.source == 'github':
-            return self.git_url.replace('.git', '')
-
-        url = None
-        if self.has_github_issues:
-            url = f'https://github.com/{self.github_repo_owner}/{self.github_repo_name}/'
-        return url
-
-    @property
-    def github_repo_owner(self):
-        return self.external_services['github_issues']['repo_owner'] \
-            if 'github_issues' in self.external_services else None
-
-    @property
-    def github_repo_name(self):
-        return self.external_services['github_issues']['repo_name'] \
-            if 'github_issues' in self.external_services else None
-
-    @property
-    def github_repo_full_name(self):
-        if 'github.com' in self.git_url:
-            return '/'.join(self.git_url.replace('.git', '').split('/')[-2:])
-
-        return None
-
-    @property
-    def has_github_issues(self):
-        return self.external_services and 'github_issues' in self.external_services
+        return os.path.join(settings.GIT_REPO_DIR, self.github_repo_name)
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
@@ -93,9 +60,6 @@ class Project(models.Model):
         )
 
         ingest = group(
-#            ingest_code_ownership.s(
-#                repo_dir=self.repo_dir,
-#            ),
             ingest_code_metrics.s(
                 repo_dir=self.repo_dir,
                 start_date=update_from,
@@ -113,7 +77,7 @@ class Project(models.Model):
 
         chain(clone, ingest).apply_async()
 
-        if self.has_github_issues:
+        if self.on_github:
             ingest_github_releases.apply_async(
                 kwargs={
                     'project_id': self.pk,
