@@ -157,6 +157,8 @@ def get_source_tree_metrics(project):
                             'size': complexity,
                             'changes': changes,
                             'ownership': ownership,
+                            # todo: add the owner_color (the color the bubble should have
+                            # todo: add owner_name (name of the owner)
                             'repo_link': repo_link,
                         }
                         children.append(child_node)

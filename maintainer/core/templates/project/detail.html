@@ -7,8 +7,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Codefrog - Manage your technical debt. Keep code quality high. Minimize lead time.</title>
         <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
-        <link rel="stylesheet" href="{% static "css/app.css" %} ">
+        <link rel="stylesheet" href="{% static "css/app.css" %}">
     </head>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <script src="{% static "js/app.js" %}"></script>
+
     <script type="text/javascript">
         //colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
         colors = ['#DD0F7E', '#009BBE', 'rgba(168, 218, 0, 0.6)', '#F2E205', '#EE5A02'];
@@ -41,7 +51,7 @@
                     lineTension: 0,
                     cubicInterpolationMode: 'monotone',
                     yAxisID: "y-axis-0",
-                },{
+                }, {
                     label: 'Other issues in issue tracker',
                     data: [
                         {% for metric in metrics %}
@@ -53,7 +63,7 @@
                     backgroundColor: colors[1],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
-                },{
+                }, {
                     label: 'Bugs in issue tracker',
                     data: [
                         {% for metric in metrics %}
@@ -65,7 +75,7 @@
                     backgroundColor: colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
-                },{
+                }, {
                     label: 'Days to close ticket',
                     data: [
                         {% for metric in metrics %}
@@ -128,14 +138,14 @@
                         yAxes: [{
                             "id": "y-axis-0",
                             display: false
-                        },{
+                        }, {
                             "id": "y-axis-1",
                             display: false,
                             stacked: true,
                             ticks: {
                                 beginAtZero: true
                             }
-                        },{
+                        }, {
                             "id": "y-axis-2",
                             display: false,
                             ticks: {
@@ -151,7 +161,7 @@
                     },
                     tooltips: {
                         callbacks: {
-                            title: function(tooltipItem, data) {
+                            title: function (tooltipItem, data) {
                                 const frequency = '{{ frequency }}';
                                 const formatStrings = {
                                     'D': 'LL',
@@ -169,136 +179,26 @@
             };
             const chart = new Chart(ctx, options);
 
-            // D3
-            const data_tree = {{ data_tree|safe }};
+            // TODO: nachdenken:
+            // Soll es zuerst möglich sein seine eigenen repos zu aktivieren.
+            // oder solles zuerst möglcih sein open source repos zu importiern?
+            // oder beides?
+            // das hängt jetzt von der marketing strategie ab. wenn ich den oss maintainer ihr project zeig ist das cool,
+            // dann wär aber auch cool wenn ich ihnen gleich sagen kann: installier dir die github app. ist super easy!
 
-            var heatmapColour = d3.scaleLinear()
-                .domain([0, 1])
-                .range(["#ffcccc", "#ff0000"])
-                .interpolate(d3.interpolateHcl);
+            // TODO: soll ich heute da deployment mal wieder angehen? Oder zumindest mal aktualsieren
+            // TODO: mehrere github apps für "local"/"staging/ und production?
 
-            var c = d3.scaleLinear().domain([{{ min_changes }}, {{ max_changes }}/2]).range([0,1]);
+            // TODO: move JS to .js file (whitenoise?)
+            // TODO: make JS function for creating chart in #source-chart-container
+            // TODO: add JS function to create ownership chart in #ownership-chart-container
 
-            color = d3.scaleLinear()
-                .domain([0, 10])
-                .range(["#f7f7f7", "#919191"])
-                .interpolate(d3.interpolateHcl);
-            format = d3.format(",d");
-            width = 932;
-            height = width;
-
-            pack = data_tree => d3.pack()
-                .size([width, height])
-                .padding(3)
-              (d3.hierarchy(data_tree)
-                .sum(d => d.size)
-                .sort((a, b) => b.size - a.size));
-
-          const root = pack(data_tree);
-          let focus = root;
-          let view;
-
-          const svg = d3.select("#source-chart-container").append("svg")
-              .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
-              .style("display", "block")
-              .style("margin", "0 -14px")
-              .style("background", color(0))
-              .style("cursor", "pointer")
-              .on("click", () => zoom(root));
-
-          const node = svg.append("g")
-            .selectAll("circle")
-            .data(root.descendants().slice(1))
-            .join("circle")
-              .attr("fill", d => d.children ? color(d.depth) : heatmapColour(c(d.data.changes)))
-              .attr("pointer-events", d => !d.children ? null : null)
-              .on("mouseover", function(d) {
-                  d3.select(this).attr("stroke", "#000");
-              })
-              .on("mouseout", function() {
-                  d3.select(this).attr("stroke", null);
-              })
-              .on("click", function(d) {
-                  if(focus !== d) {
-                      if(d.children) {
-                          zoom(d);
-                          d3.event.stopPropagation();
-                      }
-
-                      path = root.path(d);
-                      filePath = "";
-                      for(let i=1; i<path.length; i++) {
-                          //console.log(path[i]);
-                          filePath += path[i].data.name;
-                          if(i<path.length-1) {
-                              filePath += "/"
-                          }
-                      }
-
-                      console.log(d)
-                      d3.select('#source-information').html("");
-                      d3.select('#source-information').append('h4')
-                          .text(filePath)
-                      d3.select('#source-information').append('a')
-                          .text('[Show in Repo]')
-                          .attr('href', d.data.repo_link)
-                          .attr('target', '_blank');
-                      d3.select('#source-information').append('p')
-                          .text('Add here details of file, like complexity and changes over time. add the authors as a pie-chart in the focused bubble. Add the ability to zoom into the functions inside the file');
-                  }
-              });
-
-          const label = svg.append("g")
-              .style("font", "10px sans-serif")
-              .attr("pointer-events", "none")
-              .attr("text-anchor", "middle")
-            .selectAll("text")
-            .data(root.descendants())
-            .join("text")
-              .style("fill-opacity", d => d.parent === root ? 1 : 0)
-              .style("display", d => d.parent === root ? "inline" : "none")
-              .text(d => d.data.name);
-
-          zoomTo([root.x, root.y, root.r * 2]);
-
-          function zoomTo(v) {
-            const k = width / v[2];
-
-            view = v;
-
-            label.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
-            node.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
-            node.attr("r", d => d.r * k);
-          }
-
-          function zoom(d) {
-            const focus0 = focus;
-
-            focus = d;
-
-            const transition = svg.transition()
-                .duration(d3.event.altKey ? 7500 : 750)
-                .tween("zoom", d => {
-                  const i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
-                  return t => zoomTo(i(t));
-                });
-
-            label
-              .filter(function(d) { return d.parent === focus || this.style.display === "inline"; })
-              .transition(transition)
-                .style("fill-opacity", d => d.parent === focus ? 1 : 0)
-                .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
-                .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
-          }
+            const dataTree = {{ data_tree|safe }};
+            const minChanges = {{ min_changes }};
+            const maxChanges = {{ max_changes }};
+            createComplexityDiagram("#source-chart-container", dataTree, minChanges, maxChanges);
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
-
-    <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 
 <body>
