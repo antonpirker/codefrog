@@ -124,7 +124,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
         logger.info(
             'Project(%s): Calling ingest_code_metrics for next chunk. (start_date=%s)',
             project_id,
-            start_date,
+            current_date,
         )
         ingest_code_metrics.apply_async(kwargs={
             'project_id': project_id,
