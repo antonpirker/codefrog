@@ -29,6 +29,30 @@ def date_range(start_date, end_date):
         yield start_date + timedelta(n)
 
 
+def get_file_changes(filename, project):
+    return RawCodeChange.objects.filter(
+        project=project,
+        file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
+    ).count()
+
+
+def get_file_ownership(filename, base_path):
+    cmd = f'git shortlog -s -n -e -- {filename}'
+    output = run_shell_command(cmd, cwd=base_path.repo_dir)
+    output = [line for line in output.split('\n') if line]
+
+    ownerships = []
+
+    for line in output:
+        lines, author = line.lstrip().split('\t')
+        ownerships.append({
+            'author': author,
+            'lines:': int(lines),
+        })
+
+    return ownerships
+
+
 def get_file_complexity(filename):
     complexity = 0
     with open(filename) as file:
@@ -44,41 +68,106 @@ def get_file_complexity(filename):
     return complexity
 
 
-def get_file_changes(filename, project):
-    return RawCodeChange.objects.filter(
-        project=project,
-        file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
-    ).count()
-
-
-def get_file_ownership(filename, project):
-    cmd = f'git shortlog -s -n -e -- {filename}'
-    output = run_shell_command(cmd, cwd=project.repo_dir)
-    output = [line for line in output.split('\n') if line]
-
-    ownerships = []
-
-    for line in output:
-        lines, author = line.lstrip().split('\t')
-        ownerships.append({
-            'author': author,
-            'lines:': int(lines),
-        })
-
-    return ownerships
-
-
 def get_path_complexity(path):
     complexity = 0
-    from core.views import EXCLUDE
     for root_dir, dirs, files in os.walk(path):
         for f in files:
             full_path = os.path.join(root_dir, f)
-            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
+            if any(x in full_path for x in SOURCE_TREE_EXCLUDE):
                 continue
             complexity += get_file_complexity(full_path)
 
     return complexity
+
+
+SOURCE_TREE_EXCLUDE = [
+    '/.git/',
+]
+
+
+def get_source_tree_metrics(project):
+    """
+    Walk the entire source tree of the project and calculate the metrics for every file.
+    """
+
+    root = {
+        'name': 'root',
+        'children': [],
+    }
+
+    min_complexity = 0
+    max_complexity = 0
+    min_changes = 0
+    max_changes = 0
+
+    for root_dir, dirs, files in os.walk(project.repo_dir):
+        for f in files:
+            full_path = os.path.join(root_dir, f)
+            if any(x in full_path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
+                continue
+            parts = [part for part in full_path.split(os.sep) if part]
+            parts = parts[len(project.repo_dir.split(os.sep)) - 2:]
+            current_node = root
+            for idx, part in enumerate(parts):
+                children = current_node['children']
+                node_name = part
+
+                if idx + 1 < len(parts):
+                    child_node = {
+                        'name': node_name,
+                        'children': []
+                    }
+
+                    found_child = False
+                    for child in children:
+                        if child['name'] == node_name:
+                            child_node = child
+                            found_child = True
+                            break
+
+                    if not found_child:
+                        children.append(child_node)
+                    current_node = child_node
+
+                else:
+                    COMPLEXITY_THRESSHOLD = 2000
+
+                    complexity = get_file_complexity(full_path)
+                    if complexity < min_complexity:
+                        min_complexity = complexity
+                    if complexity > max_complexity:
+                        max_complexity = complexity
+
+                    if complexity < COMPLEXITY_THRESSHOLD:
+                        changes = get_file_changes(full_path, project)
+                        if changes < min_changes:
+                            min_changes = changes
+                        if changes > max_changes:
+                            max_changes = changes
+
+                        repo_link = '{}blame/master{}'.format(
+                            project.github_repo_url,
+                            full_path.replace(project.repo_dir, ''),
+                        ).replace('//', '/')
+
+                        ownership = get_file_ownership(full_path, project)
+
+                        child_node = {
+                            'name': node_name,
+                            'size': complexity,
+                            'changes': changes,
+                            'ownership': ownership,
+                            'repo_link': repo_link,
+                        }
+                        children.append(child_node)
+
+    return {
+        'tree': root,
+        'min_complexity': min_complexity,
+        'max_complexity': max_complexity,
+        'min_changes': min_changes,
+        'max_changes': max_changes,
+    }
 
 
 def resample_metrics(queryset, frequency):

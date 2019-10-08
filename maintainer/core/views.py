@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 import secrets
 
 from django.conf import settings
@@ -11,17 +10,10 @@ from django.utils import timezone
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
-from core.utils import get_file_changes, get_file_complexity, \
-    get_file_ownership, resample_metrics, \
-    resample_releases
+from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
 
 MONTH = 30
 YEAR = 365
-
-EXCLUDE = [
-    '/.git/',
-]
-
 
 def index(request):
     if request.user.is_authenticated:
@@ -82,7 +74,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     else:  # default
         frequency = 'D'
 
-    # Get the data in the desired frequency
+    # Get metrics in the desired frequency
     metrics = Metric.objects.filter(
         project=project,
         date__gte=begin,
@@ -95,90 +87,22 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     if metrics.count() > 0:
         metrics = resample_metrics(metrics, frequency)
 
-    releases = Release.objects.filter(
-        project=project,
-        timestamp__gte=begin,
-    ).order_by('timestamp').values(
-        'timestamp',
-        'name',
-    )
-    if releases.count() > 0:
-        releases = resample_releases(releases, frequency)
-
+    # Get releases in desired frequency
     if release_flag == 'no-releases':
         releases = []
+    else:
+        releases = Release.objects.filter(
+            project=project,
+            timestamp__gte=begin,
+        ).order_by('timestamp').values(
+            'timestamp',
+            'name',
+        )
+        if releases.count() > 0:
+            releases = resample_releases(releases, frequency)
 
-    root = {
-        'name': 'root',
-        'children': [],
-    }
-
-    min_complexity = 0
-    max_complexity = 0
-    min_changes = 0
-    max_changes = 0
-
-    for root_dir, dirs, files in os.walk(project.repo_dir):
-        for f in files:
-            full_path = os.path.join(root_dir, f)
-            if any(x in full_path for x in EXCLUDE):  # exclude certain directories
-                continue
-            parts = [part for part in full_path.split(os.sep) if part]
-            parts = parts[len(project.repo_dir.split(os.sep)) - 2:]
-            current_node = root
-            for idx, part in enumerate(parts):
-                children = current_node['children']
-                node_name = part
-
-                if idx + 1 < len(parts):
-                    child_node = {
-                        'name': node_name,
-                        'children': []
-                    }
-
-                    found_child = False
-                    for child in children:
-                        if child['name'] == node_name:
-                            child_node = child
-                            found_child = True
-                            break
-
-                    if not found_child:
-                        children.append(child_node)
-                    current_node = child_node
-
-                else:
-                    COMPLEXITY_THRESSHOLD = 2000
-
-                    complexity = get_file_complexity(full_path)
-                    if complexity < min_complexity:
-                        min_complexity = complexity
-                    if complexity > max_complexity:
-                        max_complexity = complexity
-
-                    if complexity < COMPLEXITY_THRESSHOLD:
-                        changes = get_file_changes(full_path, project)
-                        if changes < min_changes:
-                            min_changes = changes
-                        if changes > max_changes:
-                            max_changes = changes
-
-                        repo_link = '{}blame/master{}'.format(
-                            project.github_repo_url,
-                            full_path.replace(project.repo_dir, ''),
-                        ).replace('//', '/')
-
-                        ownership = get_file_ownership(full_path, project)
-
-                        child_node = {
-                            'name': node_name,
-                            'size': complexity,
-                            'changes': changes,
-                            'ownership': ownership,
-                            'repo_link': repo_link,
-                        }
-                        children.append(child_node)
-
+    # Source tree metrics
+    source_tree_metrics = get_source_tree_metrics(project)
 
     # Render the HTML and send to client.
     context = {
@@ -189,11 +113,11 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
         'releases': releases,
-        'data_tree': json.dumps(root),
-        'min_complexity': min_complexity,
-        'max_complexity': max_complexity,
-        'min_changes': min_changes,
-        'max_changes': max_changes,
+        'data_tree': json.dumps(source_tree_metrics['tree']),
+        'min_complexity': source_tree_metrics['min_complexity'],
+        'max_complexity': source_tree_metrics['max_complexity'],
+        'min_changes': source_tree_metrics['min_changes'],
+        'max_changes': source_tree_metrics['max_changes'],
     }
 
     html = render_to_string('project/detail.html', context=context)
