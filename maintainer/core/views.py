@@ -7,16 +7,38 @@ from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.text import slugify
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
 from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
+from incomingwebhooks.github.utils import get_access_token, \
+    get_app_installation_repositories, get_app_installations
 
 MONTH = 30
 YEAR = 365
 
 def index(request):
     if request.user.is_authenticated:
+        # TODO: this refreshing of the projects could be moved to a special refresh
+        # view that is only triggered with a refresh button on top of the list
+        # of projects. (flow is similar to toggle of projects)
+        installations = get_app_installations()
+        for installation in installations:
+            access_token = get_access_token(installation['id'])
+            repositories = get_app_installation_repositories(access_token)
+            for repository in repositories['repositories']:
+                project, created = Project.objects.get_or_create(
+                    user=request.user,
+                    source='github',
+                    slug=slugify(repository['full_name'].replace('/', '-')),
+                    name=repository['name'],
+                    git_url=repository['clone_url'],
+                    defaults={
+                        'private': repository['private'],
+                    },
+                )
+
         projects = request.user.projects.all().order_by('-active', 'name')
     else:
         projects = Project.objects.none()

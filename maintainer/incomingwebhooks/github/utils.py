@@ -78,6 +78,21 @@ def get_user(access_token):
     return json.loads(out.content)
 
 
+def get_app_installations():
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'Bearer %s' % create_jwt(),
+    }
+
+    url = f'/app/installations'
+    api_base_url = 'https://api.github.com'
+    api_url = f'{api_base_url}{url}'
+
+    out = requests.get(api_url, headers=headers)
+
+    return json.loads(out.content)
+
+
 def get_installations(access_token):
     api_url = f'https://api.github.com/user/installations'
 
@@ -97,6 +112,19 @@ def get_installation_repositories(access_token, installations_id):
     headers = {
         'Accept': 'application/vnd.github.machine-man-preview+json',
         'Authorization': 'token %s' % access_token,
+    }
+
+    out = requests.get(api_url, headers=headers)
+
+    return json.loads(out.content)
+
+
+def get_app_installation_repositories(installation_access_token):
+    api_url = f'https://api.github.com/installation/repositories'
+
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'token %s' % installation_access_token,
     }
 
     out = requests.get(api_url, headers=headers)
