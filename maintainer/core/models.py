@@ -50,9 +50,6 @@ class Project(GithubMixin, models.Model):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, ingest_raw_github_issues
 
-        update_from = start_date or self.last_update
-        repo_owner, repo_name = self.github_repo_full_name.split('/')
-
         clone = clone_repo.s(
             project_id=self.pk,
             git_url=self.git_url,
@@ -60,47 +57,81 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest = group(
-            # todo: reactivate and fix
-            #ingest_code_metrics.s(
-            #    repo_dir=self.repo_dir,
-            #    start_date=update_from,
-            #),
+            ingest_code_metrics.s(
+                repo_dir=self.repo_dir,
+                start_date=start_date or self.last_update,
+            ),
 
             ingest_git_tags.s(
                 repo_dir=self.repo_dir,
             ),
 
-            # todo: reactivate and fix
-            #ingest_raw_github_issues.s(
-            #    repo_owner=repo_owner,
-            #    repo_name=repo_name,
-            #),
+            ingest_raw_github_issues.s(
+                repo_owner=self.github_repo_owner,
+                repo_name=self.github_repo_name,
+            ),
         )
 
         chain(clone, ingest).apply_async()
 
-        # todo: reactivate and fix
-        #if self.on_github:
-            #ingest_github_releases.apply_async(
-            #    kwargs={
-            #        'project_id': self.pk,
-            #        'repo_owner': self.github_repo_owner,
-            #        'repo_name': self.github_repo_name,
-            #    }
-            #)
+        if self.on_github:
+            ingest_github_releases.apply_async(
+                kwargs={
+                    'project_id': self.pk,
+                    'repo_owner': self.github_repo_owner,
+                    'repo_name': self.github_repo_name,
+                }
+            )
 
         self.last_update = timezone.now()
         self.save()
 
-    def import_open_github_issues(self):
-        from ingest.tasks.github import ingest_open_github_issues
-        owner, repo_name = self.github_repo_full_name.split('/')
-        ingest_open_github_issues(self.id, owner, repo_name)
+    def clone_repo(self):
+        from ingest.tasks.git import clone_repo
+        clone_repo(
+            project_id=self.pk,
+            git_url=self.git_url,
+            repo_dir=self.repo_dir,
+        )
 
-    def import_raw_github_issues(self, start_date=None):
+    def ingest_code_metrics(self):
+        from ingest.tasks.git import ingest_code_metrics
+        ingest_code_metrics(
+            project_id=self.pk,
+            repo_dir=self.repo_dir,
+        )
+
+    def ingest_git_tags(self):
+        from ingest.tasks.git import ingest_git_tags
+        ingest_git_tags(
+            project_id=self.pk,
+            repo_dir=self.repo_dir,
+        )
+
+    def ingest_raw_github_issues(self, start_date=None):
         from ingest.tasks.github import ingest_raw_github_issues
-        owner, repo_name = self.github_repo_full_name.split('/')
-        ingest_raw_github_issues(self.id, owner, repo_name, start_date)
+        ingest_raw_github_issues(
+            project_id=self.pk,
+            repo_owner=self.github_repo_owner,
+            repo_name=self.github_repo_name,
+            start_date=start_date,
+        )
+
+    def ingest_open_github_issues(self):
+        from ingest.tasks.github import ingest_open_github_issues
+        ingest_open_github_issues(
+            project_id=self.pk,
+            repo_owner=self.github_repo_owner,
+            repo_name=self.github_repo_name,
+        )
+
+    def ingest_github_releases(self):
+        from ingest.tasks.github import ingest_github_releases
+        ingest_github_releases(
+            project_id=self.pk,
+            repo_owner=self.github_repo_owner,
+            repo_name=self.github_repo_name,
+        )
 
 
 class Metric(models.Model):
