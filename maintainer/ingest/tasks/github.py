@@ -107,8 +107,8 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 
 
 @shared_task
-def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None):
-    logger.info('Project(%s): Starting ingest_raw_github_issues.', project_id)
+def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None):
+    logger.info('Project(%s): Starting import_past_github_issues.', project_id)
 
     project = Project.objects.get(pk=project_id)
     installation_id = project.user.profile.github_app_installation_refid
@@ -137,7 +137,7 @@ def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None)
         if r.status_code != 200:
             logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
             # retry
-            ingest_raw_github_issues.apply_async(
+            import_past_github_issues.apply_async(
                 kwargs={
                     'project_id': project_id,
                     'repo_owner': repo_owner,
@@ -196,7 +196,7 @@ def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None)
             'project_id': project_id,
         },
     )
-    logger.info('Project(%s): Finished ingest_raw_github_issues.', project_id)
+    logger.info('Project(%s): Finished import_past_github_issues.', project_id)
 
 
 @shared_task

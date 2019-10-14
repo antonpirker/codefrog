@@ -48,7 +48,7 @@ class Project(GithubMixin, models.Model):
 
     def import_data(self, start_date=None):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, ingest_raw_github_issues
+        from ingest.tasks.github import ingest_github_releases, import_past_github_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -66,7 +66,7 @@ class Project(GithubMixin, models.Model):
                 repo_dir=self.repo_dir,
             ),
 
-            ingest_raw_github_issues.s(
+            import_past_github_issues.s(
                 repo_owner=self.github_repo_owner,
                 repo_name=self.github_repo_name,
             ),
@@ -108,9 +108,9 @@ class Project(GithubMixin, models.Model):
             repo_dir=self.repo_dir,
         )
 
-    def ingest_raw_github_issues(self, start_date=None):
-        from ingest.tasks.github import ingest_raw_github_issues
-        ingest_raw_github_issues(
+    def import_past_github_issues(self, start_date=None):
+        from ingest.tasks.github import import_past_github_issues
+        import_past_github_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
