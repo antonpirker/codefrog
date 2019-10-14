@@ -132,14 +132,22 @@ def get_source_tree_metrics(project):
                 else:
                     COMPLEXITY_THRESSHOLD = 2000
 
-                    complexity = get_file_complexity(full_path)
+                    try:
+                        complexity = get_file_complexity(full_path)
+                    except FileNotFoundError:
+                        complexity = 0
+
                     if complexity < min_complexity:
                         min_complexity = complexity
                     if complexity > max_complexity:
                         max_complexity = complexity
 
                     if complexity < COMPLEXITY_THRESSHOLD:
-                        changes = get_file_changes(full_path, project)
+                        try:
+                            changes = get_file_changes(full_path, project)
+                        except FileNotFoundError:
+                            changes = 0
+
                         if changes < min_changes:
                             min_changes = changes
                         if changes > max_changes:
@@ -150,7 +158,10 @@ def get_source_tree_metrics(project):
                             full_path.replace(project.repo_dir, ''),
                         ).replace('//', '/')
 
-                        ownership = get_file_ownership(full_path, project)
+                        try:
+                            ownership = get_file_ownership(full_path, project)
+                        except FileNotFoundError:
+                            ownership = []
 
                         child_node = {
                             'name': node_name,
