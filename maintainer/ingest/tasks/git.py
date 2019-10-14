@@ -6,8 +6,9 @@ from collections import defaultdict
 from celery import shared_task
 from dateutil.parser import parse
 
-from core.models import Metric, Release
+from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
+from incomingwebhooks.github.utils import get_access_token
 from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,10 @@ def clone_repo(project_id, git_url, repo_dir):
     """
     logger.info('Project(%s): Starting clone_repo.', project_id)
 
+    project = Project.objects.get(pk=project_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    installation_access_token = get_access_token(installation_id)
+
     if os.path.exists(repo_dir):
         logger.info('Project(%s): Repo Exists. Start pulling new changes.', project_id)
         cmd = f'git pull'
@@ -34,6 +39,7 @@ def clone_repo(project_id, git_url, repo_dir):
         logger.info('Project(%s): Finished pulling new changes.', project_id)
     else:
         logger.info('Project(%s): Start cloning.', project_id)
+        git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
         cmd = f'git clone {git_url} {repo_dir}'
         run_shell_command(cmd)
         logger.info('Project(%s): Finished cloning.', project_id)

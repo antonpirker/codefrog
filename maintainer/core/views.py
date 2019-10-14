@@ -23,21 +23,22 @@ def index(request):
         # TODO: this refreshing of the projects could be moved to a special refresh
         # view that is only triggered with a refresh button on top of the list
         # of projects. (flow is similar to toggle of projects)
-        installations = get_app_installations()
-        for installation in installations:
-            access_token = get_access_token(installation['id'])
-            repositories = get_app_installation_repositories(access_token)
-            for repository in repositories['repositories']:
-                project, created = Project.objects.get_or_create(
-                    user=request.user,
-                    source='github',
-                    slug=slugify(repository['full_name'].replace('/', '-')),
-                    name=repository['name'],
-                    git_url=repository['clone_url'],
-                    defaults={
-                        'private': repository['private'],
-                    },
-                )
+        installation_id = request.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
+        repositories = get_app_installation_repositories(installation_access_token)
+        for repository in repositories['repositories']:
+            project_slug = slugify(repository['full_name'].replace('/', '-'))
+            project, created = Project.objects.get_or_create(
+                user=request.user,
+                source='github',
+                slug=project_slug,
+                name=repository['name'],
+                git_url=repository['clone_url'],
+                defaults={
+                    'private': repository['private'],
+                },
+            )
+            print(f'{project}: Created: {created}')
 
         projects = request.user.projects.all().order_by('-active', 'name')
     else:

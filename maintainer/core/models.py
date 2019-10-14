@@ -31,7 +31,7 @@ class Project(GithubMixin, models.Model):
     private = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
     source = models.CharField(max_length=10, blank=True, default='')
-    slug = models.SlugField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     name = models.CharField(max_length=100)
     git_url = models.CharField(max_length=255)
 

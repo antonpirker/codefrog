@@ -255,6 +255,14 @@ def calculate_github_issue_metrics(project_id):
 def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
     logger.info('Project(%s): Starting ingest_github_releases.', project_id)
 
+    project = Project.objects.get(pk=project_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    installation_access_token = get_access_token(installation_id)
+
+    headers = {
+        'Authorization': 'token %s' % installation_access_token,
+    }
+
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
         'per_page': str(GITHUB_ISSUES_PER_PAGE),
@@ -267,7 +275,7 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
     pages_processed = 0
 
     while url:
-        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        r = requests.get(url, headers=headers)
         releases = json.loads(r.content)
 
         for release in releases:
