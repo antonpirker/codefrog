@@ -38,7 +38,6 @@ def index(request):
                     'private': repository['private'],
                 },
             )
-            print(f'{project}: Created: {created}')
 
         projects = request.user.projects.all().order_by('-active', 'name')
     else:

@@ -153,7 +153,7 @@ def get_source_tree_metrics(project):
                         if changes > max_changes:
                             max_changes = changes
 
-                        repo_link = '{}blame/master{}'.format(
+                        repo_link = '{}/blame/master{}'.format(
                             project.github_repo_url,
                             full_path.replace(project.repo_dir, ''),
                         ).replace('//', '/')
