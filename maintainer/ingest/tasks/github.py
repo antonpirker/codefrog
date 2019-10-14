@@ -9,8 +9,10 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import Metric, Release
+from core.models import Metric, Release, Project
 from core.utils import date_range
+from incomingwebhooks.github.utils import get_app_installations, get_access_token, \
+    get_app_installation_repositories
 from ingest.models import OpenIssue, RawIssue
 
 logger = logging.getLogger(__name__)
@@ -108,13 +110,21 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None):
     logger.info('Project(%s): Starting ingest_raw_github_issues.', project_id)
 
-    params = GITHUB_API_DEFAULT_PARAMS
-    params.update({
+    project = Project.objects.get(pk=project_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    installation_access_token = get_access_token(installation_id)
+
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'token %s' % installation_access_token,
+    }
+
+    params = {
         'state': 'all',
         'sort': 'created',
         'direction': 'asc',
         'per_page': str(GITHUB_ISSUES_PER_PAGE),
-    })
+    }
 
     if start_date:
         params['since'] = start_date.isoformat()
@@ -123,7 +133,7 @@ def ingest_raw_github_issues(project_id, repo_owner, repo_name, start_date=None)
     url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
 
     while url:
-        r = requests.get(url, headers=GITHUB_API_DEFAULT_HEADERS)
+        r = requests.get(url, headers=headers)
         if r.status_code != 200:
             logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
             # retry
