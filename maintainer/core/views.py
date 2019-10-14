@@ -181,5 +181,8 @@ def project_toggle(request, username, project_slug, user, project):
 
     if project.active:
         project.import_data()
+    else:
+        project.last_update = None
+        project.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))

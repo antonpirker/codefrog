@@ -9,6 +9,7 @@ from dateutil.parser import parse
 from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
 from incomingwebhooks.github.utils import get_access_token
+from dateutil.parser import parse
 from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,8 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     """
     logger.info('Project(%s): Starting ingest_code_metrics(%s).', project_id, start_date)
 
+    if isinstance(start_date, str):
+        start_date = parse(start_date)
     start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
 
     # get first commit date
@@ -126,7 +129,6 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     if current_date < last_commit_date:
         if start_date <= current_date:
             current_date = end_date
-
         logger.info(
             'Project(%s): Calling ingest_code_metrics for next chunk. (start_date=%s)',
             project_id,
