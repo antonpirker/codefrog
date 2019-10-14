@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from core.models import Metric, Release
-from ingest.models import RawIssue, RawCodeChange
+from ingest.models import OpenIssue, RawCodeChange, RawIssue
 
 
 @admin.register(RawIssue)
@@ -13,6 +12,17 @@ class RawIssueAdmin(admin.ModelAdmin):
         'project', 'opened_at',
     )
     ordering = ['project', '-opened_at']
+
+
+@admin.register(OpenIssue)
+class OpenIssueAdmin(admin.ModelAdmin):
+    list_display = (
+        'project', 'issue_refid', 'query_time', 'labels',
+    )
+    list_filter = (
+        'project',
+    )
+    ordering = ['project', '-query_time']
 
 
 @admin.register(RawCodeChange)

@@ -117,6 +117,14 @@ class Project(GithubMixin, models.Model):
             start_date=start_date,
         )
 
+    def import_open_github_issues(self):
+        from ingest.tasks.github import import_open_github_issues
+        import_open_github_issues(
+            project_id=self.pk,
+            repo_owner=self.github_repo_owner,
+            repo_name=self.github_repo_name,
+        )
+
     def ingest_open_github_issues(self):
         from ingest.tasks.github import ingest_open_github_issues
         ingest_open_github_issues(

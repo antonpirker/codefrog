@@ -5,14 +5,14 @@ import urllib
 
 import requests
 from celery import shared_task
+from dateutil.parser import parse
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import Metric, Release, Project
+from core.models import Metric, Project, Release
 from core.utils import date_range
-from incomingwebhooks.github.utils import get_app_installations, get_access_token, \
-    get_app_installation_repositories
+from incomingwebhooks.github.utils import get_access_token
 from ingest.models import OpenIssue, RawIssue
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,11 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 
 @shared_task
 def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None):
-    logger.info('Project(%s): Starting import_past_github_issues.', project_id)
+    logger.info(
+        'Project(%s): Starting import_past_github_issues. (%s)',
+        project_id,
+        start_date,
+    )
 
     project = Project.objects.get(pk=project_id)
     installation_id = project.user.profile.github_app_installation_refid
@@ -127,6 +131,9 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
     }
 
     if start_date:
+        if isinstance(start_date, str):
+            start_date = parse(start_date)
+
         params['since'] = start_date.isoformat()
 
     list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
@@ -170,7 +177,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
                 else:
                     closed_at = None
 
-                RawIssue.objects.update_or_create(
+                raw_issue, created = RawIssue.objects.update_or_create(
                     project_id=project_id,
                     issue_refid=issue['number'],
                     opened_at=opened_at,
@@ -179,6 +186,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
                         'labels': labels,
                     }
                 )
+                logger.info(f'RawIssue {raw_issue}: created: {created}')
 
         # get url of next page (if any)
         url = None
@@ -196,7 +204,99 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
             'project_id': project_id,
         },
     )
-    logger.info('Project(%s): Finished import_past_github_issues.', project_id)
+    logger.info(
+        'Project(%s): Finished import_past_github_issues. (%s)',
+        project_id,
+        start_date,
+    )
+
+
+@shared_task
+def import_open_github_issues(project_id, repo_owner, repo_name):
+    logger.info('Project(%s): Starting import_open_github_issues.', project_id)
+
+    project = Project.objects.get(pk=project_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    installation_access_token = get_access_token(installation_id)
+
+    # Delete all old open issues
+    OpenIssue.objects.filter(
+        project_id=project_id,
+        query_time__date=timezone.now().date(),
+    ).delete()
+
+    headers = {
+        'Accept': 'application/vnd.github.machine-man-preview+json',
+        'Authorization': 'token %s' % installation_access_token,
+    }
+
+    params = {
+        'state': 'open',
+        'sort': 'created',
+        'direction': 'asc',
+        'per_page': str(GITHUB_ISSUES_PER_PAGE),
+    }
+
+    list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
+    url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
+
+    while url:
+        r = requests.get(url, headers=headers)
+        if r.status_code != 200:
+            logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
+            # retry
+            import_open_github_issues.apply_async(
+                kwargs={
+                    'project_id': project_id,
+                    'repo_owner': repo_owner,
+                    'repo_name': repo_name,
+                },
+                countdown=10,
+            )
+            return
+
+        issues = json.loads(r.content)
+
+        for issue in issues:
+            is_pull_request = 'pull_request' in issue
+            if not is_pull_request:
+                try:
+                    labels = [label['name'] for label in issue['labels']]
+                except TypeError:
+                    labels = []
+
+                OpenIssue.objects.create(
+                    project_id=project_id,
+                    query_time=timezone.now(),
+                    issue_refid=issue['number'],
+                    labels=labels,
+                )
+
+        # get url of next page (if any)
+        url = None
+        try:
+            links = requests.utils.parse_header_links(r.headers['Link'])
+            for link in links:
+                if link['rel'] == 'next':
+                    url = link['url']
+                    break
+        except KeyError:
+            pass
+
+    # Also import the issues from the last 24 hours
+    # to calculate the updated average age of issues.
+    start_date = (timezone.now() - datetime.timedelta(days=1))\
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+    import_past_github_issues.apply_async(
+        kwargs={
+            'project_id': project_id,
+            'repo_owner': repo_owner,
+            'repo_name': repo_name,
+            'start_date': start_date,
+        }
+    )
+
+    logger.info('Project(%s): Finished import_open_github_issues.', project_id)
 
 
 @shared_task
@@ -219,7 +319,7 @@ def calculate_github_issue_metrics(project_id):
         # open issues
         open_issues = issues.filter(
             Q(opened_at__date__lte=day)
-            & (Q(closed_at__isnull=True) | Q(closed_at__date__gte=day))
+            & (Q(closed_at__isnull=True) | Q(closed_at__date__gt=day))
         )
         count_open_issues = open_issues.count()
         age_opened_issues = sum([i.get_age(at_date=day) for i in open_issues])
@@ -235,6 +335,12 @@ def calculate_github_issue_metrics(project_id):
         except ZeroDivisionError:
             age = 0
 
+        logger.debug(
+            f'{day}: '
+            f'open/age_opened/closed/age_closed/age: '
+            f'{count_open_issues}/{age_opened_issues}/'
+            f'{count_closed_issues}/{age_closed_issues}/{age}'
+        )
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
             date=day,
