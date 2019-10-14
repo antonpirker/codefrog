@@ -206,8 +206,8 @@ def resample_metrics(queryset, frequency):
 
     df = df.resample(frequency).agg({
         'complexity': 'last',  # take the last complexity in the week
-        'github_bug_issues_open': 'last',  # the number of open bug issues at the end of the week
-        'github_other_issues_open': 'last',  # avg number of other open issues
+        'github_issue_age': 'last',
+        'github_issues_open': 'last',
 
         #'loc': 'last',  # take the number of lines of code at the end of the week
         #'complexity_per_loc': 'last',

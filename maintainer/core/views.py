@@ -105,8 +105,8 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     ).order_by('date').values(
         'date',
         'metrics__complexity',
-        'metrics__github_bug_issues_open',
-        'metrics__github_other_issues_open',
+        'metrics__github_issue_age',
+        'metrics__github_issues_open',
     )
     if metrics.count() > 0:
         metrics = resample_metrics(metrics, frequency)
