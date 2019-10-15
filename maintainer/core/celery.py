@@ -30,7 +30,7 @@ def setup_periodic_tasks(sender, **kwargs):
         beat_schedule={
             'update_all_projects': {
                 'task': 'core.tasks.update_all_projects',
-                'schedule': crontab(hour='*', minute='*'),
+                'schedule': crontab(hour='*', minute='0'),
             },
         })
 
