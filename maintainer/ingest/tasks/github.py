@@ -219,7 +219,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
     installation_id = project.user.profile.github_app_installation_refid
     installation_access_token = get_access_token(installation_id)
 
-    # Delete all old open issues
+    # Delete all old open issues of today
     OpenIssue.objects.filter(
         project_id=project_id,
         query_time__date=timezone.now().date(),

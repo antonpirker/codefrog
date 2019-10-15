@@ -47,10 +47,6 @@ class OpenIssue(models.Model):
         default=list,
     )
 
-    class Meta:
-        unique_together = (
-            ('project', 'issue_refid', ),
-        )
 
 
 class RawCodeChange(models.Model):
