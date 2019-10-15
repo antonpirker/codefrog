@@ -8,6 +8,7 @@
         <title>Codefrog</title>
         <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
         <link rel="stylesheet" href="{% static "css/app.css" %} ">
+        <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
     </head>
 </head>
 
@@ -20,8 +21,12 @@
                     <a href="{% url 'index' %}">Codefrog</a>
                 </div>
                 <div class="large-6 cell text-right">
-                    <a href="{% url 'logout' %}" style="font-size: 3em; margin-top: -0.35em; display: inline-block;">x</a>
-                    <a href="{% url 'user-settings' user %}" style="font-size: 3em; margin-top: -0.35em; display: inline-block;">⚙</a>
+                    <a href="{% url 'logout' %}" style="font-size: 2em;">
+                        <i class="fas fa-sign-out-alt" title="Logout"></i>
+                    </a>
+                    <a href="{% url 'user-settings' user %}" style="font-size: 2em;">
+                        <i class="fas fa-cog" title="Settings"></i>
+                    </a>
                 </div>
 
             </div>

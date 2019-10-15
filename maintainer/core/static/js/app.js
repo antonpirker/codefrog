@@ -5,7 +5,7 @@
 function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
     var heatmapColour = d3.scaleLinear()
         .domain([0, 1])
-        .range(["#ffcccc", "#ff0000"])
+        .range(["#FFCCFF", "#DD0F7E"])
         .interpolate(d3.interpolateHcl);
 
     var c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);
@@ -69,13 +69,13 @@ function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
                   console.log(d)
                   d3.select('#source-information').html("");
                   d3.select('#source-information').append('h4')
-                      .text(filePath)
+                      .text('Path: ' + filePath)
                   d3.select('#source-information').append('a')
                       .text('[Show in Repo]')
                       .attr('href', d.data.repo_link)
                       .attr('target', '_blank');
                   d3.select('#source-information').append('p')
-                      .text('Add here details of file, like complexity and changes over time. add the authors as a pie-chart in the focused bubble. Add the ability to zoom into the functions inside the file');
+                      .text('');
               }
             });
 
