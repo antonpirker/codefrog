@@ -61,12 +61,12 @@ input:checked ~ .switch-paddle {
     width: 10em;
     height: 1em;
     display: inline-block;
-    background: #FFCCFF;
-    background: -moz-linear-gradient(left, #FFCCFF 0%, #850074 100%);
-    background: -webkit-linear-gradient(left, #FFCCFF 0%, #850074 100%);
-    background: -o-linear-gradient(left, #FFCCFF 0%, #850074 100%);
-    background: -ms-linear-gradient(left, #FFCCFF 0%, #850074 100%);
-    background: linear-gradient(to right, #FFCCFF 0%, #850074 100%);
+    background: rgba(255,204,204,1);
+    background: -moz-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -webkit-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -o-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: -ms-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
+    background: linear-gradient(to right, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffcccc', endColorstr='#ff0000', GradientType=1 );
 }
 
@@ -109,4 +109,11 @@ input:checked ~ .switch-paddle {
     display: inline-block;
     background: #ececec;
     border: 1px solid #444;
+}
+
+.dashboard-card {
+    margin-top: 3em;
+    -webkit-box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
+    -moz-box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
+    box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
 }

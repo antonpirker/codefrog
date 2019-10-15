@@ -5,7 +5,7 @@
 function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
     var heatmapColour = d3.scaleLinear()
         .domain([0, 1])
-        .range(["#FFCCFF", "#DD0F7E"])
+        .range(["#ffcccc", "#ff0000"])
         .interpolate(d3.interpolateHcl);
 
     var c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);

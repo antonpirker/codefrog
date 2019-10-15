@@ -34,41 +34,36 @@
     </div>
     <div class="grid-container">
         <div class="grid-x grid-margin-x">
-            <!-- Projects -->
             <div class="large-12 cell">
-                <h2>Projects</h2>
-            </div>
-
-            <div class="large-12 cell">
-                <table>
-                    {% for project in projects %}
-                        <tr>
-                            {% if project.active %}
-                                <td>
-                                    <h3 style="margin: 0;">
-                                        {% if project.private %}🔒{% endif %} <a href="{% url 'project-detail' slug=project.slug %}">{{ project.github_repo_full_name }}</a>
-                                    </h3>
-                                </td>
-                                <td class="text-right">
-                                    <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button secondary" style="margin: 0;">deactivate</a>
-                                </td>
-
-                            {% else %}
-                                <td>
-                                    <h3 class="subheader"  style="margin: 0;">
-                                        {% if project.private %}🔒{% endif %} {{ project.github_repo_full_name }}
-                                    </h3>
-                                </td>
-                                <td class="text-right">
-                                    <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button primary" style="margin: 0;">activate</a>
-                                </td>
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                </table>
-                </ul>
+                <h1>Repositories</h1>
             </div>
         </div>
+
+        {% for project in projects %}
+            <div class="grid-x grid-margin-x dashboard-card">
+                <div class="large-10 cell">
+                    {% if project.active %}
+                        <h3>
+                            {% if project.private %}🔒{% endif %} <a href="{% url 'project-detail' slug=project.slug %}">{{ project.github_repo_full_name }}</a>
+                        </h3>
+                    {% else %}
+                        <h3 class="subheader">
+                            {% if project.private %}🔒{% endif %} {{ project.github_repo_full_name }}
+                        </h3>
+                    {% endif %}
+                </div>
+
+                <div class="large-2 cell text-right">
+                    {% if project.active %}
+                        <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button secondary" style="margin: 0;">deactivate</a>
+                    {% else %}
+                        <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button primary" style="margin: 0;">activate</a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+        {% endfor %}
 
     </div>
     <script>

@@ -21,9 +21,9 @@
     <script src="{% static "js/app.js" %}"></script>
 
     <script type="text/javascript">
-        //colors = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
-        colors = ['#DD0F7E', '#009BBE', 'rgba(168, 218, 0, 0.6)', '#F2E205', '#EE5A02'];
-
+        link_color = '#FFAC33';
+        color_palette = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
+        chart_colors = ['#DD0F7E', '#0082A5', '#33CEF1'];
         window.onload = function () {
             // CHART JS
             var timeFormat = 'MM/DD/YYYY HH:mm';
@@ -45,9 +45,9 @@
                         {% endfor %}
                     ],
                     fill: false,
-                    borderColor: colors[0],
+                    borderColor: chart_colors[0],
                     borderDash: [10, 5],
-                    backgroundColor: colors[0],
+                    backgroundColor: chart_colors[0],
                     pointRadius: 4,
                     lineTension: 0,
                     cubicInterpolationMode: 'monotone',
@@ -60,8 +60,8 @@
                         {% endfor %}
                     ],
                     fill: false,
-                    borderColor: colors[1],
-                    backgroundColor: colors[1],
+                    borderColor: chart_colors[1],
+                    backgroundColor: chart_colors[1],
                     lineTension: 0,
                     yAxisID: "y-axis-1",
                 }, {
@@ -72,8 +72,8 @@
                         {% endfor %}
                     ],
                     fill: false,
-                    borderColor: colors[2],
-                    backgroundColor: colors[2],
+                    borderColor: chart_colors[2],
+                    backgroundColor: chart_colors[2],
                     lineTension: 0,
                     yAxisID: "y-axis-2",
                 }]
@@ -166,7 +166,7 @@
             };
             const chart = new Chart(ctx, options);
 
-            // TODO: nachdenken:
+                // TODO: nachdenken:
             // Soll es zuerst möglich sein seine eigenen repos zu aktivieren.
             // oder solles zuerst möglcih sein open source repos zu importiern?
             // oder beides?
@@ -203,7 +203,7 @@
         <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <h1>{{ project.name }} <small>{% if project.private %}🔒{% endif %} </small></h1>
+                <h1>{{ project.github_repo_full_name }} <small>{% if project.private %}{% endif %}(private)</small></h1>
             </div>
         </div>
 
@@ -216,12 +216,12 @@
             </div>
         </div>
 
-        <div class="large-12 cell">
-            <h2>Evolution of the system </h2>
-        </div>
+        <!-- Evolution -->
+        <div class="grid-x grid-margin-x dashboard-card">
+            <div class="large-12 cell">
+                <h2>Evolution</h2>
+            </div>
 
-        <!-- Trends -->
-        <div class="grid-x grid-margin-x grid-padding-y">
             <div class="large-3 small-6 cell">
                 Zoom:
                 {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
@@ -255,10 +255,10 @@
             </div>
         </div>
 
-        <!-- State of the system -->
-        <div class="grid-x grid-margin-x align-bottom" style="padding-top: 3em;">
+        <!-- Problem Areas -->
+        <div class="grid-x grid-margin-x dashboard-card">
             <div class="large-6 cell">
-                <h2>Current state of the system</h2>
+                <h2>Problem areas</h2>
             </div>
             <div class="large-3 cell">
                 <span class="change_frequency_gradient"></span> <br/>
@@ -272,10 +272,8 @@
                 <span class=circle5></span> <br/>
                 Code complexity
             </div>
-        </div>
 
-        <!-- Graph -->
-        <div class="grid-x grid-margin-x grid-padding-y" style="padding: 0 1em;">
+            <!-- Graph -->
             <div class="large-8 cell">
                 <div id="source-chart-container"></div>
             </div>
@@ -286,7 +284,13 @@
             </div>
         </div>
 
+        <div class="grid-x grid-margin-x">
+            <div class="large-12 cell">
+                <br/><br/><br/>
+            </div>
+        </div>
     </div>
+
     <script>
         var releaseSwitch = document.querySelector('#show_releases');
         releaseSwitch.onclick = function() {
