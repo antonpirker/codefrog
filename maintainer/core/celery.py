@@ -24,15 +24,17 @@ app.autodiscover_tasks()
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    logger.warning("Starting setup_periodic_tasks")
+    logger.info("Starting setup_periodic_tasks")
+
     sender.conf.update(
         beat_schedule={
-            'import_all_open_github_issues': {
-                'task': 'core.tasks.import_all_open_github_issues',
-                'schedule': crontab(minute=0, hour=0),  # daily at utc midnight
+            'update_all_projects': {
+                'task': 'core.tasks.update_all_projects',
+                'schedule': crontab(hour='*', minute='*'),
             },
         })
-    logger.warning("Finished setup_periodic_tasks")
+
+    logger.info("Finished setup_periodic_tasks")
 
 
 @app.task(bind=True)

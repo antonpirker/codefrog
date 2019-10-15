@@ -114,7 +114,13 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         start_date,
     )
 
-    project = Project.objects.get(pk=project_id)
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        return
+
     installation_id = project.user.profile.github_app_installation_refid
     installation_access_token = get_access_token(installation_id)
 
@@ -210,12 +216,19 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         start_date,
     )
 
+    return project_id
 
 @shared_task
 def import_open_github_issues(project_id, repo_owner, repo_name):
     logger.info('Project(%s): Starting import_open_github_issues.', project_id)
 
-    project = Project.objects.get(pk=project_id)
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        return
+
     installation_id = project.user.profile.github_app_installation_refid
     installation_access_token = get_access_token(installation_id)
 
@@ -298,6 +311,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
 
     logger.info('Project(%s): Finished import_open_github_issues.', project_id)
 
+    return project_id
 
 @shared_task
 def calculate_github_issue_metrics(project_id):
@@ -361,7 +375,13 @@ def calculate_github_issue_metrics(project_id):
 def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
     logger.info('Project(%s): Starting ingest_github_releases.', project_id)
 
-    project = Project.objects.get(pk=project_id)
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        return
+
     installation_id = project.user.profile.github_app_installation_refid
     installation_access_token = get_access_token(installation_id)
 
@@ -426,3 +446,21 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
             return
 
     logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+
+    return project_id
+
+
+@shared_task
+def update_project_data(project_id):
+    logger.info('Project(%s): Starting update_project_data.', project_id)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished update_project_data.', project_id)
+        return
+
+    project.update_data()
+
+    logger.info('Project(%s): Finished update_project_data.', project_id)

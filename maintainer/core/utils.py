@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import subprocess
@@ -26,9 +27,11 @@ def run_shell_command(cmd, cwd=None):
 
 def date_range(start_date, end_date):
     start_date = start_date\
-        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .replace(hour=0, minute=0, second=0, microsecond=0) \
+            if isinstance(start_date, datetime.datetime) else start_date
     end_date = (end_date + timedelta(days=1))\
-        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .replace(hour=0, minute=0, second=0, microsecond=0) \
+            if isinstance(end_date, datetime.datetime) else end_date
 
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)

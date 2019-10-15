@@ -142,6 +142,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
 
     logger.info('Project(%s): Finished ingest_code_metrics(%s).', project_id, start_date)
 
+    return project_id
 
 @shared_task
 def calculate_code_metrics(project_id, start_date=None):
@@ -333,3 +334,5 @@ def ingest_git_tags(project_id, repo_dir):
         )
 
     logger.info('Project(%s): Finished ingest_git_tags.', project_id)
+
+    return project_id

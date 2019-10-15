@@ -46,7 +46,7 @@ class Project(GithubMixin, models.Model):
     def repo_dir(self):
         return os.path.join(settings.GIT_REPO_DIR, self.github_repo_name)
 
-    def import_data(self, start_date=None):
+    def import_data(self):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_past_github_issues
 
@@ -56,10 +56,9 @@ class Project(GithubMixin, models.Model):
             repo_dir=self.repo_dir,
         )
 
-        ingest = group(
+        ingest_jobs = [
             ingest_code_metrics.s(
                 repo_dir=self.repo_dir,
-                start_date=start_date or self.last_update,
             ),
 
             ingest_git_tags.s(
@@ -70,21 +69,65 @@ class Project(GithubMixin, models.Model):
                 repo_owner=self.github_repo_owner,
                 repo_name=self.github_repo_name,
             ),
-        )
+        ]
+
+        if self.on_github:
+            ingest_jobs.append(
+                ingest_github_releases.s(
+                    repo_owner=self.github_repo_owner,
+                    repo_name=self.github_repo_name,
+                ),
+            )
+
+        ingest = group(ingest_jobs)
 
         chain(clone, ingest).apply_async()
 
-        if self.on_github:
-            ingest_github_releases.apply_async(
-                kwargs={
-                    'project_id': self.pk,
-                    'repo_owner': self.github_repo_owner,
-                    'repo_name': self.github_repo_name,
-                }
+        self.last_update = timezone.now()
+        self.save()
+
+
+    def update_data(self):
+        from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
+        from ingest.tasks.github import ingest_github_releases, import_open_github_issues
+
+        clone = clone_repo.s(
+            project_id=self.pk,
+            git_url=self.git_url,
+            repo_dir=self.repo_dir,
+        )
+
+        ingest_jobs = [
+            ingest_code_metrics.s(
+                repo_dir=self.repo_dir,
+                start_date=self.last_update,
+            ),
+
+            ingest_git_tags.s(
+                repo_dir=self.repo_dir,
+            ),
+
+            import_open_github_issues.s(
+                repo_owner=self.github_repo_owner,
+                repo_name=self.github_repo_name,
             )
+        ]
+
+        if self.on_github:
+            ingest_jobs.append(
+                ingest_github_releases.s(
+                    repo_owner=self.github_repo_owner,
+                    repo_name=self.github_repo_name,
+                ),
+            )
+
+        ingest = group(ingest_jobs)
+
+        chain(clone, ingest).apply_async()
 
         self.last_update = timezone.now()
         self.save()
+
 
     def clone_repo(self):
         from ingest.tasks.git import clone_repo

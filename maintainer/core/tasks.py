@@ -3,22 +3,18 @@ import logging
 from celery import shared_task
 
 from core.models import Project
-from ingest.tasks.github import import_open_github_issues
+from ingest.tasks.github import update_project_data
 
 logger = logging.getLogger(__name__)
 
 
 @shared_task
-def import_all_open_github_issues():
-    logger.info('Starting import_all_open_github_issues.')
+def update_all_projects():
+    logger.info('Starting update_all_projects.')
 
-    projects = Project.objects.filter(source='github', active=True).order_by('pk')
+    projects = Project.objects.filter(active=True).order_by('pk')
     for project in projects:
-        logger.info(f'Calling import_open_github_issues for project {project.pk}')
-        import_open_github_issues.delay(
-            project.pk,
-            project.github_repo_owner,
-            project.github_repo_name,
-        )
+        logger.info(f'Calling update_project_data for project {project.pk}')
+        update_project_data.delay(project.pk)
 
-    logger.info('Finished import_all_open_github_issues.')
+    logger.info('Finished update_all_projects.')
