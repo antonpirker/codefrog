@@ -101,6 +101,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     metrics = Metric.objects.filter(
         project=project,
         date__gte=begin,
+        date__lte=today,
     ).order_by('date').values(
         'date',
         'metrics__complexity',
@@ -136,6 +137,9 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'frequency': frequency,
         'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
+        'current_lead_time': round(metrics[-1]['github_issue_age'], 1),
+        'current_open_tickets': int(metrics[-1]['github_issues_open']),
+        'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,
         'data_tree': json.dumps(source_tree_metrics['tree']),
         'min_complexity': source_tree_metrics['min_complexity'],

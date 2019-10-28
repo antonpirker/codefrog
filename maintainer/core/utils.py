@@ -108,6 +108,7 @@ def get_source_tree_metrics(project):
     min_changes = 0
     max_changes = 0
 
+    project.clone_repo()
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
             full_path = os.path.join(root_dir, f)

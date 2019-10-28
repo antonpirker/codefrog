@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 
 from celery import chain, group
 from django.conf import settings
@@ -86,7 +87,6 @@ class Project(GithubMixin, models.Model):
         self.last_update = timezone.now()
         self.save()
 
-
     def update_data(self):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_open_github_issues
@@ -127,7 +127,6 @@ class Project(GithubMixin, models.Model):
 
         self.last_update = timezone.now()
         self.save()
-
 
     def clone_repo(self):
         from ingest.tasks.git import clone_repo
@@ -183,6 +182,20 @@ class Project(GithubMixin, models.Model):
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
         )
+
+    def get_complexity_change(self, days=30):
+        ref_date = timezone.now() - timedelta(days=30)
+        ref_metric = Metric.objects.filter(project=self, date__lte=ref_date)\
+            .order_by('date')\
+            .last()
+        metric = Metric.objects.filter(project=self).order_by('date').last()
+        change = metric.metrics['complexity']/ref_metric.metrics['complexity']*100 - 100
+
+        print('ref_metric: %s' % ref_metric.metrics['complexity'])
+        print('metric: %s' % metric.metrics['complexity'])
+        print('change: %s' % change)
+
+        return change
 
 
 class Metric(models.Model):

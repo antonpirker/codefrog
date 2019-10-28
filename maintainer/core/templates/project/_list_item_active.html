@@ -1,8 +1,10 @@
 <div class="grid-x">
     <div class="large-10 cell">
         <h3>
-            {% if project.private %}🔒{% endif %} <a
-                href="{% url 'project-detail' slug=project.slug %}">{{ project.github_repo_full_name }}</a>
+            <a href="{% url 'project-detail' slug=project.slug %}">
+                {{ project.github_repo_full_name }}
+            </a>
+            {% if project.private %}<small>(private)</small>{% endif %}
         </h3>
     </div>
 

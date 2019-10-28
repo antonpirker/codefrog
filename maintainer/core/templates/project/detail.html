@@ -26,6 +26,30 @@
                     {% endfor %}
                 ],
                 datasets: [{
+                    label: 'Lead Time (Days to close issue)',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: chart_colors[2],
+                    backgroundColor: chart_colors[2],
+                    lineTension: 0,
+                    yAxisID: "y-axis-2",
+                }, {
+                    label: 'Open issues in issue tracker',
+                    data: [
+                        {% for metric in metrics %}
+                            {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    fill: false,
+                    borderColor: chart_colors[1],
+                    backgroundColor: chart_colors[1],
+                    lineTension: 0,
+                    yAxisID: "y-axis-1",
+                }, {
                     label: 'System complexity',
                     type: 'line',
                     data: [
@@ -41,30 +65,6 @@
                     lineTension: 0,
                     cubicInterpolationMode: 'monotone',
                     yAxisID: "y-axis-0",
-                }, {
-                    label: 'Open issues in issue tracker',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    fill: false,
-                    borderColor: chart_colors[1],
-                    backgroundColor: chart_colors[1],
-                    lineTension: 0,
-                    yAxisID: "y-axis-1",
-                }, {
-                    label: 'Days to close ticket',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    fill: false,
-                    borderColor: chart_colors[2],
-                    backgroundColor: chart_colors[2],
-                    lineTension: 0,
-                    yAxisID: "y-axis-2",
                 }]
             };
 
@@ -154,17 +154,7 @@
                 }
             };
             const chart = new Chart(ctx, options);
-
-                // TODO: nachdenken:
-            // Soll es zuerst möglich sein seine eigenen repos zu aktivieren.
-            // oder solles zuerst möglcih sein open source repos zu importiern?
-            // oder beides?
-            // das hängt jetzt von der marketing strategie ab. wenn ich den oss maintainer ihr project zeig ist das cool,
-            // dann wär aber auch cool wenn ich ihnen gleich sagen kann: installier dir die github app. ist super easy!
-
-            // TODO: soll ich heute da deployment mal wieder angehen? Oder zumindest mal aktualsieren
             // TODO: mehrere github apps für "local"/"staging/ und production?
-
             // TODO: move JS to .js file (whitenoise?)
             // TODO: make JS function for creating chart in #source-chart-container
             // TODO: add JS function to create ownership chart in #ownership-chart-container
@@ -196,13 +186,60 @@
             </div>
         </div>
 
+        <!-- Status -->
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <div class="large-4 cell">
+                <div class="grid-x">
+                    <div class="large-12 cell text-center">
+                        <div class="stat">
+                            {{ current_lead_time }} days
+                        </div>
+                    </div>
+                    <div class="large-12 cell text-center">
+                        Current Lead Time <i class="fas fa-question-circle" title="The number of days it takes from opening a issue in the issue tracker to closing it."></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="large-4 cell">
+                <div class="grid-x">
+                    <div class="large-12 cell text-center">
+                        <div class="stat">
+                            <a href="{{ project.github_repo_url }}/issues" target="_blank">
+                                {{ current_open_tickets }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="large-12 cell text-center">
+                        Open Issues
+                    </div>
+                </div>
+            </div>
+
+            <div class="large-4 cell">
+                <div class="grid-x">
+                    <div class="large-12 cell text-center">
+                        {% if current_complexity_change > 0 %}
+                            <div class="stat">+{{ current_complexity_change }} %</div>
+                        {% else %}
+                            <div class="stat">-{{ current_complexity_change }} %</div>
+                        {% endif %}
+
+                    </div>
+                    <div class="large-12 cell text-center">
+                        Complexity Change <i class="fas fa-question-circle" title="The change in complexity of the whole system in the last 30 days."></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Evolution -->
-        <div class="grid-x grid-margin-x dashboard-card">
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2>Evolution</h2>
             </div>
 
-            <div class="large-3 small-6 cell">
+            <div class="large-6 small-6 cell">
                 Zoom:
                 {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
                 {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
@@ -210,9 +247,6 @@
                 {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
                 {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
                 {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
-            </div>
-            <div class="large-3 small-6 cell text-right large-text-left">
-                (Frequency: {{ frequency }})
             </div>
             <div class="large-5 small-9 cell large-text-right">
                 Show releases on chart?
@@ -236,7 +270,7 @@
         </div>
 
         <!-- Problem Areas -->
-        <div class="grid-x grid-margin-x dashboard-card">
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-6 cell">
                 <h2>Problem areas</h2>
             </div>

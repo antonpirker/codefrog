@@ -5,14 +5,14 @@
 function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
     var heatmapColour = d3.scaleLinear()
         .domain([0, 1])
-        .range(["#ffcccc", "#ff0000"])
+        .range(["#fcebec", "#df2935"])
         .interpolate(d3.interpolateHcl);
 
     var c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);
 
     color = d3.scaleLinear()
         .domain([0, 10])
-        .range(["#f7f7f7", "#919191"])
+        .range(["#ffffff", "#a9a9a9"])
         .interpolate(d3.interpolateHcl);
     format = d3.format(",d");
     width = 932;
@@ -32,7 +32,6 @@ function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
     const svg = d3.select(selector).append("svg")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")
-        .style("margin", "0 -14px")
         .style("background", color(0))
         .style("cursor", "pointer")
         .on("click", () => zoom(root));
@@ -69,9 +68,9 @@ function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
                   console.log(d)
                   d3.select('#source-information').html("");
                   d3.select('#source-information').append('h4')
-                      .text('Path: ' + filePath)
+                      .text('Details');
                   d3.select('#source-information').append('a')
-                      .text('[Show in Repo]')
+                      .text(filePath)
                       .attr('href', d.data.repo_link)
                       .attr('target', '_blank');
                   d3.select('#source-information').append('p')

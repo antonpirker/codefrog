@@ -61,13 +61,13 @@ input:checked ~ .switch-paddle {
     width: 10em;
     height: 1em;
     display: inline-block;
-    background: rgba(255,204,204,1);
-    background: -moz-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
-    background: -webkit-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
-    background: -o-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
-    background: -ms-linear-gradient(left, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
-    background: linear-gradient(to right, rgba(255,204,204,1) 0%, rgba(255,0,0,1) 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffcccc', endColorstr='#ff0000', GradientType=1 );
+    background: #fcebec;
+    background: -moz-linear-gradient(left, #fcebec 0%, #df2935 100%);
+    background: -webkit-linear-gradient(left, #fcebec 0%, #df2935 100%);
+    background: -o-linear-gradient(left, #fcebec 0%, #df2935 100%);
+    background: -ms-linear-gradient(left, #fcebec 0%, #df2935 100%);
+    background: linear-gradient(to right, #fcebec 0%, #df2935 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcebec', endColorstr='#df2935', GradientType=1 );
 }
 
 .circle1 {
@@ -113,7 +113,8 @@ input:checked ~ .switch-paddle {
 
 .dashboard-card {
     margin-top: 3em;
-    -webkit-box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
-    -moz-box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
-    box-shadow: 2px 2px 5px 0px rgba(187,187,187,1);
+    -webkit-box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    -moz-box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    overflow: hidden;
 }
