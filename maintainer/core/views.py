@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -13,7 +14,7 @@ from core.decorators import add_user_and_project, only_matching_authenticated_us
 from core.models import Metric, Project, Release
 from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
 from incomingwebhooks.github.utils import get_access_token, \
-    get_app_installation_repositories, get_app_installations
+    get_app_installation_repositories
 
 MONTH = 30
 YEAR = 365
@@ -72,6 +73,19 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     today = timezone.now()
 
     # Zoom to desired date range
+    if not zoom:
+        if release_flag:
+            return HttpResponseRedirect(reverse('project-detail-zoomed-release', kwargs={
+                'slug': project.slug,
+                'zoom': '1M',
+                'release_flag': release_flag,
+            }))
+        else:
+            return HttpResponseRedirect(reverse('project-detail-zoomed', kwargs={
+                'slug': project.slug,
+                'zoom': '1M',
+            }))
+
     zoom = zoom or '1M'
     time_deltas = {
         '1M': datetime.timedelta(days=30 * 1),
