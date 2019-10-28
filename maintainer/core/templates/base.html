@@ -1,0 +1,55 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Codefrog</title>
+        <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
+        <link rel="stylesheet" href="{% static "css/app.css" %} ">
+        <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
+
+        {% block head_end %}{% endblock head_end %}
+
+        <script src="{% static "js/app.js" %}"></script>
+    </head>
+</head>
+
+<body>
+    <div class="header" style="height: 5em; margin-bottom: 3em;">
+        <div class="grid-x grid-padding-x grid-padding-y">
+            <div class="large-6 cell">
+                <a href="{% url 'index' %}">Codefrog</a>
+            </div>
+
+            <div class="large-6 cell text-right">
+                <a href="{% url 'logout' %}" style="font-size: 2em;">
+                    <i class="fas fa-sign-out-alt" title="Logout"></i>
+                </a>
+                <a href="{% url 'user-settings' user %}" style="font-size: 2em;">
+                    <i class="fas fa-cog" title="Settings"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        {% block content %}{% endblock content %}
+    </div>
+
+    <div class="footer" style="height: 5em; margin-top: 7em;">
+        {% block footer %}
+            <div class="grid-container">
+                <div class="grid-x grid-margin-x grid-padding-y text-center large-text-left">
+                    <div class="large-12 cell text-center">
+                        Codefrog
+                    </div>
+                </div>
+            </div>
+        {% endblock footer %}
+    </div>
+
+    {% block body_end %}{% endblock body_end %}
+</body>
+</html>

@@ -129,6 +129,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
 
     # Render the HTML and send to client.
     context = {
+        'user': request.user,
         'projects': Project.objects.all().order_by('name'),
         'project': project,
         'zoom': zoom,
@@ -166,6 +167,7 @@ def user_settings(request, username):
 @add_user_and_project
 def project_settings(request, username, project_slug, user, project):
     context = {
+        'user': request.user,
         'project': project,
     }
     html = render_to_string('settings/project.html', context=context)

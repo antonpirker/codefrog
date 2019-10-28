@@ -1,37 +1,6 @@
-{% load static %}
-<!doctype html>
-<html class="no-js" lang="en" dir="ltr">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Codefrog</title>
-        <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
-        <link rel="stylesheet" href="{% static "css/app.css" %} ">
-        <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
-    </head>
-</head>
+{% extends "base.html" %}
 
-<body>
-    <div class="header">
-        <div class="grid-container" style="height: 4em;">
-            <!-- Header -->
-            <div class="grid-x grid-margin-x grid-padding-y text-center large-text-left">
-                <div class="large-6 cell">
-                    <a href="{% url 'index' %}">Codefrog</a>
-                </div>
-                <div class="large-6 cell text-right">
-                    <a href="{% url 'logout' %}" style="font-size: 2em;">
-                        <i class="fas fa-sign-out-alt" title="Logout"></i>
-                    </a>
-                    <a href="{% url 'user-settings' user %}" style="font-size: 2em;">
-                        <i class="fas fa-cog" title="Settings"></i>
-                    </a>
-                </div>
-
-            </div>
-        </div>
-    </div>
+{% block content %}
     <div class="grid-container">
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
@@ -40,32 +9,15 @@
         </div>
 
         {% for project in projects %}
-            <div class="grid-x grid-margin-x dashboard-card">
-                <div class="large-10 cell">
+            <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+                <div class="large-12 cell">
                     {% if project.active %}
-                        <h3>
-                            {% if project.private %}🔒{% endif %} <a href="{% url 'project-detail' slug=project.slug %}">{{ project.github_repo_full_name }}</a>
-                        </h3>
+                        {% include "project/_list_item_active.html" %}
                     {% else %}
-                        <h3 class="subheader">
-                            {% if project.private %}🔒{% endif %} {{ project.github_repo_full_name }}
-                        </h3>
+                        {% include "project/_list_item_inactive.html" %}
                     {% endif %}
                 </div>
-
-                <div class="large-2 cell text-right">
-                    {% if project.active %}
-                        <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button secondary" style="margin: 0;">deactivate</a>
-                    {% else %}
-                        <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}" class="button primary" style="margin: 0;">activate</a>
-                    {% endif %}
-
-                </div>
-
             </div>
         {% endfor %}
-
     </div>
-    <script>
-</body>
-</html>
+{% endblock content %}

@@ -1,24 +1,13 @@
-{% load static %}
-<!doctype html>
-<html class="no-js" lang="en" dir="ltr">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Codefrog - Manage your technical debt. Keep code quality high. Minimize lead time.</title>
-        <link rel="stylesheet" href="{% static "css/foundation.min.css" %}">
-        <link rel="stylesheet" href="{% static "css/app.css" %}">
-        <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
-    </head>
+{% extends "../base.html" %}
 
+
+{% block head_end %}
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-
-    <script src="{% static "js/app.js" %}"></script>
 
     <script type="text/javascript">
         link_color = '#FFAC33';
@@ -186,19 +175,10 @@
             createComplexityDiagram("#source-chart-container", dataTree, minChanges, maxChanges);
         }
     </script>
-</head>
+{% endblock head_end %}
 
-<body>
-    <div class="header">
-        <div class="grid-container">
-            <!-- Header -->
-            <div class="grid-x grid-margin-x grid-padding-y text-center large-text-left">
-                <div class="large-12 cell">
-                    <a href="{% url 'index' %}">Codefrog</a>
-                </div>
-            </div>
-        </div>
-    </div>
+
+{% block content %}
     <div class="grid-container">
         <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
@@ -283,14 +263,11 @@
                 </div>
             </div>
         </div>
-
-        <div class="grid-x grid-margin-x">
-            <div class="large-12 cell">
-                <br/><br/><br/>
-            </div>
-        </div>
     </div>
+{% endblock content %}
 
+
+{% block body_end %}
     <script>
         var releaseSwitch = document.querySelector('#show_releases');
         releaseSwitch.onclick = function() {
@@ -307,5 +284,4 @@
             window.location.replace(newUrl);
         };
     </script>
-</body>
-</html>
+{% endblock body_end %}

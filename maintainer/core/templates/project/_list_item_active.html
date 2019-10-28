@@ -1,0 +1,13 @@
+<div class="grid-x">
+    <div class="large-10 cell">
+        <h3>
+            {% if project.private %}🔒{% endif %} <a
+                href="{% url 'project-detail' slug=project.slug %}">{{ project.github_repo_full_name }}</a>
+        </h3>
+    </div>
+
+    <div class="large-2 cell text-right">
+        <a href="{% url 'project-toggle' username=user.username project_slug=project.slug %}"
+           class="button secondary" style="margin: 0;">deactivate</a>
+    </div>
+</div>
