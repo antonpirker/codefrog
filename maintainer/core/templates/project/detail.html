@@ -26,7 +26,7 @@
                     {% endfor %}
                 ],
                 datasets: [{
-                    label: 'Lead Time (Days to close issue)',
+                    label: 'Lead Time (Days to Close Issues)',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
@@ -38,7 +38,7 @@
                     lineTension: 0,
                     yAxisID: "y-axis-2",
                 }, {
-                    label: 'Open issues in issue tracker',
+                    label: 'Open Issues in Issue Tracker',
                     data: [
                         {% for metric in metrics %}
                             {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
@@ -50,7 +50,7 @@
                     lineTension: 0,
                     yAxisID: "y-axis-1",
                 }, {
-                    label: 'System complexity',
+                    label: 'Complexity of the whole System',
                     type: 'line',
                     data: [
                         {% for metric in metrics %}
@@ -170,10 +170,23 @@
 
 {% block content %}
     <div class="grid-container">
+        <!-- Bread crumbs -->
+        <div class="grid-x grid-margin-x">
+            <div class="large-12 cell">
+                <a href="{% url 'index' %}">Repositories</a>
+                <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
+                {{ project.github_repo_full_name }}
+            </div>
+
+            <div class="large-12 cell">
+                &nbsp;
+            </div>
+        </div>
+
         <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <h1>{{ project.github_repo_full_name }} <small>{% if project.private %}{% endif %}(private)</small></h1>
+                <h1>{{ project.name }} <small>{% if project.private %}{% endif %}(private)</small></h1>
             </div>
         </div>
 
@@ -196,7 +209,7 @@
                         </div>
                     </div>
                     <div class="large-12 cell text-center">
-                        Current Lead Time <i class="fas fa-question-circle" title="The number of days it takes from opening a issue in the issue tracker to closing it."></i>
+                        Current Lead Time <i class="fas fa-question-circle" title="The number of days between opening an issue in the issue tracker to closing it."></i>
                     </div>
                 </div>
             </div>
