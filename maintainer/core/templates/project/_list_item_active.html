@@ -4,7 +4,7 @@
             <a href="{% url 'project-detail' slug=project.slug %}">
                 {{ project.github_repo_full_name }}
             </a>
-            {% if project.private %}<small>(private)</small>{% endif %}
+            {% if project.private %} <small>(private)</small>{% endif %}
         </h3>
     </div>
 
