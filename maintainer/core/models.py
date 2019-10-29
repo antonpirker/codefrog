@@ -6,9 +6,12 @@ from celery import chain, group
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import Count
 from django.utils import timezone
 
 from core.mixins import GithubMixin
+from core.utils import date_range
+from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +199,65 @@ class Project(GithubMixin, models.Model):
         print('change: %s' % change)
 
         return change
+
+    def get_file_complexity_trend(self, path, days=30):
+        """
+        Return an array of complexities for the given path over the given days.
+
+        :param path: The file for which the complexities should be returned.
+        :param days: The number of days from today into the past.
+        :return: Array of integers
+        """
+        today = timezone.now().date()
+        ref_date = today - timedelta(days=days)
+
+        complexities = {}
+        for day in date_range(ref_date, today):
+            complexities[day.strftime('%Y%m%d')] = 0
+
+        metrics = Metric.objects.filter(
+            project=self,
+            file_path=path,
+            date__gte=ref_date,
+        ).order_by('date')
+
+        for metric in metrics:
+            date_string = metric.timestamp.strftime('%Y%m%d')
+            complexities[date_string] += metric.complexity_added
+            complexities[date_string] -= metric.complexity_removed
+
+        trend = [x[1] for x in sorted(complexities.items())]
+        return trend
+
+    def get_file_changes_trend(self, path, days=30):
+        """
+        Return an array of code change for the given path over the given days.
+
+        :param path: The file for which the code changes should be returned.
+        :param days: The number of days from today into the past.
+        :return: Array of integers
+        """
+        today = timezone.now().date()
+        ref_date = today - timedelta(days=days)
+
+        changes = {}
+        for day in date_range(ref_date, today):
+            changes[day.strftime('%Y%m%d')] = 0
+
+        raw_changes = RawCodeChange.objects.filter(
+                project=self,
+                file_path=path,
+                timestamp__gte=ref_date,
+            )\
+            .extra(select={'day': "TO_CHAR(timestamp, 'YYYYMMDD')"})\
+            .values('day')\
+            .annotate(changes=Count('timestamp'))
+
+        for raw_change in raw_changes:
+            changes[raw_change['day']] = raw_change['changes']
+
+        trend = [x[1] for x in sorted(changes.items())]
+        return trend
 
 
 class Metric(models.Model):
