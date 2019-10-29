@@ -37,20 +37,20 @@ input:checked ~ .switch-paddle {
 }
 
 @media all and (orientation:portrait) {
-    .chart-container {
+    .diagram-container {
         position: relative;
         height: 50vh;
     }
 }
 
 @media all and (orientation:landscape) and (max-width: 800px)  {
-    .chart-container {
+    .diagram-container {
         position: relative;
         height: 100vh;
     }
 }
 @media all and (orientation:landscape) and (min-width: 801px) {
-    .chart-container {
+    .diagram-container {
         position: relative;
         height: 40vh;
     }

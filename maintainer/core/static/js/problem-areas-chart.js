@@ -2,13 +2,13 @@
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
  */
-function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
-    var heatmapColour = d3.scaleLinear()
+function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, fileClickCallback) {
+    let heatmapColour = d3.scaleLinear()
         .domain([0, 1])
         .range(["#fcebec", "#df2935"])
         .interpolate(d3.interpolateHcl);
 
-    var c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);
+    let c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);
 
     color = d3.scaleLinear()
         .domain([0, 10])
@@ -29,7 +29,7 @@ function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
     let focus = root;
     let view;
 
-    const svg = d3.select(selector).append("svg")
+    const svg = d3.select("#"+elementId).append("svg")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")
         .style("background", color(0))
@@ -54,27 +54,7 @@ function createComplexityDiagram(selector, dataTree, minChanges, maxChanges) {
                       zoom(d);
                       d3.event.stopPropagation();
                   }
-
-                  path = root.path(d);
-                  filePath = "";
-                  for(let i=1; i<path.length; i++) {
-                      //console.log(path[i]);
-                      filePath += path[i].data.name;
-                      if(i<path.length-1) {
-                          filePath += "/"
-                      }
-                  }
-
-                  console.log(d)
-                  d3.select('#source-information').html("");
-                  d3.select('#source-information').append('h4')
-                      .text('Details');
-                  d3.select('#source-information').append('a')
-                      .text(filePath)
-                      .attr('href', d.data.repo_link)
-                      .attr('target', '_blank');
-                  d3.select('#source-information').append('p')
-                      .text('');
+                  fileClickCallback(d.data.path, d.data.repo_link);
               }
             });
 

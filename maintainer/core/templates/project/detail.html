@@ -1,4 +1,5 @@
 {% extends "../base.html" %}
+{% load static %}
 
 
 {% block head_end %}
@@ -7,182 +8,144 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
-    <script type="text/javascript">
-        link_color = '#FFAC33';
-        color_palette = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
-        chart_colors = ['#DD0F7E', '#0082A5', '#33CEF1'];
-        window.onload = function () {
-            // CHART JS
-            var timeFormat = 'MM/DD/YYYY HH:mm';
+    <script src="{% static "js/evolution-diagram.js" %}"></script>
+    <script src="{% static "js/problem-areas-chart.js" %}"></script>
+    <script src="{% static "js/file-stats-charts.js" %}"></script>
 
-            const ctx = document.getElementById('main-chart').getContext('2d');
-            const data = {
-                // Labels should be Date objects
-                labels: [
-                    {% for metric in metrics %}
-                        moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ],
-                datasets: [{
-                    label: 'Complexity of the whole System',
-                    type: 'line',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    fill: false,
-                    borderColor: chart_colors[0],
-                    borderDash: [10, 5],
-                    backgroundColor: chart_colors[0],
-                    pointRadius: 4,
-                    lineTension: 0,
-                    cubicInterpolationMode: 'monotone',
-                    yAxisID: "y-axis-0",
-                }, {
-                    label: 'Open Issues in Issue Tracker',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    fill: false,
-                    borderColor: chart_colors[1],
-                    backgroundColor: chart_colors[1],
-                    lineTension: 0,
-                    yAxisID: "y-axis-1",
-                }, {
-                    label: 'Lead Time (Days to Close Issues)',
-                    data: [
-                        {% for metric in metrics %}
-                            {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    fill: false,
-                    borderColor: chart_colors[2],
-                    backgroundColor: chart_colors[2],
-                    lineTension: 0,
-                    yAxisID: "y-axis-2",
-                }]
-            };
+    <script type="text/javascript">
+        const chart_colors = ['#DD0F7E', '#0082A5', '#33CEF1'];
+
+        window.onload = function () {
+            const labels = [  // Labels should be Date objects
+                {% for metric in metrics %}
+                    moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const complexityValues = [
+                {% for metric in metrics %}
+                    {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const openIssues = [
+                {% for metric in metrics %}
+                    {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const leadTimes = [
+                {% for metric in metrics %}
+                    {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
 
             const releases = [
                 {% for release in releases %}
                     {
-                        type: "line",
-                        mode: "vertical",
-                        scaleID: "x-axis-0",
-                        value: moment("{{ release.timestamp|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'),
-                        borderColor: "red",
-                        label: {
-                            content: "{{ release.name }}",
-                            enabled: true,
-                            position: "bottom"
-                        }
-                    }{% if not forloop.last %},{% endif %}
+                        date: moment("{{ release.timestamp|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'),
+                        name: "{{ release.name }}",
+                    }
+                    {% if not forloop.last %},{% endif %}
                 {% endfor %}
             ];
 
-            const options = {
-                type: 'bar',
-                data: data,
-                options: {
-                    fill: false,
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        xAxes: [{
-                            "id": "x-axis-0",
-                            type: 'time',
-                            offset: true,
-                            distribution: 'linear',
-                            time: {
-                                parser: 'YYYY-MM-DD HH:mm:ss',
-                                displayFormats: {
-                                    day: 'LL',
-                                    week: '[Week] WW - YYYY',
-                                    month: 'MMM YYYY',
-                                    quarter: '[Q]Q - YYYY',
-                                    year: 'YYYY'
-                                },
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: "Date",
-                            }
-                        }],
-                        yAxes: [{
-                            "id": "y-axis-0",
-                            display: false
-                        }, {
-                            "id": "y-axis-1",
-                            display: false,
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }, {
-                            "id": "y-axis-2",
-                            display: false,
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    },
-                    legend: {
-                        position: 'bottom'
-                    },
-                    annotation: {
-                        annotations: releases
-                    },
-                    tooltips: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            title: function (tooltipItem, data) {
-                                const frequency = '{{ frequency }}';
-                                const formatStrings = {
-                                    'D': 'LL',
-                                    'W': '[Week] WW - YYYY',
-                                    'M': 'MMM YYYY',
-                                    'Q': '[Q]Q - YYYY'
-                                };
-                                let date = moment(tooltipItem[0].xLabel);
-                                title = date.format(formatStrings[frequency] || 'D');
-                                return title;
-                            },
-                            label: function (tooltipItem, data) {
-                                const COMPLEXITY = 0;
-                                const OPEN_ISSUES = 1;
-                                const LEAD_TIME = 2;
+            const evolutionDiagramFrequency = '{{ frequency }}';
 
-                                let out = '';
+            const evolutionDiagram = createEvolutionDiagram(
+                "evolution-diagram",
+                labels,
+                complexityValues,
+                openIssues,
+                leadTimes,
+                releases,
+                evolutionDiagramFrequency
+            );
 
-                                if (tooltipItem.datasetIndex === LEAD_TIME) {
-                                    out += 'Lead Time (in Days): ' + tooltipItem.yLabel.toFixed(1);
+            let updateFileStats = function(data) {
+                const ctx = {
+                    path: data.path,
+                    link: data.link
+                };
 
-                                } else if (tooltipItem.datasetIndex === OPEN_ISSUES) {
-                                    out += 'Open Issues: ' + tooltipItem.yLabel.toFixed(0);
+                let infoTemplate = `
+                    <div class="grid-x grid-margin-x grid-margin-y">
+                        <div class="large-12 cell">
+                            <h5>File: <a href="${ctx.link}" target="_blank">${ctx.path}</a></h5>
+                        </div>
 
-                                } else if (tooltipItem.datasetIndex === COMPLEXITY) {
-                                    out += 'Complexity';
-                                }
+                        <div class="large-12 cell">
+                            <canvas id="diagram-complexity" style="width:100%; height: 4em;">
+                            </canvas>
+                            <h5>Complexity <i class="fas fa-question-circle" title="Change in complexity in the last 30 days."></i></h5>
+                        </div>
 
-                                return out;
-                            }
-                        }
-                    }
-                }
+                        <div class="large-12 cell">
+                            <canvas id="diagram-changes" style="width:100%; height: 4em;">
+                            </canvas>
+                            <h5>Changes <i class="fas fa-question-circle" title="The number of changes per day of the last 30 days."></i></h5>
+                        </div>
+
+                        <div class="large-12 cell">
+                            <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
+                            </canvas>
+                            <h5>Commit Count <i class="fas fa-question-circle" title="Who did the most commits in the last 30 days."></i></h5>
+                        </div>
+
+                        <div class="large-12 cell">
+                            <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
+                            </canvas>
+                            <h5>Code Ownership <i class="fas fa-question-circle" title="Who created how many lines of code in this file?"></i></h5>
+                        </div>
+                    </div>
+                `;
+
+                let elem = document.getElementById('file-information');
+                elem.innerHTML = infoTemplate;
+
+                console.log('complexity trend');
+                console.log(data.complexity_trend);
+                const complexityDiagram = createSparkline(
+                    "diagram-complexity",
+                    data.complexity_trend_labels,
+                    data.complexity_trend,
+                );
+
+                console.log('changes trend');
+                console.log(data.changes_trend);
+                const changesDiagram = createSparkline(
+                    "diagram-changes",
+                    data.changes_trend_labels,
+                    data.changes_trend,
+                );
+
+                const commitCountDiagram = createPieChart(
+                    "diagram-commit-count",
+                    data.commit_counts_labels,
+                    data.commit_counts,
+                );
+
+                const codeOwnershipDiagram = createPieChart(
+                    "diagram-code-ownership",
+                    data.code_ownership_labels,
+                    data.code_ownership,
+                );
             };
-            const chart = new Chart(ctx, options);
-            // TODO: mehrere github apps für "local"/"staging/ und production?
-            // TODO: move JS to .js file (whitenoise?)
-            // TODO: make JS function for creating chart in #source-chart-container
-            // TODO: add JS function to create ownership chart in #ownership-chart-container
+
+            let fileClickCallback = function(path, link) {
+                let elem = document.getElementById('file-information');
+                elem.innerHTML = '';
+
+                let url = 'http://antonpirker.pagekite.me/project/antonpirker-maintainer';
+                fetch(url+'/file-stats?path=' + path)
+                    .then(response => response.json())
+                    .then(updateFileStats);
+            };
 
             const dataTree = {{ data_tree|safe }};
             const minChanges = {{ min_changes }};
             const maxChanges = {{ max_changes }};
-            createComplexityDiagram("#source-chart-container", dataTree, minChanges, maxChanges);
+            createProblemAreasDiagram("problem-areas-diagram", dataTree, minChanges, maxChanges, fileClickCallback);
         }
     </script>
 {% endblock head_end %}
@@ -283,13 +246,13 @@
                 {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
             </div>
             <div class="large-5 small-9 cell large-text-right">
-                Show releases on chart?
+                Show releases on diagram?
             </div>
             <div class="large-1 small-3 cell text-right">
                 <div class="switch tiny">
                     <input class="switch-input" id="show_releases" type="checkbox" name="show_releases" {% if show_releases %}checked{% endif %}>
                     <label class="switch-paddle" for="show_releases">
-                        <span class="show-for-sr">Show releases on chart?</span>
+                        <span class="show-for-sr">Show releases on diagram?</span>
                         <span class="switch-active" aria-hidden="true">Yes</span>
                         <span class="switch-inactive" aria-hidden="true">No</span>
                     </label>
@@ -297,8 +260,8 @@
             </div>
 
             <div class="large-12 cell" style="padding: 0 1em;">
-                <div class="chart-container">
-                    <canvas id="main-chart"></canvas>
+                <div class="diagram-container">
+                    <canvas id="evolution-diagram"></canvas>
                 </div>
             </div>
         </div>
@@ -313,7 +276,7 @@
             <div class="large-8 cell">
                 <div class="grid-x grid-margin-x grid-margin-y">
                     <div class="large-12 cell">
-                        <div id="source-chart-container"></div>
+                        <div id="problem-areas-diagram"></div>
                     </div>
                     <!-- Legend -->
                     <div class="large-6 medium-6 small-6 cell">
@@ -330,12 +293,9 @@
                     </div>
                 </div>
             </div>
-            <div class="large-4 cell">
-                <div id="source-information">
-                    <h1></h1>
-                </div>
+            <div class="large-4 small-12 cell">
+                <div id="file-information"></div>
             </div>
-
         </div>
     </div>
 {% endblock content %}
@@ -343,7 +303,7 @@
 
 {% block body_end %}
     <script>
-        var releaseSwitch = document.querySelector('#show_releases');
+        let releaseSwitch = document.querySelector('#show_releases');
         releaseSwitch.onclick = function() {
             oldUrl = window.location.href;
             if(releaseSwitch.checked) {

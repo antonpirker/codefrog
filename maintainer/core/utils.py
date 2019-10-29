@@ -180,6 +180,7 @@ def get_source_tree_metrics(project):
                             # todo: add the owner_color (the color the bubble should have
                             # todo: add owner_name (name of the owner)
                             'repo_link': repo_link,
+                            'path': full_path.replace(os.path.join(project.repo_dir, ''), ''),
                         }
                         children.append(child_node)
 

@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 import secrets
 
 from django.conf import settings
@@ -223,11 +224,39 @@ def project_file_stats(request, slug):
     if not path:
         return JsonResponse({})
 
+    path = os.path.join(project.repo_dir, path)
+
+    commit_count = project.get_file_commit_count(path)
+    commit_counts = []
+    commit_counts_labels = []
+
+    for author in sorted(commit_count, key=commit_count.get, reverse=True):
+        commit_counts_labels.append(author)
+        commit_counts.append(commit_count[author])
+
+    ownership = project.get_file_ownership(path)
+    code_ownership = []
+    code_ownership_labels = []
+
+    for author in sorted(ownership, key=ownership.get, reverse=True):
+        code_ownership_labels.append(author)
+        code_ownership.append(ownership[author])
+
     json = {
+        'path': path,
+        'link': f'{project.github_repo_url}/blame/master/{path}',
+
         'complexity_trend': project.get_file_complexity_trend(path, days),
+        'complexity_trend_labels': [x for x in range(1, 31)],
+
         'changes_trend': project.get_file_changes_trend(path, days),
-        'commit_count': project.get_file_commit_count(path),
-        'code_ownership': project.get_file_ownership(path),
+        'changes_trend_labels': [x for x in range(1, 31)],
+
+        'commit_counts': commit_counts,
+        'commit_counts_labels': commit_counts_labels,
+
+        'code_ownership': code_ownership,
+        'code_ownership_labels': code_ownership_labels,
     }
 
     return JsonResponse(json)

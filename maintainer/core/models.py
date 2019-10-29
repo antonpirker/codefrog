@@ -261,7 +261,7 @@ class Project(GithubMixin, models.Model):
 
     def get_file_ownership(self, path):
         cmd = (
-            f'git blame {path}  | cut -d " " -f "2,3" | tr -d "(" | sort | uniq -c'
+            f'git blame {path} | cut -d "(" -f 2 | cut -d " " -f "1,2" | sort | uniq -c'
         )
         output = run_shell_command(cmd, cwd=self.repo_dir)
         lines = [line for line in output.split('\n') if line]
