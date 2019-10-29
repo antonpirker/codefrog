@@ -7,6 +7,8 @@ urlpatterns = [
     path('', views.index, name='index'),
 
     # project details
+    path('project/<slug:slug>/file-stats',
+        views.project_file_stats, name='project-file-stats'),
     path('project/<slug:slug>/<slug:zoom>/<slug:release_flag>',
         views.project_detail, name='project-detail-zoomed-release'),
     path('project/<slug:slug>/<slug:zoom>',

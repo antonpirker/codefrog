@@ -4,7 +4,7 @@ import secrets
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -205,3 +205,29 @@ def project_toggle(request, username, project_slug, user, project):
         project.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def project_file_stats(request, slug):
+    try:
+        project = Project.objects.get(slug=slug)
+    except Project.DoesNotExist:
+        raise Http404('Project does not exist')
+
+    if project.private:
+        if project.user != request.user:
+            raise Http404('Project does not exist')
+
+    path = request.GET.get('path')
+    days = request.GET.get('days', 30)
+
+    if not path:
+        return JsonResponse({})
+
+    json = {
+        'complexity_trend': project.get_file_complexity_trend(path, days),
+        'changes_trend': project.get_file_changes_trend(path, days),
+        'commit_count': project.get_file_commit_count(path),
+        'code_ownership': project.get_file_ownership(path),
+    }
+
+    return JsonResponse(json)

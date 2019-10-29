@@ -10,7 +10,7 @@ from django.db.models import Count
 from django.utils import timezone
 
 from core.mixins import GithubMixin
-from core.utils import date_range
+from core.utils import date_range, run_shell_command
 from ingest.models import RawCodeChange
 
 logger = logging.getLogger(__name__)
@@ -258,6 +258,34 @@ class Project(GithubMixin, models.Model):
 
         trend = [x[1] for x in sorted(changes.items())]
         return trend
+
+    def get_file_ownership(self, path):
+        cmd = (
+            f'git blame {path}  | cut -d " " -f "2,3" | tr -d "(" | sort | uniq -c'
+        )
+        output = run_shell_command(cmd, cwd=self.repo_dir)
+        lines = [line for line in output.split('\n') if line]
+
+        ownership = {}
+        for line in lines:
+            num_lines, author = line.strip().split(' ', 1)
+            ownership[author] = int(num_lines)
+
+        return ownership
+
+    def get_file_commit_count(self, path):
+        cmd = (
+            f'git shortlog -s -- {path}'
+        )
+        output = run_shell_command(cmd, cwd=self.repo_dir)
+        lines = [line for line in output.split('\n') if line]
+
+        commit_counts = {}
+        for line in lines:
+            commit_count, author = line.strip().split('\t', 1)
+            commit_counts[author] = int(commit_count)
+
+        return commit_counts
 
 
 class Metric(models.Model):
