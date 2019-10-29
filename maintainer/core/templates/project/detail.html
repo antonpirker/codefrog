@@ -305,31 +305,37 @@
 
         <!-- Problem Areas -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
-            <div class="large-6 cell">
+            <div class="large-12 cell">
                 <h2>Problem areas</h2>
-            </div>
-            <div class="large-3 cell">
-                <span class="change_frequency_gradient"></span> <br/>
-                Change frequency
-            </div>
-            <div class="large-3 cell">
-                <span class=circle1></span>
-                <span class=circle2></span>
-                <span class=circle3></span>
-                <span class=circle4></span>
-                <span class=circle5></span> <br/>
-                Code complexity
             </div>
 
             <!-- Graph -->
             <div class="large-8 cell">
-                <div id="source-chart-container"></div>
+                <div class="grid-x grid-margin-x grid-margin-y">
+                    <div class="large-12 cell">
+                        <div id="source-chart-container"></div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="large-6 medium-6 small-6 cell">
+                        <span class="change_frequency_gradient"></span> <br/>
+                        Change frequency
+                    </div>
+                    <div class="auto cell">
+                        <span class=circle1></span>
+                        <span class=circle2></span>
+                        <span class=circle3></span>
+                        <span class=circle4></span>
+                        <span class=circle5></span> <br/>
+                        Code complexity
+                    </div>
+                </div>
             </div>
             <div class="large-4 cell">
                 <div id="source-information">
                     <h1></h1>
                 </div>
             </div>
+
         </div>
     </div>
 {% endblock content %}
