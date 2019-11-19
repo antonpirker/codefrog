@@ -77,3 +77,6 @@ gunicorn.pid
 *.dump
 
 *.sqlite3
+
+
+git_repos/
