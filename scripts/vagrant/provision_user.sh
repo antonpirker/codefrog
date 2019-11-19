@@ -22,20 +22,20 @@ source ${BASH_PROFILE}
 
 echo "Install pyenv..."
 
-curl -s -S -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+curl -s -S -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash || true
 source ${BASH_PROFILE}
 
 
 echo "Install python..."
 
 cd /maintainer
-pyenv install
+pyenv install || true
 
 
 echo "Install project requirements "
 
 pip install --upgrade pip
-pip install --disable-pip-version-check -r /maintainer/requirements/dev.txt
+pip install --disable-pip-version-check -r /maintainer/requirements.txt
 
 
 echo "Running migrations "
