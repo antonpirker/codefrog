@@ -242,14 +242,17 @@ def project_file_stats(request, slug):
         code_ownership_labels.append(author)
         code_ownership.append(ownership[author])
 
+    # TODO: normalize code_ownership and commit_counts to have percentage values.
+    # TODO: only have extra values for the first 4 items, the rest should be merged into a "others" author.
+
     json = {
         'path': path,
         'link': f'{project.github_repo_url}/blame/master/{path}',
 
-        'complexity_trend': project.get_file_complexity_trend(path, days),
+        'complexity_trend': project.get_file_complexity_trend(path, days),  # TODO: those are always 0 (data is not available in the metrics)
         'complexity_trend_labels': [x for x in range(1, 31)],
 
-        'changes_trend': project.get_file_changes_trend(path, days),
+        'changes_trend': project.get_file_changes_trend(path, days),  # TODO: those are always 0, don't know why.
         'changes_trend_labels': [x for x in range(1, 31)],
 
         'commit_counts': commit_counts,

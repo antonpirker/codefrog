@@ -1,7 +1,24 @@
 body.bg {
-    background-image: url('/static/images/bg4.jpg');
+    background-image: url('/static/images/bg-city.jpg');
     background-repeat: no-repeat;
     background-size: cover;
+}
+body.landingpage img.logo {
+    height: 5em;
+}
+body.landingpage .header div.logo {
+    padding-top: 0;
+}
+body.landingpage .footer {
+    color: #fff;
+}
+body.landingpage .footer a,
+body.landingpage .footer a:hover,
+body.landingpage .footer a:focus {
+    color: #fff;
+}
+.show-cases {
+    text-shadow: 0px 0 0.4em #fff;
 }
 .button.primary {
     background: #ffac33;
@@ -28,10 +45,12 @@ input:checked ~ .switch-paddle {
     background: #000;
 }
 
-.header {
+body.app .header {
     background: #000;
 }
-.header a, .header a:hover, .header a:focus {
+body.app .header a,
+body.app .header a:hover,
+body.app .header a:focus {
     color: #fff;
     box-shadow: none;
 }
