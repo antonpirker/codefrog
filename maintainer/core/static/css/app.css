@@ -51,6 +51,14 @@ body.app .header .logo-frog {
     margin-top: -4px;
 }
 
+body.app .dashboard-card .fa-question-circle {
+    color: #666;
+}
+body.app .dashboard-card h2 i.fas {
+    color: #666;
+    font-size: 0.9em;
+}
+
 @media all and (orientation:portrait) {
     .diagram-container {
         position: relative;
