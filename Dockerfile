@@ -44,4 +44,6 @@ WORKDIR /app/maintainer/
 #    && python ./manage.py collectstatic  \
 #    && find . -name "*.pyc" -exec rm -f {} \;
 
+RUN python ./manage.py collectstatic
+
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "wsgi:application"]

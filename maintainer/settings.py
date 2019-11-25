@@ -18,6 +18,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost:8000', 'localhost'
 
 # Application definition
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -120,6 +122,8 @@ STATIC_ROOT = env.str(
     'STATIC_ROOT',
     default=os.path.join(BASE_DIR, 'static/'),
 )
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging
