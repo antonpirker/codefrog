@@ -13,7 +13,7 @@ from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
-from core.models import Project
+from core.models import Project, UserProfile
 from incomingwebhooks.github.router import github_hook
 from incomingwebhooks.github.utils import get_user_access_token, get_user, \
     get_installations, get_installation_repositories
@@ -114,6 +114,11 @@ def authorization(request):
     installations = get_installations(access_token)
     for installation in installations['installations']:
         installation_id = installation['id']
+
+        user_profile, created = UserProfile.objects.update_or_create(
+            user=user,
+            github_app_installation_refid=installation_id,
+        )
         repositories = get_installation_repositories(access_token, installation_id)
         for repository in repositories['repositories']:
             project, created = Project.objects.get_or_create(

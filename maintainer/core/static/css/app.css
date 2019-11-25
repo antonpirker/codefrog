@@ -1,5 +1,5 @@
 body.bg {
-    background-image: url('/static/images/bg-city.jpg');
+    background-image: url('/static/images/bg-abstract-white.jpg');
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -8,14 +8,6 @@ body.landingpage img.logo {
 }
 body.landingpage .header div.logo {
     padding-top: 0;
-}
-body.landingpage .footer {
-    color: #fff;
-}
-body.landingpage .footer a,
-body.landingpage .footer a:hover,
-body.landingpage .footer a:focus {
-    color: #fff;
 }
 .show-cases {
     text-shadow: 0px 0 0.4em #fff;
@@ -53,6 +45,10 @@ body.app .header a:hover,
 body.app .header a:focus {
     color: #fff;
     box-shadow: none;
+}
+body.app .header .logo-frog {
+    width: 55px;
+    margin-top: -4px;
 }
 
 @media all and (orientation:portrait) {
