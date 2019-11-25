@@ -1,3 +1,10 @@
 git_repos/
 tmp/
 scripts/
+
+Dockerfile*
+README.md
+*.pyc
+*.pyo
+*.pyd
+__pycache__

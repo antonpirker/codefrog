@@ -18,6 +18,13 @@ WORKDIR /app
 RUN apt-get update -qy \
     && apt-get install -qy --no-install-recommends \
         git-core \
+        libpq-dev \
+        make \
+        automake \
+        gcc \
+        g++ \
+        subversion \
+        python3-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,8 +40,8 @@ RUN touch /app/.env
 
 WORKDIR /app/maintainer/
 
-RUN python ./manage.py migrate \
-    && python ./manage.py collectstatic  \
-    && find . -name "*.pyc" -exec rm -f {} \;
+#RUN python ./manage.py migrate \
+#    && python ./manage.py collectstatic  \
+#    && find . -name "*.pyc" -exec rm -f {} \;
 
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "wsgi:application"]
