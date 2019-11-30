@@ -100,7 +100,7 @@ def check_suite__requested(payload, request=None):
 
     # Get the source code
     git_url = f'https://x-access-token:{installation_access_token}@github.com/{repository_full_name}.git'
-    repo_dir = os.path.join(settings.GIT_REPO_DIR, repository_full_name)
+    repo_dir = os.path.join(settings.PROJECT_SOURCE_CODE_DIR, repository_full_name)
 
     if os.path.exists(repo_dir):
         shutil.rmtree(repo_dir)

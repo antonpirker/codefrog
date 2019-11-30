@@ -1,6 +1,8 @@
-import os
 import environ
+import os
+import random
 
+from core.env import get_env
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -9,7 +11,34 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = env.str('SECRET_KEY')
+# tests
+ENV_NAME=str(random.random())
+os.environ[ENV_NAME]= ''
+assert get_env(env.bool, ENV_NAME, default=True) == True
+assert get_env(env.bool, ENV_NAME, default=None) == None
+assert get_env(env.int, ENV_NAME, default=5) == 5
+assert get_env(env.int, ENV_NAME, default=None) == None
+assert get_env(env.str, ENV_NAME, default=None) == None
+assert get_env(env.str, ENV_NAME, default='hallo') == 'hallo'
+assert get_env(env.list, ENV_NAME, default=['eins', 'zwei']) == ['eins', 'zwei']
+assert get_env(env.list, ENV_NAME, default=None) == None
+assert get_env(env.url, ENV_NAME, default=None) == None
+assert get_env(env.url, ENV_NAME, default='redis://localhost:6379/0').geturl() == 'redis://localhost:6379/0'
+assert get_env(env.db, ENV_NAME, default=None) == None
+assert get_env(env.db, ENV_NAME, default='postgres://maintainer:maintainer@127.0.0.1/maintainer?CONN_MAX_AGE=600') == \
+       {
+           'NAME': 'maintainer',
+           'USER': 'maintainer',
+           'PASSWORD': 'maintainer',
+           'HOST': '127.0.0.1',
+           'PORT': '',
+           'CONN_MAX_AGE': 600,
+           'OPTIONS': {},
+           'ENGINE': 'django.db.backends.postgresql',
+       }
+
+
+SECRET_KEY = get_env(env.str, 'SECRET_KEY')
 
 DEBUG = env.bool('DEBUG', default=True)
 
@@ -118,17 +147,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = env.str(
-    'STATIC_ROOT',
-    default=os.path.join(BASE_DIR, 'static/'),
-)
+STATIC_ROOT = get_env(env.str, 'STATIC_ROOT', default=os.path.join(BASE_DIR, 'static/'))
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging
 
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = get_env(env.str, 'LOG_LEVEL', default='INFO')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -169,30 +195,29 @@ CELERY_BROKER_URL = \
 CELERY_WORKER_MAX_TASKS_PER_CHILD = \
     env.int('CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
-    env.int('CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1000)
+    env.int('CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1024)
 CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
 
 
 # Github Setup
 # TODO: can these be removed?
-GITHUB_CLIENT_ID = env.str('GITHUB_CLIENT_ID', default=None)
-GITHUB_CLIENT_SECRET = env.str('GITHUB_CLIENT_SECRET', default=None)
+GITHUB_CLIENT_ID = get_env(env.str, 'GITHUB_CLIENT_ID', default=None)
+GITHUB_CLIENT_SECRET = get_env(env.str, 'GITHUB_CLIENT_SECRET', default=None)
 
 
 # Github App Setup
-GITHUB_APP_IDENTIFIER = env.int('GITHUB_APP_IDENTIFIER', default=None)
-GITHUB_APP_CLIENT_ID = env.str('GITHUB_APP_CLIENT_ID', default=None)
-GITHUB_APP_CLIENT_SECRET = env.str('GITHUB_APP_CLIENT_SECRET', default=None)
-GITHUB_AUTH_REDIRECT_URI = env.str('GITHUB_AUTH_REDIRECT_URI', default=None)
-GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET', default=None)
+GITHUB_APP_IDENTIFIER = env.int('GITHUB_APP_IDENTIFIER',default= None)
+GITHUB_APP_CLIENT_ID = get_env(env.str, 'GITHUB_APP_CLIENT_ID', default=None)
+GITHUB_APP_CLIENT_SECRET = get_env(env.str, 'GITHUB_APP_CLIENT_SECRET', default=None)
+GITHUB_AUTH_REDIRECT_URI = get_env(env.str, 'GITHUB_AUTH_REDIRECT_URI', default=None)
+GITHUB_WEBHOOK_SECRET = get_env(env.str, 'GITHUB_WEBHOOK_SECRET', default=None)
 try:
-    GITHUB_PRIVATE_KEY = env.str('GITHUB_PRIVATE_KEY', multiline=True, default=None).encode()
+    GITHUB_PRIVATE_KEY = get_env(env.str, 'GITHUB_PRIVATE_KEY', multiline=True).encode()
 except Exception:
     GITHUB_PRIVATE_KEY = None
-GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET')
 
 
-# Maintainer Setup
-GIT_REPO_DIR = env.str('GIT_REPO_DIR', default='/tmp/git_repos')
-if not os.path.exists(GIT_REPO_DIR):
-    os.makedirs(GIT_REPO_DIR)
+# Codefrog Configuration
+PROJECT_SOURCE_CODE_DIR = get_env(env.str, 'PROJECT_SOURCE_CODE_DIR', default='/tmp/git_repos')
+if not os.path.exists(PROJECT_SOURCE_CODE_DIR):
+    os.makedirs(PROJECT_SOURCE_CODE_DIR)

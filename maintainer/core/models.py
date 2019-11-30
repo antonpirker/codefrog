@@ -48,7 +48,7 @@ class Project(GithubMixin, models.Model):
 
     @property
     def repo_dir(self):
-        return os.path.join(settings.GIT_REPO_DIR, self.github_repo_name)
+        return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
