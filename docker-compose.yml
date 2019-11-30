@@ -8,17 +8,17 @@ services:
             args:
                 # Django
                 - DEBUG
-                #- SECRET_KEY
+                - SECRET_KEY
                 - ALLOWED_HOSTS
-                #- STATIC_ROOT
+                - STATIC_ROOT
                 - LOG_LEVEL
                 # Database
                 - DATABASE_URL
                 # Celery
                 - CELERY_BROKER_URL
-                #- CELERY_TASK_ALWAYS_EAGER
-                #- CELERY_WORKER_MAX_TASKS_PER_CHILD
-                #- CELERY_WORKER_MAX_MEMORY_PER_CHILD
+                - CELERY_TASK_ALWAYS_EAGER
+                - CELERY_WORKER_MAX_TASKS_PER_CHILD
+                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
                 # Github Oauth
                 # (for fetching information from GitHub from repos that have the Github App not installed.)
                 - GITHUB_CLIENT_ID

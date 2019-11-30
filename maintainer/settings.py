@@ -40,9 +40,9 @@ assert get_env(env.db, ENV_NAME, default='postgres://maintainer:maintainer@127.0
 
 SECRET_KEY = get_env(env.str, 'SECRET_KEY')
 
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = get_env(env.bool, 'DEBUG', default=True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
+ALLOWED_HOSTS = get_env(env.list, 'ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
 
 
 # Application definition
@@ -102,7 +102,8 @@ WSGI_APPLICATION = 'wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db(
+    'default': get_env(
+        env.db,
         'DATABASE_URL',
         default='postgres://maintainer:maintainer@127.0.0.1/maintainer?CONN_MAX_AGE=600',
     ),
@@ -191,12 +192,12 @@ LOGGING = {
 
 # Celery
 CELERY_BROKER_URL = \
-    env.url('CELERY_BROKER_URL', default='redis://localhost:6379/0').geturl()
+    get_env(env.url, 'CELERY_BROKER_URL', default='redis://localhost:6379/0').geturl()
 CELERY_WORKER_MAX_TASKS_PER_CHILD = \
-    env.int('CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
+    get_env(env.int, 'CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
-    env.int('CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1024)
-CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
+    get_env(env.int, 'CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1024)
+CELERY_TASK_ALWAYS_EAGER = get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
 
 
 # Github Setup
@@ -206,7 +207,7 @@ GITHUB_CLIENT_SECRET = get_env(env.str, 'GITHUB_CLIENT_SECRET', default=None)
 
 
 # Github App Setup
-GITHUB_APP_IDENTIFIER = env.int('GITHUB_APP_IDENTIFIER',default= None)
+GITHUB_APP_IDENTIFIER = get_env(env.int, 'GITHUB_APP_IDENTIFIER',default= None)
 GITHUB_APP_CLIENT_ID = get_env(env.str, 'GITHUB_APP_CLIENT_ID', default=None)
 GITHUB_APP_CLIENT_SECRET = get_env(env.str, 'GITHUB_APP_CLIENT_SECRET', default=None)
 GITHUB_AUTH_REDIRECT_URI = get_env(env.str, 'GITHUB_AUTH_REDIRECT_URI', default=None)
