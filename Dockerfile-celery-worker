@@ -97,4 +97,4 @@ WORKDIR /app/maintainer/
 
 RUN useradd --create-home --shell /bin/bash celery
 
-CMD ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "./celery-beat.pid"]
+CMD ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-worker.pid"]
