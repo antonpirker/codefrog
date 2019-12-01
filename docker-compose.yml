@@ -1,7 +1,7 @@
 version: "3.5"
 services:
     gunicorn:
-        image: codefrog/gunicorn:latest
+        image: codefroghq/gunicorn:latest
         build:
             context: ./
             dockerfile: Dockerfile-gunicorn
@@ -42,7 +42,7 @@ services:
             - postgres
 
     celery_worker:
-        image: codefrog/celery-worker:latest
+        image: codefroghq/celery-worker:latest
         build:
             context: ./
             dockerfile: Dockerfile-celery-worker
@@ -81,7 +81,7 @@ services:
             - postgres
 
     celery_beat:
-        image: codefrog/celery-beat:latest
+        image: codefroghq/celery-beat:latest
         build:
             context: ./
             dockerfile: Dockerfile-celery-beat
