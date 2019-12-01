@@ -1,10 +1,51 @@
 version: "3.5"
 services:
-    gunicorn:
-        image: codefrog/gunicorn:latest
+#    gunicorn:
+#        image: codefrog/gunicorn:latest
+#        build:
+#            context: ./
+#            dockerfile: Dockerfile-gunicorn
+#            args:
+#                # Django
+#                - DEBUG
+#                - SECRET_KEY
+#                - ALLOWED_HOSTS
+#                - STATIC_ROOT
+#                - LOG_LEVEL
+#                # Database
+#                - DATABASE_URL
+#                # Celery
+#                - CELERY_BROKER_URL
+#                - CELERY_TASK_ALWAYS_EAGER
+#                - CELERY_WORKER_MAX_TASKS_PER_CHILD
+#                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
+#                # Github Oauth
+#                # (for fetching information from GitHub from repos that have the Github App not installed.)
+#                - GITHUB_CLIENT_ID
+#                - GITHUB_CLIENT_SECRET
+#                # Github App Setup
+#                - GITHUB_APP_IDENTIFIER
+#                - GITHUB_APP_CLIENT_ID
+#                - GITHUB_APP_CLIENT_SECRET
+#                - GITHUB_AUTH_REDIRECT_URI
+#                - GITHUB_WEBHOOK_SECRET
+#                - GITHUB_PRIVATE_KEY
+#                # Codefrog
+#                - PROJECT_SOURCE_CODE_DIR
+#        ports:
+#            - "8000:8000"
+#        depends_on:
+#            - redis
+#            - postgres
+#        links:
+#            - redis
+#            - postgres
+
+    celery-worker:
+        image: codefrog/celery-worker:latest
         build:
             context: ./
-            dockerfile: Dockerfile-gunicorn
+            dockerfile: Dockerfile-celery-worker
             args:
                 # Django
                 - DEBUG
@@ -32,26 +73,12 @@ services:
                 - GITHUB_PRIVATE_KEY
                 # Codefrog
                 - PROJECT_SOURCE_CODE_DIR
-        ports:
-            - "8000:8000"
         depends_on:
             - redis
             - postgres
         links:
             - redis
             - postgres
-
-#    celery-worker:
-#        image: codefrog/celery-worker:latest
-#        build:
-#            context: ./
-#            dockerfile: Dockerfile-celery-worker
-#            args:
-#                - SECRET_KEY=${SECRET_KEY}
-#                - DATABASE_URL=${DATABASE_URL}
-#                - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-#        links:
-#            - redis
 
 #    celery-beat:
 #        image: codefrog/celery-beat:latest

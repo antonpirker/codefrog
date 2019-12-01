@@ -97,9 +97,9 @@ WORKDIR /app/maintainer/
 
 # Create database
 # this is run in the build of the container, and in this the postgres service is not running. so it should be run in the "docker-compose up" part
-RUN python ./manage.py migrate
+#RUN python ./manage.py migrate
 
 # Copy static files to right location
-RUN python ./manage.py collectstatic
+#RUN python ./manage.py collectstatic
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "wsgi:application"]
