@@ -91,10 +91,10 @@ RUN pip install --no-cache-dir -r /requirements.txt
 COPY maintainer maintainer
 
 # Silence warning about the missing .env file
-RUN touch /app/.env
+#RUN touch /app/.env
 
 WORKDIR /app/maintainer/
 
 RUN useradd --create-home --shell /bin/bash celery
 
-CMD ["celery", "-A", "core", "worker", "-Q", "low,medium,high,celery", "--uid", "celery"]
+CMD ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "./celery-beat.pid"]

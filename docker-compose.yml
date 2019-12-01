@@ -41,11 +41,50 @@ services:
 #            - redis
 #            - postgres
 
-    celery-worker:
-        image: codefrog/celery-worker:latest
+#    celery-worker:
+#        image: codefrog/celery-worker:latest
+#        build:
+#            context: ./
+#            dockerfile: Dockerfile-celery-worker
+#            args:
+#                # Django
+#                - DEBUG
+#                - SECRET_KEY
+#                - ALLOWED_HOSTS
+#                - STATIC_ROOT
+#                - LOG_LEVEL
+#                # Database
+#                - DATABASE_URL
+#                # Celery
+#                - CELERY_BROKER_URL
+#                - CELERY_TASK_ALWAYS_EAGER
+#                - CELERY_WORKER_MAX_TASKS_PER_CHILD
+#                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
+#                # Github Oauth
+#                # (for fetching information from GitHub from repos that have the Github App not installed.)
+#                - GITHUB_CLIENT_ID
+#                - GITHUB_CLIENT_SECRET
+#                # Github App Setup
+#                - GITHUB_APP_IDENTIFIER
+#                - GITHUB_APP_CLIENT_ID
+#                - GITHUB_APP_CLIENT_SECRET
+#                - GITHUB_AUTH_REDIRECT_URI
+#                - GITHUB_WEBHOOK_SECRET
+#                - GITHUB_PRIVATE_KEY
+#                # Codefrog
+#                - PROJECT_SOURCE_CODE_DIR
+#        depends_on:
+#            - redis
+#            - postgres
+#        links:
+#            - redis
+#            - postgres
+
+    celery_beat:
+        image: codefrog/celery-beat:latest
         build:
             context: ./
-            dockerfile: Dockerfile-celery-worker
+            dockerfile: Dockerfile-celery-beat
             args:
                 # Django
                 - DEBUG
@@ -75,34 +114,20 @@ services:
                 - PROJECT_SOURCE_CODE_DIR
         depends_on:
             - redis
-            - postgres
         links:
             - redis
-            - postgres
-
-#    celery-beat:
-#        image: codefrog/celery-beat:latest
-#        build:
-#            context: ./
-#            dockerfile: Dockerfile-celery-beat
-#            args:
-#                - SECRET_KEY=${SECRET_KEY}
-#                - DATABASE_URL=${DATABASE_URL}
-#                - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-#        links:
-#            - redis
 
     redis:
         image: redis:5-buster
         command: ["redis-server", "--appendonly", "yes"]
         restart: unless-stopped
         volumes:
-            - redis-data:/data
+            - redis_data:/data
 
     postgres:
         image: postgres:10-alpine
         volumes:
-            - postgres-data:/var/lib/postgresql/data/
+            - postgres_data:/var/lib/postgresql/data/
         environment:
             POSTGRES_USER: codefrog
             POSTGRES_PASSWORD: codefrog
@@ -110,5 +135,5 @@ services:
         restart: unless-stopped
 
 volumes:
-    redis-data:
-    postgres-data:
+    redis_data:
+    postgres_data:
