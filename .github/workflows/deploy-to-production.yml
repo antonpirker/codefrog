@@ -9,6 +9,9 @@ on:
 jobs:
   build-test-publish:
     runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: not so important during testing
+      DATABASE_URL: sqlite:////tmp/my-tmp-sqlite.db
     steps:
     - name: Checkout code
       uses: actions/checkout@master
