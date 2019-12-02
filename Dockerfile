@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.7-slim
 
 # Setting up environment
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1
@@ -69,6 +69,8 @@ ENV PROJECT_SOURCE_CODE_DIR=$PROJECT_SOURCE_CODE_DIR
 
 WORKDIR /app
 
+RUN useradd --create-home --shell /bin/bash celery
+
 # Install dependencies
 RUN apt-get update -qy \
     && apt-get install -qy --no-install-recommends \
@@ -89,12 +91,4 @@ RUN pip install --no-cache-dir -r /requirements.txt
 
 # Copy application code
 COPY maintainer maintainer
-
-# Silence warning about the missing .env file
-#RUN touch /app/.env
-
 WORKDIR /app/maintainer/
-
-RUN useradd --create-home --shell /bin/bash celery
-
-CMD ["celery", "beat", "--app", "core", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-beat.pid", "--schedule", "/tmp/celery-beat-schedule.db"]

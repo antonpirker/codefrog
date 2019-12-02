@@ -1,10 +1,10 @@
-version: "3.5"
+version: "3.7"
 services:
     gunicorn:
-        image: codefroghq/gunicorn:latest
+        image: codefroghq/codefrog:latest
+        command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "wsgi:application"]
         build:
-            context: ./
-            dockerfile: Dockerfile-gunicorn
+            context: .
             args:
                 # Django
                 - DEBUG
@@ -42,10 +42,10 @@ services:
             - postgres
 
     celery_worker:
-        image: codefroghq/celery-worker:latest
+        image: codefroghq/codefrog:latest
+        command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-worker.pid"]
         build:
-            context: ./
-            dockerfile: Dockerfile-celery-worker
+            context: .
             args:
                 # Django
                 - DEBUG
@@ -81,10 +81,10 @@ services:
             - postgres
 
     celery_beat:
-        image: codefroghq/celery-beat:latest
+        image: codefroghq/codefrog:latest
+        command: ["celery", "beat", "--app", "core", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-beat.pid", "--schedule", "/tmp/celery-beat-schedule.db"]
         build:
-            context: ./
-            dockerfile: Dockerfile-celery-beat
+            context: .
             args:
                 # Django
                 - DEBUG
