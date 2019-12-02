@@ -1,4 +1,4 @@
-# Maintainer
+# Codefrog
 
-This is the beginning of the project with the cod name "maintainer". 
-Maybe I will find a better name sometime.
+The backend and the server rendered frontend of the Codefrog project.
+
