@@ -3,8 +3,7 @@ name: Build
 on:
   push:
     branches:    
-      - master         # Push events on master branch
-      - 'releases/*'   # Push events to branches matching refs/heads/releases/*
+      - deactivated
 
 jobs:
   build:
