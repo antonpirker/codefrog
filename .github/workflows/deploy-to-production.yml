@@ -1,4 +1,4 @@
-name: Publish
+name: Build - Test - Publish
 
 on:
   push:
@@ -10,7 +10,9 @@ jobs:
   build-test-publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - name: Checkout code
+      uses: actions/checkout@master
+
     - name: Build container
       uses: antonpirker/Publish-Docker-Github-Action@master
       with:
@@ -22,11 +24,13 @@ jobs:
     - name: Run tests in container
       run: |
         docker ps -a
+        docker image ls
+        docker volumne ls
 
-#    - name: Publish container to DockerHub
-#      uses: antonpirker/Publish-Docker-Github-Action@master
-#      with:
-#        name: codefroghq/codefrog
-#        username: ${{ secrets.DOCKER_USERNAME }}
-#        password: ${{ secrets.DOCKER_PASSWORD }}
-#        build: false
+    - name: Publish container to DockerHub
+      uses: antonpirker/Publish-Docker-Github-Action@master
+      with:
+        name: codefroghq/codefrog
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        build: false
