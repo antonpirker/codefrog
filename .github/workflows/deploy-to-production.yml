@@ -23,9 +23,7 @@ jobs:
 
     - name: Run tests in container
       run: |
-        docker ps -a
-        docker image ls
-        docker volumne ls
+        docker run -it codefroghq/codefrog ./manage.py test
 
     - name: Publish container to DockerHub
       uses: antonpirker/Publish-Docker-Github-Action@master
