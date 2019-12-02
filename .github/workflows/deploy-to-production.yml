@@ -17,16 +17,16 @@ jobs:
         name: codefroghq/codefrog
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        publish: false
+        push: false
 
     - name: Run tests in container
       run: |
         docker ps -a
 
-    - name: Publish container to DockerHub
-      uses: antonpirker/Publish-Docker-Github-Action@master
-      with:
-        name: codefroghq/codefrog
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        build: false
+#    - name: Publish container to DockerHub
+#      uses: antonpirker/Publish-Docker-Github-Action@master
+#      with:
+#        name: codefroghq/codefrog
+#        username: ${{ secrets.DOCKER_USERNAME }}
+#        password: ${{ secrets.DOCKER_PASSWORD }}
+#        build: false
