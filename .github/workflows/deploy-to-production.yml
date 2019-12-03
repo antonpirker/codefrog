@@ -20,6 +20,7 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         push: false
+        snapshot: true
 
 # TODO: fix the problem, that I need a Postgres Database to run the tests and then reactivate.
 #    - name: Run tests in container
@@ -38,8 +39,13 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         build: false
 
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
 # TODO: add a step to run a deployment of the new code to production.
     - name: Deploy to production
-      if: {{ github.ref }} == 'master'
+      if: contains(github.ref, 'master')
       run: |
         echo "deploy to production"
