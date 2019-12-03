@@ -23,10 +23,11 @@ jobs:
 
     - name: Run tests in container
       run: |
-        docker run
-        --env "SECRET_KEY=not_so_important_during_testing"
-        --env "DATABASE_URL=sqlite:////tmp/my-tmp-sqlite.db"
-        codefroghq/codefrog ./manage.py test
+        docker run \
+          --env "SECRET_KEY=not_so_important_during_testing" \
+          --env "DATABASE_URL=sqlite:////tmp/my-tmp-sqlite.db" \
+          codefroghq/codefrog \
+          ./manage.py test
 
     - name: Publish container to DockerHub
       uses: antonpirker/Publish-Docker-Github-Action@master
