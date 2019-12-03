@@ -40,6 +40,8 @@ services:
         links:
             - redis
             - postgres
+        env_file:
+          - ./.env
 
     celery_worker:
         image: codefroghq/codefrog:latest
@@ -79,6 +81,8 @@ services:
         links:
             - redis
             - postgres
+        env_file:
+          - ./.env
 
     celery_beat:
         image: codefroghq/codefrog:latest
@@ -116,6 +120,8 @@ services:
             - redis
         links:
             - redis
+        env_file:
+          - ./.env
 
     redis:
         image: redis:5-buster
