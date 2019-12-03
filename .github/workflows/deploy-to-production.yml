@@ -49,10 +49,9 @@ jobs:
     - name: Deploy to production
       if: github.ref == 'refs/heads/master'
       run: |
+        rm -rf /tmp/.ssh/
         mkdir -p /tmp/.ssh/
         echo "${{ secrets.DEPLOY_KEY_PRODUCTION }}" > /tmp/.ssh/id_rsa
         chmod 700 /tmp/.ssh/ -R
-        echo "--------------------------"
-        ls -alh /tmp/.ssh/*
-        echo "--------------------------"
+        chmod 600 /tmp/.ssh/id_rsa
         scp -v -i /tmp/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
