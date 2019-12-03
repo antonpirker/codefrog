@@ -45,13 +45,14 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
 
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v1
+      with:
+        private-key: ${{ secrets.SSH_KEY_PRODUCTION }}
+        public-key: ${{ secrets.SSH_KEY_PRODUCTION_PUBLIC }}
+
     # TODO: Add the actual "deployment to production" functionality
     - name: Deploy to production
       if: github.ref == 'refs/heads/master'
       run: |
-        rm -rf /tmp/.ssh/
-        mkdir -p /tmp/.ssh/
-        echo "${{ secrets.DEPLOY_KEY_PRODUCTION }}" > /tmp/.ssh/id_rsa
-        chmod 700 /tmp/.ssh/ -R
-        chmod 600 /tmp/.ssh/id_rsa
-        scp -v -i /tmp/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
+        scp -v ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
