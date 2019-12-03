@@ -9,9 +9,6 @@ on:
 jobs:
   build-test-publish:
     runs-on: ubuntu-latest
-    env:
-      SECRET_KEY: not so important during testing
-      DATABASE_URL: sqlite:////tmp/my-tmp-sqlite.db
     steps:
     - name: Checkout code
       uses: actions/checkout@master
@@ -26,7 +23,10 @@ jobs:
 
     - name: Run tests in container
       run: |
-        docker run codefroghq/codefrog ./manage.py test
+        docker run
+        --env "SECRET_KEY=not_so_important_during_testing"
+        --env "DATABASE_URL=sqlite:////tmp/my-tmp-sqlite.db"
+        codefroghq/codefrog ./manage.py test
 
     - name: Publish container to DockerHub
       uses: antonpirker/Publish-Docker-Github-Action@master
@@ -35,3 +35,5 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         build: false
+
+    # TODO: add a step to run a deployment of the new code to production.
