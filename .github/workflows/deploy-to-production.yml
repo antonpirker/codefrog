@@ -49,10 +49,11 @@ jobs:
     - name: Deploy to production
       if: github.ref == 'refs/heads/master'
       run: |
-        mkdir -p ~/.ssh/
-        echo "${{ secrets.DEPLOY_KEY_PRODUCTION }}" > ~/.ssh/id_rsa
-        chmod 700 ~/.ssh -R
+        mkdir -p /home/runner/.ssh/
+        echo "${{ secrets.DEPLOY_KEY_PRODUCTION }}" > /home/runner/.ssh/id_rsa
+        chown runner.runner /home/runner/.ssh/ -R
+        chmod 700 /home/runner/.ssh/ -R
         echo "--------------------------"
-        cat ~/.ssh/id_rsa
+        ls -alh /home/runner/.ssh/*
         echo "--------------------------"
-        scp -v -i ~/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
+        scp -v -i /home/runner/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
