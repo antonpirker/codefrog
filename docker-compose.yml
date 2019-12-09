@@ -3,6 +3,7 @@ services:
     gunicorn:
         image: codefroghq/codefrog:latest
         command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "wsgi:application"]
+        restart: unless-stopped
         build:
             context: .
             args:
@@ -44,6 +45,7 @@ services:
     celery_worker:
         image: codefroghq/codefrog:latest
         command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-worker.pid"]
+        restart: unless-stopped
         build:
             context: .
             args:
@@ -83,6 +85,7 @@ services:
     celery_beat:
         image: codefroghq/codefrog:latest
         command: ["celery", "beat", "--app", "core", "--loglevel", "INFO", "--uid", "celery", "--pidfile", "/tmp/celery-beat.pid", "--schedule", "/tmp/celery-beat-schedule.db"]
+        restart: unless-stopped
         build:
             context: .
             args:
