@@ -1,8 +1,12 @@
 version: "3.7"
 services:
     gunicorn:
-      ports:
-        - "8000:8000"
+      depends_on:
+          - postgres
+      links:
+          - postgres
+
+    celery_worker:
       depends_on:
           - postgres
       links:
