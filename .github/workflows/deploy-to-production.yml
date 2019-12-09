@@ -1,4 +1,4 @@
-name: Build - Test - Publish
+name: Build - Test - Publish - Deploy
 
 on:
   push:
@@ -40,17 +40,11 @@ jobs:
         snapshot: true
         build: false
 
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v1
       with:
         private-key: ${{ secrets.SSH_KEY_PRODUCTION }}
         public-key: ${{ secrets.SSH_KEY_PRODUCTION_PUBLIC }}
-        known-hosts: ${{ secrets.SSH_KEY_PRODUCTION_HOST_PUBLIC }}
 
     # TODO: Add the actual "deployment to production" functionality
     - name: Deploy to production
