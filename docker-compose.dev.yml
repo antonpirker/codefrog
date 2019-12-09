@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+    gunicorn:
+      ports:
+        - "8000:8000"
+      depends_on:
+          - postgres
+      links:
+          - postgres
+
+    postgres:
+        image: postgres:10-alpine
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment:
+            POSTGRES_USER: codefrog
+            POSTGRES_PASSWORD: codefrog
+            POSTGRES_DB: codefrog
+        restart: unless-stopped
+
+volumes:
+    postgres_data:

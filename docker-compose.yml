@@ -33,13 +33,11 @@ services:
                 # Codefrog
                 - PROJECT_SOURCE_CODE_DIR
         ports:
-            - "8000:8000"
+            - "80:8000"
         depends_on:
             - redis
-            - postgres
         links:
             - redis
-            - postgres
         env_file:
           - ./.env
 
@@ -77,10 +75,8 @@ services:
                 - PROJECT_SOURCE_CODE_DIR
         depends_on:
             - redis
-            - postgres
         links:
             - redis
-            - postgres
         env_file:
           - ./.env
 
@@ -130,16 +126,5 @@ services:
         volumes:
             - redis_data:/data
 
-    postgres:
-        image: postgres:10-alpine
-        volumes:
-            - postgres_data:/var/lib/postgresql/data/
-        environment:
-            POSTGRES_USER: codefrog
-            POSTGRES_PASSWORD: codefrog
-            POSTGRES_DB: codefrog
-        restart: unless-stopped
-
 volumes:
     redis_data:
-    postgres_data:
