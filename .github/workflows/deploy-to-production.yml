@@ -50,6 +50,7 @@ jobs:
       with:
         private-key: ${{ secrets.SSH_KEY_PRODUCTION }}
         public-key: ${{ secrets.SSH_KEY_PRODUCTION_PUBLIC }}
+        known-hosts: ${{ secrets.SSH_KEY_PRODUCTION_HOST_PUBLIC }}
 
     # TODO: Add the actual "deployment to production" functionality
     - name: Deploy to production
