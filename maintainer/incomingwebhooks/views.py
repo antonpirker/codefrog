@@ -93,13 +93,15 @@ def authorization(request):
     state = request.GET.get('state', None)
     code = request.GET.get('code', None)
 
-    # TODO: compare the state with the state we create in the index page. (if we did not create a state in the index (the pap was installed from github.com) there is no state, so both must be none
+    # TODO: compare the state with the state we create in the index page.
+    #  (if we did not create a state in the index (the app was installed from github.com) there is no state,
+    #  so both must be none
 
     # get information about the user
     access_token = get_user_access_token(code, state)
     user_data = get_user(access_token)
     username = user_data['login']
-    email = user_data['email']
+    email = user_data['email'] or ''
 
     user, created = User.objects.update_or_create(
         username=username,
@@ -107,17 +109,28 @@ def authorization(request):
             'email': email,
         }
     )
+    user_profile, created = UserProfile.objects.update_or_create(
+        user=user,
+    )
 
     login(request, user)
 
     # import projects of the user
     installations = get_installations(access_token)
+    print('-----------------------------------------------------------')
+    print('installations: %s' % installations)
+    print('-----------------------------------------------------------')
     for installation in installations['installations']:
         installation_id = installation['id']
+        print('-----------------------------------------------------------')
+        print('installation_id: %s' % installation_id)
+        print('-----------------------------------------------------------')
 
         user_profile, created = UserProfile.objects.update_or_create(
             user=user,
-            github_app_installation_refid=installation_id,
+            defaults={
+                'github_app_installation_refid': installation_id,
+            }
         )
         repositories = get_installation_repositories(access_token, installation_id)
         for repository in repositories['repositories']:

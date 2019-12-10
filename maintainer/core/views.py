@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
-from core.models import Metric, Project, Release
+from core.models import Metric, Project, Release, UserProfile
 from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
 from incomingwebhooks.github.utils import get_access_token, \
     get_app_installation_repositories
@@ -21,29 +21,30 @@ MONTH = 30
 YEAR = 365
 
 def index(request):
-    if request.user.is_authenticated:
+    projects = Project.objects.none()
+
+    if request.user.is_authenticated and not request.user.is_superuser:
         # TODO: this refreshing of the projects could be moved to a special refresh
-        # view that is only triggered with a refresh button on top of the list
-        # of projects. (flow is similar to toggle of projects)
+        #  view that is only triggered with a refresh button on top of the list
+        #  of projects. (flow is similar to toggle of projects)
         installation_id = request.user.profile.github_app_installation_refid
-        installation_access_token = get_access_token(installation_id)
-        repositories = get_app_installation_repositories(installation_access_token)
-        for repository in repositories['repositories']:
-            project_slug = slugify(repository['full_name'].replace('/', '-'))
-            project, created = Project.objects.get_or_create(
-                user=request.user,
-                source='github',
-                slug=project_slug,
-                name=repository['name'],
-                git_url=repository['clone_url'],
-                defaults={
-                    'private': repository['private'],
-                },
-            )
+        if installation_id:
+            installation_access_token = get_access_token(installation_id)
+            repositories = get_app_installation_repositories(installation_access_token)
+            for repository in repositories['repositories']:
+                project_slug = slugify(repository['full_name'].replace('/', '-'))
+                project, created = Project.objects.get_or_create(
+                    user=request.user,
+                    source='github',
+                    slug=project_slug,
+                    name=repository['name'],
+                    git_url=repository['clone_url'],
+                    defaults={
+                        'private': repository['private'],
+                    },
+                )
 
         projects = request.user.projects.all().order_by('-active', 'name')
-    else:
-        projects = Project.objects.none()
 
     context = {
         'user': request.user,

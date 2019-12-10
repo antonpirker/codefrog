@@ -22,7 +22,7 @@ class UserProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='profile',
     )
-    github_app_installation_refid = models.IntegerField()
+    github_app_installation_refid = models.IntegerField(null=True)
 
 
 class Project(GithubMixin, models.Model):

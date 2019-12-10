@@ -60,5 +60,5 @@ echo "###### Install tools for running the system..." && tput sgr0 && echo ""
 echo "-------------------------------------------------------------------------"
 echo "###### Setup Database ..." && tput sgr0 && echo ""
 
-runuser -l  postgres -c "psql -c \"CREATE ROLE maintainer with PASSWORD 'maintainer' LOGIN CREATEDB;\"" || true
-runuser -l  postgres -c "psql -c \"CREATE DATABASE maintainer OWNER maintainer;\"" || true
+runuser -l  postgres -c "psql -c \"CREATE ROLE codefrog with PASSWORD 'codefrog' LOGIN CREATEDB;\"" || true
+runuser -l  postgres -c "psql -c \"CREATE DATABASE codefrog OWNER codefrog;\"" || true
