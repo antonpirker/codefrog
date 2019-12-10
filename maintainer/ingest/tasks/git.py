@@ -30,8 +30,11 @@ def clone_repo(project_id, git_url, repo_dir):
     logger.info('Project(%s): Starting clone_repo.', project_id)
 
     project = Project.objects.get(pk=project_id)
-    installation_id = project.user.profile.github_app_installation_refid
-    installation_access_token = get_access_token(installation_id)
+
+    installation_access_token = None
+    if project.private:
+        installation_id = project.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
 
     if os.path.exists(repo_dir):
         logger.info('Project(%s): Repo Exists. Start pulling new changes.', project_id)
@@ -40,7 +43,9 @@ def clone_repo(project_id, git_url, repo_dir):
         logger.info('Project(%s): Finished pulling new changes.', project_id)
     else:
         logger.info('Project(%s): Start cloning.', project_id)
-        git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
+        if installation_access_token:
+            git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
+
         cmd = f'git clone {git_url} {repo_dir}'
         run_shell_command(cmd)
         logger.info('Project(%s): Finished cloning.', project_id)

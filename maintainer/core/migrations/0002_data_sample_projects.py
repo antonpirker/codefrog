@@ -54,30 +54,6 @@ def up(apps, schema_editor):
     )
 
     Project.objects.create(
-        name='Kubernetes',
-        slug='kubernetes',
-        git_url='https://github.com/kubernetes/kubernetes.git',
-        external_services={
-            'github_issues': {
-                'repo_owner': 'kubernetes',
-                'repo_name': 'kubernetes'
-            },
-        },
-    )
-
-    Project.objects.create(
-        name='Visual Studio Code',
-        slug='vscode',
-        git_url='https://github.com/Microsoft/vscode.git',
-        external_services={
-            'github_issues': {
-                'repo_owner': 'Microsoft',
-                'repo_name': 'vscode'
-            },
-        },
-    )
-
-    Project.objects.create(
         name='Atom Text Editor',
         slug='atom',
         git_url='https://github.com/atom/atom.git',
@@ -108,8 +84,6 @@ def down(apps, schema_editor):
         'flask',
         'keras',
         'react',
-        'kubernetes',
-        'vscode',
         'atom',
         'rails',
     ]

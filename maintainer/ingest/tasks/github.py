@@ -121,13 +121,17 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         logger.info('Project(%s): Finished ingest_github_releases.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
-    installation_access_token = get_access_token(installation_id)
+    installation_access_token = None
+    if project.private:
+        installation_id = project.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
 
     headers = {
         'Accept': 'application/vnd.github.machine-man-preview+json',
-        'Authorization': 'token %s' % installation_access_token,
     }
+
+    if installation_access_token:
+        headers['Authorization'] = 'token %s' % installation_access_token
 
     params = {
         'state': 'all',
@@ -229,8 +233,10 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
         logger.info('Project(%s): Finished ingest_github_releases.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
-    installation_access_token = get_access_token(installation_id)
+    installation_access_token = None
+    if project.private:
+        installation_id = project.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
 
     # Delete all old open issues of today
     OpenIssue.objects.filter(
@@ -382,12 +388,15 @@ def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
         logger.info('Project(%s): Finished ingest_github_releases.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
-    installation_access_token = get_access_token(installation_id)
+    installation_access_token = None
+    if project.private:
+        installation_id = project.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
 
-    headers = {
-        'Authorization': 'token %s' % installation_access_token,
-    }
+    headers = {}
+
+    if installation_access_token:
+        headers['Authorization'] = 'token %s' % installation_access_token
 
     params = GITHUB_API_DEFAULT_PARAMS
     params.update({
