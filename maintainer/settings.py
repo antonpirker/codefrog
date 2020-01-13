@@ -97,6 +97,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wsgi.application'
 
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_HTTPONLY = True
+
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

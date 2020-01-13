@@ -3,7 +3,7 @@ from django.contrib.postgres import fields
 
 from django_json_widget.widgets import JSONEditorWidget
 
-from core.models import Project, Metric, Release
+from core.models import Project, Metric, Release, Usage
 
 
 class ModelAdminWithJSONWidget(admin.ModelAdmin):
@@ -61,3 +61,14 @@ class ReleaseAdmin(ModelAdminWithJSONWidget):
         'project', 'timestamp',
     )
     ordering = ['project__name', '-timestamp', ]
+
+
+@admin.register(Usage)
+class UsageAdmin(admin.ModelAdmin):
+    list_display = (
+        'project', 'user', 'timestamp', 'action',
+    )
+    list_filter = (
+        'project', 'user', 'timestamp', 'action',
+    )
+    ordering = ['-timestamp', ]

@@ -312,3 +312,18 @@ class Release(models.Model):
     type = models.CharField(max_length=20, default='git_tag')
     name = models.CharField(max_length=100)
     url = models.CharField(max_length=255, blank=True)
+
+
+class Usage(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
+    timestamp = models.DateTimeField(db_index=True)
+    action = models.CharField(max_length=100, blank=False, db_index=True)

@@ -6,13 +6,16 @@ import secrets
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 
+
 from core.decorators import add_user_and_project, only_matching_authenticated_users
-from core.models import Metric, Project, Release, UserProfile
+from core.models import Metric, Project, Release, UserProfile, Usage
 from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
 from incomingwebhooks.github.utils import get_access_token, \
     get_app_installation_repositories
@@ -55,9 +58,9 @@ def index(request):
     }
 
     if request.user.is_authenticated:
-        html = render_to_string('index.html', context=context)
+        html = render_to_string('index.html', context=context, request=request)
     else:
-        html = render_to_string('landing.html', context=context)
+        html = render_to_string('landing.html', context=context, request=request)
 
     return HttpResponse(html)
 
@@ -153,8 +156,8 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'frequency': frequency,
         'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
-        'current_lead_time': round(metrics[-1]['github_issue_age'], 1),
-        'current_open_tickets': int(metrics[-1]['github_issues_open']),
+        'current_lead_time': round(metrics[-1]['github_issue_age'], 1) if len(metrics) > 0 else 0,
+        'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,
         'data_tree': json.dumps(source_tree_metrics['tree']),
@@ -164,7 +167,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'max_changes': source_tree_metrics['max_changes'],
     }
 
-    html = render_to_string('project/detail.html', context=context)
+    html = render_to_string('project/detail.html', context=context, request=request)
     return HttpResponse(html)
 
 
@@ -207,6 +210,19 @@ def project_toggle(request, username, project_slug, user, project):
         project.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def count_usage(request):
+    payload = json.loads(request.body)
+
+    Usage.objects.create(
+        user=request.user,
+        project_id=payload['project_id'],
+        timestamp=parse_datetime(payload['timestamp']),
+        action=payload['action'],
+    )
+
+    return HttpResponse('')
 
 
 def project_file_stats(request, slug):

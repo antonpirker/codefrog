@@ -27,4 +27,7 @@ urlpatterns = [
         views.project_toggle, name='project-toggle'),
 
     path('accounts/', include('django.contrib.auth.urls')),
+
+    # usage statistics
+    path('count', views.count_usage)
 ]

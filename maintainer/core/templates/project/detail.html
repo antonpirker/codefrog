@@ -146,6 +146,16 @@
             const minChanges = {{ min_changes }};
             const maxChanges = {{ max_changes }};
             createProblemAreasDiagram("problem-areas-diagram", dataTree, minChanges, maxChanges, fileClickCallback);
+
+            // Usage statistics
+            let el = document.getElementById('show_releases');
+            el.addEventListener('click', (e) => {
+                if(el.checked) {
+                    count('project.evolution.releases.hide');
+                } else {
+                    count('project.evolution.releases.show');
+                }
+            });
         }
     </script>
 {% endblock head_end %}
@@ -153,6 +163,7 @@
 
 {% block content %}
     <div class="grid-container">
+
         <!-- Bread crumbs -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">

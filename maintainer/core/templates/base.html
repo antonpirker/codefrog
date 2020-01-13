@@ -11,6 +11,7 @@
         <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
 
         <script src="{% static "js/globals.js" %}"></script>
+        <script src="{% static "js/usage.js" %}"></script>
 
         <script>
             (function(h,o,t,j,a,r){
@@ -63,5 +64,7 @@
     </div>
 
     {% block body_end %}{% endblock body_end %}
+    {% csrf_token %}
+    <input type="hidden" name="projectid" value="{{ project.id }}">
 </body>
 </html>
