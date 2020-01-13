@@ -148,13 +148,17 @@
             createProblemAreasDiagram("problem-areas-diagram", dataTree, minChanges, maxChanges, fileClickCallback);
 
             // Usage statistics
-            let el = document.getElementById('show_releases');
-            el.addEventListener('click', (e) => {
-                if(el.checked) {
-                    count('project.evolution.releases.hide');
-                } else {
-                    count('project.evolution.releases.show');
-                }
+            let el = document.querySelector('#complexity-change');
+            el && el.addEventListener('click', (element) => {
+                count('project.trends.complexity_change.clicked');
+            });
+            el = document.querySelector('#link-open-issues');
+            el && el.addEventListener('click', (element) => {
+                count('project.trends.link_open_issues.clicked');
+            });
+            el = document.querySelector('#current-lead-time');
+            el && el.addEventListener('click', (element) => {
+                count('project.trends.current_lead_time.clicked');
             });
         }
     </script>
@@ -167,7 +171,7 @@
         <!-- Bread crumbs -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <a href="{% url 'index' %}">Repositories</a>
+                <a href="{% url 'index' %}" id="show-repository-list">Repositories</a>
                 <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
                 {{ project.github_repo_full_name }}
             </div>
@@ -199,7 +203,7 @@
                 <h2><i class="fas fa-chart-line"></i> Trends</h2>
             </div>
 
-            <div class="large-4 cell">
+            <div class="large-4 cell" id="complexity-change">
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
                         {% if current_complexity_change > 0 %}
@@ -219,7 +223,7 @@
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
                         <div class="stat">
-                            <a href="{{ project.github_repo_url }}/issues" target="_blank">
+                            <a href="{{ project.github_repo_url }}/issues" target="_blank" id="link-open-issues">
                                 {{ current_open_tickets }}
                             </a>
                         </div>
@@ -230,7 +234,7 @@
                 </div>
             </div>
 
-            <div class="large-4 cell">
+            <div class="large-4 cell" id="current-lead-time">
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
                         <div class="stat">
@@ -253,20 +257,20 @@
 
             <div class="large-6 small-6 cell">
                 Zoom:
-                {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M">1M</a>{% endif %}
-                {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M">3M</a>{% endif %}
-                {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M">6M</a>{% endif %}
-                {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y">1Y</a>{% endif %}
-                {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD">YTD</a>{% endif %}
-                {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL">ALL</a>{% endif %}
+                {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M" id="zoom-1m">1M</a>{% endif %}
+                {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M" id="zoom-3m">3M</a>{% endif %}
+                {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M" id="zoom-6m">6M</a>{% endif %}
+                {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y" id="zoom-1y">1Y</a>{% endif %}
+                {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD" id="zoom-ytd">YTD</a>{% endif %}
+                {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL" id="zoom-all">ALL</a>{% endif %}
             </div>
             <div class="large-5 small-9 cell large-text-right">
                 Show releases on diagram?
             </div>
             <div class="large-1 small-3 cell text-right">
                 <div class="switch tiny">
-                    <input class="switch-input" id="show_releases" type="checkbox" name="show_releases" {% if show_releases %}checked{% endif %}>
-                    <label class="switch-paddle" for="show_releases">
+                    <input class="switch-input" id="show-releases" type="checkbox" name="show-releases" {% if show_releases %}checked{% endif %}>
+                    <label class="switch-paddle" for="show-releases">
                         <span class="show-for-sr">Show releases on diagram?</span>
                         <span class="switch-active" aria-hidden="true">Yes</span>
                         <span class="switch-inactive" aria-hidden="true">No</span>
@@ -318,7 +322,7 @@
 
 {% block body_end %}
     <script>
-        let releaseSwitch = document.querySelector('#show_releases');
+        let releaseSwitch = document.querySelector('#show-releases');
         releaseSwitch.onclick = function() {
             oldUrl = window.location.href;
             if(releaseSwitch.checked) {

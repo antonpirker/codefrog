@@ -6,7 +6,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
                                 leadTimes, releases, evolutionChartFrequency) {
     let releaseAnnotations = [];
     for (const release of releases) {
-        releaseAnnotations.append({
+        releaseAnnotations.push({
             type: "line",
             mode: "vertical",
             scaleID: "x-axis-0",
@@ -60,6 +60,13 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
             fill: false,
             responsive: true,
             maintainAspectRatio: false,
+            onClick: function(event, elements) {
+                if(elements.length > 0) {
+                    count('project.evolution.diagram.chart.clicked');
+                } else {
+                    count('project.evolution.diagram.chrome.clicked');
+                }
+            },
             scales: {
                 xAxes: [{
                     "id": "x-axis-0",

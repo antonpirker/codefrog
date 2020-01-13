@@ -192,10 +192,21 @@ class Project(GithubMixin, models.Model):
             .order_by('date')\
             .last()
         metric = Metric.objects.filter(project=self).order_by('date').last()
-        change = metric.metrics['complexity']/ref_metric.metrics['complexity']*100 - 100
 
-        print('ref_metric: %s' % ref_metric.metrics['complexity'])
-        print('metric: %s' % metric.metrics['complexity'])
+        try:
+            complexity = metric.metrics['complexity']
+        except KeyError:
+            complexity = 0
+
+        try:
+            ref_complexity = metric.metrics['complexity']
+        except KeyError:
+            ref_complexity = 1
+
+        change = complexity/ref_complexity*100 - 100
+
+        print('ref_metric: %s' % ref_complexity)
+        print('metric: %s' % complexity)
         print('change: %s' % change)
 
         return change
@@ -324,6 +335,7 @@ class Usage(models.Model):
         'Project',
         on_delete=models.CASCADE,
         db_index=True,
+        null=True,
     )
     timestamp = models.DateTimeField(db_index=True)
     action = models.CharField(max_length=100, blank=False, db_index=True)

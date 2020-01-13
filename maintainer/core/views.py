@@ -58,8 +58,22 @@ def index(request):
     }
 
     if request.user.is_authenticated:
+        Usage.objects.create(
+            user=request.user,
+            project_id=None,
+            timestamp=datetime.datetime.utcnow(),
+            action='repository_list.view',
+        )
+
         html = render_to_string('index.html', context=context, request=request)
     else:
+        Usage.objects.create(
+            user=request.user,
+            project_id=None,
+            timestamp=datetime.datetime.utcnow(),
+            action='landing_page.view',
+        )
+
         html = render_to_string('landing.html', context=context, request=request)
 
     return HttpResponse(html)
@@ -167,6 +181,35 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'max_changes': source_tree_metrics['max_changes'],
     }
 
+    # Usage statistics
+    utcnow = datetime.datetime.utcnow()
+    Usage.objects.create(
+        user=request.user,
+        project=project,
+        timestamp=utcnow,
+        action='project.load',
+    )
+    Usage.objects.create(
+        user=request.user,
+        project=project,
+        timestamp=utcnow,
+        action='project.evolution.zoom_%s' % zoom.lower(),
+    )
+    if release_flag == 'no-releases':
+        Usage.objects.create(
+            user=request.user,
+            project=project,
+            timestamp=utcnow,
+            action='project.evolution.releases.hide',
+        )
+    else:
+        Usage.objects.create(
+            user=request.user,
+            project=project,
+            timestamp=utcnow,
+            action='project.evolution.releases.show',
+        )
+
     html = render_to_string('project/detail.html', context=context, request=request)
     return HttpResponse(html)
 
@@ -177,6 +220,13 @@ def user_settings(request, username):
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         raise Http404('User does not exist')
+
+    Usage.objects.create(
+        user=request.user,
+        project=None,
+        timestamp=datetime.datetime.utcnow(),
+        action='user_settings.view',
+    )
 
     context = {
         'user': user,
@@ -189,6 +239,13 @@ def user_settings(request, username):
 @only_matching_authenticated_users
 @add_user_and_project
 def project_settings(request, username, project_slug, user, project):
+    Usage.objects.create(
+        user=request.user,
+        project=None,
+        timestamp=datetime.datetime.utcnow(),
+        action='project_settings.view',
+    )
+
     context = {
         'user': request.user,
         'project': project,
@@ -203,9 +260,23 @@ def project_toggle(request, username, project_slug, user, project):
     project.active = not project.active
     project.save()
 
+    utcnow = datetime.datetime.utcnow()
+
     if project.active:
+        Usage.objects.create(
+            user=request.user,
+            project=None,
+            timestamp=utcnow,
+            action='project.activate',
+        )
         project.import_data()
     else:
+        Usage.objects.create(
+            user=request.user,
+            project=None,
+            timestamp=utcnow,
+            action='project.deactivate',
+        )
         project.last_update = None
         project.save()
 
