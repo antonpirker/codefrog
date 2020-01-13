@@ -312,7 +312,7 @@ def project_file_stats(request, slug):
     if not path:
         return JsonResponse({})
 
-    path = os.path.join(project.repo_dir, path)
+    full_path = os.path.join(project.repo_dir, path)
 
     commit_count = project.get_file_commit_count(path)
     commit_counts = []
@@ -322,7 +322,7 @@ def project_file_stats(request, slug):
         commit_counts_labels.append(author)
         commit_counts.append(commit_count[author])
 
-    ownership = project.get_file_ownership(path)
+    ownership = project.get_file_ownership(full_path)
     code_ownership = []
     code_ownership_labels = []
 

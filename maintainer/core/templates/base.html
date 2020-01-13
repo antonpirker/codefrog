@@ -66,5 +66,6 @@
     {% block body_end %}{% endblock body_end %}
     {% csrf_token %}
     <input type="hidden" name="projectid" value="{{ project.id }}">
+    <input type="hidden" name="projectslug" value="{{ project.slug }}">
 </body>
 </html>

@@ -71,7 +71,7 @@
                 let infoTemplate = `
                     <div class="grid-x grid-margin-x grid-margin-y">
                         <div class="large-12 cell">
-                            <h5>File: <a href="${ctx.link}" target="_blank">${ctx.path}</a></h5>
+                            <h5>File: <a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
                         </div>
 
                         <div class="large-12 cell">
@@ -102,6 +102,11 @@
 
                 let elem = document.getElementById('file-information');
                 elem.innerHTML = infoTemplate;
+
+                let el = document.querySelector('#file-details');
+                el && el.addEventListener('click', (element) => {
+                    count('project.problem_areas.file_details.clicked');
+                });
 
                 console.log('complexity trend');
                 console.log(data.complexity_trend);
@@ -136,8 +141,8 @@
                 let elem = document.getElementById('file-information');
                 elem.innerHTML = '';
 
-                let url = 'http://antonpirker.pagekite.me/project/antonpirker-maintainer';
-                fetch(url+'/file-stats?path=' + path)
+                let projectSlug = document.querySelector('[name=projectslug]').value;
+                fetch('/project/' + projectSlug + '/file-stats?path=' + path)
                     .then(response => response.json())
                     .then(updateFileStats);
             };

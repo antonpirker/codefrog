@@ -54,7 +54,13 @@ function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, 
                       zoom(d);
                       d3.event.stopPropagation();
                   }
-                  fileClickCallback(d.data.path, d.data.repo_link);
+
+                  if(d.data.path && d.data.repo_link) {
+                      count('project.problem_areas.file.clicked');
+                      fileClickCallback(d.data.path, d.data.repo_link);
+                  } else {
+                      count('project.problem_areas.directory.clicked');
+                  }
               }
             });
 
