@@ -312,8 +312,6 @@ def project_file_stats(request, slug):
     if not path:
         return JsonResponse({})
 
-    full_path = os.path.join(project.repo_dir, path)
-
     commit_count = project.get_file_commit_count(path)
     commit_counts = []
     commit_counts_labels = []
@@ -322,6 +320,7 @@ def project_file_stats(request, slug):
         commit_counts_labels.append(author)
         commit_counts.append(commit_count[author])
 
+    full_path = os.path.join(project.repo_dir, path)
     ownership = project.get_file_ownership(full_path)
     code_ownership = []
     code_ownership_labels = []
@@ -340,7 +339,7 @@ def project_file_stats(request, slug):
         'complexity_trend': project.get_file_complexity_trend(path, days),  # TODO: those are always 0 (data is not available in the metrics)
         'complexity_trend_labels': [x for x in range(1, 31)],
 
-        'changes_trend': project.get_file_changes_trend(path, days),  # TODO: those are always 0, don't know why.
+        'changes_trend': project.get_file_changes_trend(path, days),
         'changes_trend_labels': [x for x in range(1, 31)],
 
         'commit_counts': commit_counts,

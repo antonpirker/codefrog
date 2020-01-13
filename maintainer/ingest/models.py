@@ -48,7 +48,6 @@ class OpenIssue(models.Model):
     )
 
 
-
 class RawCodeChange(models.Model):
     project = models.ForeignKey(
         'core.Project',
@@ -60,3 +59,12 @@ class RawCodeChange(models.Model):
     complexity_added = models.PositiveIntegerField()
     complexity_removed = models.PositiveIntegerField()
 
+
+class Complexity(models.Model):
+    project = models.ForeignKey(
+        'core.Project',
+        on_delete=models.CASCADE,
+    )
+    timestamp = models.DateTimeField()
+    file_path = models.CharField(max_length=255)
+    complexity = models.PositiveIntegerField()

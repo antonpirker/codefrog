@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
-from ingest.models import RawCodeChange
+from ingest.models import RawCodeChange, Complexity
 
 logger = logging.getLogger(__name__)
 
@@ -222,20 +222,27 @@ class Project(GithubMixin, models.Model):
         today = timezone.now().date()
         ref_date = today - timedelta(days=days)
 
+        try:
+            ref_complexity = Complexity.objects.filter(
+                project=self,
+                file_path=path,
+                timestamp__lte=ref_date,
+            ).order_by('-timestamp').first().complexity
+        except AttributeError:
+            ref_complexity = 0
+
         complexities = {}
         for day in date_range(ref_date, today):
-            complexities[day.strftime('%Y%m%d')] = 0
+            complexities[day.strftime('%Y%m%d')] = ref_complexity
 
-        metrics = Metric.objects.filter(
+        comps = Complexity.objects.filter(
             project=self,
             file_path=path,
-            date__gte=ref_date,
-        ).order_by('date')
+            timestamp__gte=ref_date,
+        ).order_by('timestamp')
 
-        for metric in metrics:
-            date_string = metric.timestamp.strftime('%Y%m%d')
-            complexities[date_string] += metric.complexity_added
-            complexities[date_string] -= metric.complexity_removed
+        for comp in comps:
+            complexities[comp.timestamp.strftime('%Y%m%d')] = comp.complexity
 
         trend = [x[1] for x in sorted(complexities.items())]
         return trend
