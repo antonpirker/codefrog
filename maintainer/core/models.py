@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 from datetime import timedelta
@@ -278,16 +279,8 @@ class Project(GithubMixin, models.Model):
         trend = [x[1] for x in sorted(changes.items())]
         return trend
 
-    def get_file_ownership(self, path):
-        file_metrics = self.get_file_metrics(path)
-        print(path)
-        print(file_metrics)
-        return file_metrics['ownership']
-
     def get_file_metrics(self, path):
         def get_child(nodes, child_path):
-            # TODO: durchschreiten vom tree geht nicht. es geht nie in die ebene unter der ersten.
-
             for node in nodes:
                 if 'children' in node.keys():
                     found_node = get_child(node['children'], child_path)
@@ -301,9 +294,13 @@ class Project(GithubMixin, models.Model):
 
         return get_child(self.source_tree_metrics['tree']['children'], path)
 
-    def get_file_commit_count(self, path):
+    def get_file_ownership(self, path):
+        file_metrics = self.get_file_metrics(path)
+        return file_metrics['ownership']
+
+    def get_file_commit_count(self, path, days):
         cmd = (
-            f'git shortlog -s -- {path}'
+            f'git shortlog --summary --since="{days} days" -- {path}'
         )
         output = run_shell_command(cmd, cwd=self.repo_dir)
         lines = [line for line in output.split('\n') if line]

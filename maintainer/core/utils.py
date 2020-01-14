@@ -69,6 +69,11 @@ def get_file_ownership(filename, project):
             'lines': lines_of_others,
         })
 
+    # normalize ownership to percentage values
+    sum_values = sum([x['lines'] for x in top])
+    for x in top:
+        x['lines'] = round(x['lines'] / sum_values * 100)
+
     return top
 
 

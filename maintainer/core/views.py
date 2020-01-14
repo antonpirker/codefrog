@@ -309,7 +309,8 @@ def project_file_stats(request, slug):
     if not path:
         return JsonResponse({})
 
-    commit_count = project.get_file_commit_count(path)
+    # Number of commits in the last n days
+    commit_count = project.get_file_commit_count(path, days)
     commit_counts = []
     commit_counts_labels = []
 
@@ -317,16 +318,14 @@ def project_file_stats(request, slug):
         commit_counts_labels.append(author)
         commit_counts.append(commit_count[author])
 
+    # Code ownership of the file
     ownership = project.get_file_ownership(path)
-
-    # TODO: normalize code_ownership and commit_counts to have percentage values.
-    # TODO: only have extra values for the first 4 items, the rest should be merged into a "others" author.
 
     json = {
         'path': path,
         'link': f'{project.github_repo_url}/blame/master/{path}',
 
-        'complexity_trend': project.get_file_complexity_trend(path, days),  # TODO: those are always 0 (data is not available in the metrics)
+        'complexity_trend': project.get_file_complexity_trend(path, days),
         'complexity_trend_labels': [x for x in range(1, 31)],
 
         'changes_trend': project.get_file_changes_trend(path, days),
