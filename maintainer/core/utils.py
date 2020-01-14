@@ -44,9 +44,9 @@ def get_file_changes(filename, project):
     ).count()
 
 
-def get_file_ownership(filename, base_path):
+def get_file_ownership(filename, project):
     cmd = f'git shortlog -s -n -e -- {filename}'
-    output = run_shell_command(cmd, cwd=base_path.repo_dir)
+    output = run_shell_command(cmd, cwd=project.repo_dir)
     output = [line for line in output.split('\n') if line]
 
     ownerships = []
@@ -55,10 +55,21 @@ def get_file_ownership(filename, base_path):
         lines, author = line.lstrip().split('\t')
         ownerships.append({
             'author': author,
-            'lines:': int(lines),
+            'lines': int(lines),
         })
 
-    return ownerships
+    top = ownerships[:4]
+
+    others = ownerships[6:]
+    lines_of_others = sum([x['lines'] for x in others])
+
+    if len(others) > 0:
+        top.append({
+            'author': '%s Others' % len(others),
+            'lines': lines_of_others,
+        })
+
+    return top
 
 
 def get_file_complexity(filename):
@@ -96,8 +107,9 @@ SOURCE_TREE_EXCLUDE = [
 def get_source_tree_metrics(project):
     """
     Walk the entire source tree of the project and calculate the metrics for every file.
-    """
 
+    The repository is pulled before so the current state of the repository is used.
+    """
     root = {
         'name': 'root',
         'children': [],
@@ -184,13 +196,14 @@ def get_source_tree_metrics(project):
                         }
                         children.append(child_node)
 
-    return {
+    project.source_tree_metrics = {
         'tree': root,
         'min_complexity': min_complexity,
         'max_complexity': max_complexity,
         'min_changes': min_changes,
         'max_changes': max_changes,
     }
+    project.save()
 
 
 def resample_metrics(queryset, frequency):

@@ -16,7 +16,7 @@ from django.utils.text import slugify
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release, UserProfile, Usage
-from core.utils import get_source_tree_metrics, resample_metrics, resample_releases
+from core.utils import resample_metrics, resample_releases
 from incomingwebhooks.github.utils import get_access_token, \
     get_app_installation_repositories
 
@@ -59,7 +59,7 @@ def index(request):
 
     if request.user.is_authenticated:
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project_id=None,
             timestamp=datetime.datetime.utcnow(),
             action='repository_list.view',
@@ -68,7 +68,7 @@ def index(request):
         html = render_to_string('index.html', context=context, request=request)
     else:
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project_id=None,
             timestamp=datetime.datetime.utcnow(),
             action='landing_page.view',
@@ -158,9 +158,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         if releases.count() > 0:
             releases = resample_releases(releases, frequency)
 
-    # Source tree metrics
-    source_tree_metrics = get_source_tree_metrics(project)
-
     # Render the HTML and send to client.
     context = {
         'user': request.user,
@@ -174,37 +171,37 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,
-        'data_tree': json.dumps(source_tree_metrics['tree']),
-        'min_complexity': source_tree_metrics['min_complexity'],
-        'max_complexity': source_tree_metrics['max_complexity'],
-        'min_changes': source_tree_metrics['min_changes'],
-        'max_changes': source_tree_metrics['max_changes'],
+        'data_tree': json.dumps(project.source_tree_metrics['tree']),
+        'min_complexity': project.source_tree_metrics['min_complexity'],
+        'max_complexity': project.source_tree_metrics['max_complexity'],
+        'min_changes': project.source_tree_metrics['min_changes'],
+        'max_changes': project.source_tree_metrics['max_changes'],
     }
 
     # Usage statistics
     utcnow = datetime.datetime.utcnow()
     Usage.objects.create(
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         project=project,
         timestamp=utcnow,
         action='project.load',
     )
     Usage.objects.create(
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         project=project,
         timestamp=utcnow,
         action='project.evolution.zoom_%s' % zoom.lower(),
     )
     if release_flag == 'no-releases':
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project=project,
             timestamp=utcnow,
             action='project.evolution.releases.hide',
         )
     else:
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project=project,
             timestamp=utcnow,
             action='project.evolution.releases.show',
@@ -222,7 +219,7 @@ def user_settings(request, username):
         raise Http404('User does not exist')
 
     Usage.objects.create(
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         project=None,
         timestamp=datetime.datetime.utcnow(),
         action='user_settings.view',
@@ -240,7 +237,7 @@ def user_settings(request, username):
 @add_user_and_project
 def project_settings(request, username, project_slug, user, project):
     Usage.objects.create(
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         project=None,
         timestamp=datetime.datetime.utcnow(),
         action='project_settings.view',
@@ -264,7 +261,7 @@ def project_toggle(request, username, project_slug, user, project):
 
     if project.active:
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project=None,
             timestamp=utcnow,
             action='project.activate',
@@ -272,7 +269,7 @@ def project_toggle(request, username, project_slug, user, project):
         project.import_data()
     else:
         Usage.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             project=None,
             timestamp=utcnow,
             action='project.deactivate',
@@ -287,7 +284,7 @@ def count_usage(request):
     payload = json.loads(request.body)
 
     Usage.objects.create(
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         project_id=payload['project_id'],
         timestamp=parse_datetime(payload['timestamp']),
         action=payload['action'],
@@ -320,14 +317,7 @@ def project_file_stats(request, slug):
         commit_counts_labels.append(author)
         commit_counts.append(commit_count[author])
 
-    full_path = os.path.join(project.repo_dir, path)
-    ownership = project.get_file_ownership(full_path)
-    code_ownership = []
-    code_ownership_labels = []
-
-    for author in sorted(ownership, key=ownership.get, reverse=True):
-        code_ownership_labels.append(author)
-        code_ownership.append(ownership[author])
+    ownership = project.get_file_ownership(path)
 
     # TODO: normalize code_ownership and commit_counts to have percentage values.
     # TODO: only have extra values for the first 4 items, the rest should be merged into a "others" author.
@@ -345,8 +335,8 @@ def project_file_stats(request, slug):
         'commit_counts': commit_counts,
         'commit_counts_labels': commit_counts_labels,
 
-        'code_ownership': code_ownership,
-        'code_ownership_labels': code_ownership_labels,
+        'code_ownership': [o['lines'] for o in ownership],
+        'code_ownership_labels': [o['author'].split('<')[0].strip() for o in ownership],
     }
 
     return JsonResponse(json)

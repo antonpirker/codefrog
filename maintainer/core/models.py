@@ -40,6 +40,7 @@ class Project(GithubMixin, models.Model):
     git_url = models.CharField(max_length=255)
 
     external_services = JSONField(null=True)
+    source_tree_metrics = JSONField(null=True)
 
     last_update = models.DateTimeField(null=True, blank=True)
 
@@ -195,12 +196,12 @@ class Project(GithubMixin, models.Model):
 
         try:
             complexity = metric.metrics['complexity']
-        except KeyError:
+        except (KeyError, AttributeError):
             complexity = 0
 
         try:
             ref_complexity = metric.metrics['complexity']
-        except KeyError:
+        except (KeyError, AttributeError):
             ref_complexity = 1
 
         change = complexity/ref_complexity*100 - 100
@@ -278,18 +279,27 @@ class Project(GithubMixin, models.Model):
         return trend
 
     def get_file_ownership(self, path):
-        cmd = (
-            f'git blame {path} | cut -d "(" -f 2 | cut -d " " -f "1,2" | sort | uniq -c'
-        )
-        output = run_shell_command(cmd, cwd=self.repo_dir)
-        lines = [line for line in output.split('\n') if line]
+        file_metrics = self.get_file_metrics(path)
+        print(path)
+        print(file_metrics)
+        return file_metrics['ownership']
 
-        ownership = {}
-        for line in lines:
-            num_lines, author = line.strip().split(' ', 1)
-            ownership[author] = int(num_lines)
+    def get_file_metrics(self, path):
+        def get_child(nodes, child_path):
+            # TODO: durchschreiten vom tree geht nicht. es geht nie in die ebene unter der ersten.
 
-        return ownership
+            for node in nodes:
+                if 'children' in node.keys():
+                    found_node = get_child(node['children'], child_path)
+                    if found_node:
+                        return found_node
+                else:
+                    if 'path' in node.keys():
+                        print(child_path, node['path'])
+                    if 'path' in node.keys() and node['path'] == child_path:
+                        return node
+
+        return get_child(self.source_tree_metrics['tree']['children'], path)
 
     def get_file_commit_count(self, path):
         cmd = (
@@ -337,6 +347,7 @@ class Usage(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_index=True,
+        null=True,
     )
     project = models.ForeignKey(
         'Project',

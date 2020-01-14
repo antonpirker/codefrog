@@ -33,8 +33,8 @@ function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, 
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")
         .style("background", color(0))
-        .style("cursor", "pointer")
-        .on("click", () => zoom(root));
+        .style("cursor", "pointer");
+        //.on("click", () => zoom(root));
 
     const node = svg.append("g")
         .selectAll("circle")

@@ -8,6 +8,8 @@
  */
 function createPieChart(elementId, labels, values) {
     colors = [];
+    window.usedColors = [];
+    window.labelColors = {};
 
     for(const label of labels) {
         let nextColor = null;
