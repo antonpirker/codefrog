@@ -24,6 +24,7 @@ class UserProfile(models.Model):
         related_name='profile',
     )
     github_app_installation_refid = models.IntegerField(null=True)
+    newly_registered = models.BooleanField(default=True)
 
 
 class Project(GithubMixin, models.Model):
@@ -53,6 +54,23 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
+        #TODO: call ingest_code_metrics (import raw code changes)
+
+        # call get_source_tree_metrics (needs raw code changes!!!)
+        from core.tasks import get_source_tree_metrics
+        get_source_tree_metrics.apply_async(kwargs={
+            'project_id': self.pk,
+        })
+        # TODO: im get_file_changes() sollte man noch die anzahl tage übergeben (jetzt sind immer alle)
+
+        # TODO: call import_past_github_issues
+        # TODO: import_past_github_issues auf GitHub() class umbauen.
+
+        # TODO: setup import von offenen github issues
+        # TODO: was ist mit den releases?
+
+
+        """
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_past_github_issues
 
@@ -88,9 +106,10 @@ class Project(GithubMixin, models.Model):
         ingest = group(ingest_jobs)
 
         chain(clone, ingest).apply_async()
+        """
 
-        self.last_update = timezone.now()
-        self.save()
+        #self.last_update = timezone.now()
+        #self.save()
 
     def update_data(self):
         from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags

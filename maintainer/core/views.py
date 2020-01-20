@@ -27,6 +27,7 @@ def index(request):
     if not request.user.is_authenticated:
         return landing(request)
 
+    """
     projects = Project.objects.none()
 
     if request.user.is_authenticated and not request.user.is_superuser:
@@ -49,8 +50,8 @@ def index(request):
                         'private': repository['private'],
                     },
                 )
-
-        projects = request.user.projects.all().order_by('-active', 'name')
+    """
+    projects = request.user.projects.all().order_by('-active', 'name')
 
     context = {
         'user': request.user,
@@ -247,6 +248,9 @@ def project_settings(request, username, project_slug, user, project):
 def project_toggle(request, username, project_slug, user, project):
     project.active = not project.active
     project.save()
+
+    project.user.profile.newly_registered = False
+    project.user.profile.save()
 
     utcnow = datetime.datetime.utcnow()
 
