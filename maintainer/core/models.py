@@ -287,8 +287,6 @@ class Project(GithubMixin, models.Model):
                     if found_node:
                         return found_node
                 else:
-                    if 'path' in node.keys():
-                        print(child_path, node['path'])
                     if 'path' in node.keys() and node['path'] == child_path:
                         return node
 

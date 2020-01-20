@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from core import views
+from core import views, views_website
 import django.contrib.auth.views as auth_views
 
 urlpatterns = [
@@ -29,5 +29,8 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
 
     # usage statistics
-    path('count', views.count_usage)
+    path('count', views.count_usage),
+
+    # website
+    path('connect-github', views_website.connect_github, name='connect-github'),
 ]

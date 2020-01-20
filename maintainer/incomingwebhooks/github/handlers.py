@@ -1,7 +1,8 @@
 import shutil
 import os
 import secrets
-from random import randrange
+import logging
+
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -10,13 +11,14 @@ from django.utils.text import slugify
 from git import Repo
 
 from core.models import Project, UserProfile
-from core.utils import get_path_complexity
-from incomingwebhooks.github.utils import create_check_run, get_access_token, \
-    get_repository
+from core.utils import get_path_complexity, GitHub
+from incomingwebhooks.github.utils import create_check_run, get_access_token, get_repository
+
+logger = logging.getLogger(__name__)
 
 
 def installation__created(payload, request=None):
-    print("### INSTALLATION / CREATED")
+    logger.info("### INSTALLATION / CREATED")
     # create a user in our database
     user, created = User.objects.get_or_create(
         username=payload['sender']['login'],
@@ -34,13 +36,12 @@ def installation__created(payload, request=None):
         },
     )
 
+    installation_id = payload['installation']['id']
+    gh = GitHub(installation_id=installation_id)
+
     # add all repositories to the user
     for repository in payload['repositories']:
-        repository_data = get_repository(
-            payload['installation']['id'],
-            repository['full_name'],
-        )
-
+        repository_data = gh.get_repository(repository['full_name'])
         project, created = Project.objects.get_or_create(
             user=user,
             source='github',
@@ -60,10 +61,12 @@ def installation__created(payload, request=None):
             }
             project.save()
 
+    logger.info("### FINISHED INSTALLATION / CREATED")
+
 
 def integration_installation__created(payload, request=None):
     # deprecated event. is succeeded by installation_created
-    pass
+    logger.info('Deprecated event integration_installation__created. Is succeeded by installation__created.')
 
 
 def installation__deleted(payload, request=None):

@@ -1,12 +1,19 @@
 import datetime
 import logging
 import os
+import jwt
 import subprocess
+import time
+import requests
+import json
 from datetime import timedelta
+from urllib.parse import parse_qs
 
 import pandas as pd
 
 from ingest.models import RawCodeChange
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +45,10 @@ def date_range(start_date, end_date):
 
 
 def get_file_changes(filename, project):
+    filename = filename.replace('{}{}'.format(project.repo_dir, os.sep), '')
     return RawCodeChange.objects.filter(
         project=project,
-        file_path=filename.replace('{}{}'.format(project.repo_dir, os.sep), ''),
+        file_path=filename,
     ).count()
 
 
@@ -277,3 +285,124 @@ def resample_releases(queryset, frequency):
 
     releases = df.to_dict('records')
     return releases
+
+
+
+class GitHub:
+    """
+    Client to Github API
+    """
+    api_base_url = 'https://api.github.com'
+
+    user_access_token = None
+    installation_access_token = None
+
+    def __init__(self, installation_id=None, code=None, state=None):
+        logger.info(f'---> GitHub __init__ installation_id={installation_id}, code={code}, state={state}')
+        if not self.installation_access_token and installation_id:
+            self.installation_access_token = self.get_access_token(installation_id)
+
+        if not self.user_access_token and code and state:
+            self.user_access_token = self._get_user_access_token(code, state)
+
+    @staticmethod
+    def _get_user_access_token(code, state):
+        logger.info(f'---> GitHub _get_user_access_token code={code}, state={state}')
+        api_url = f'https://github.com/login/oauth/access_token'
+
+        payload = {
+            'client_id': settings.GITHUB_APP_CLIENT_ID,
+            'client_secret': settings.GITHUB_APP_CLIENT_SECRET,
+            'redirect_url': settings.GITHUB_AUTH_REDIRECT_URI,
+            'code': code,
+            'state': state,
+        }
+
+        out = requests.post(api_url, data=payload)
+        data = parse_qs(out.content.decode())
+        user_access_token = data['access_token'][0]
+
+        return user_access_token
+
+    def _get(self, url, headers=None):
+        logger.info(f'---> GitHub _get url={url}')
+        api_url = f'{self.api_base_url}{url}'
+
+        if not headers:
+            headers = {
+                'Authorization': 'token %s' % self.installation_access_token,
+            }
+
+        out = requests.get(api_url, headers=headers)
+        return json.loads(out.content)
+
+    def _post(self, url, headers=None):
+        logger.info(f'---> GitHub _post url={url}')
+        api_url = f'{self.api_base_url}{url}'
+
+        out = requests.post(api_url, headers=headers)
+        return json.loads(out.content)
+
+    def create_jwt(self):
+        logger.info(f'---> GitHub create_jwt')
+        """
+        Generate a JSON web token (JWT)
+        """
+        private_key = settings.GITHUB_PRIVATE_KEY.decode("utf-8")
+        current_time = int(time.time())
+
+        payload = {
+            'iat': current_time,  # issued at time
+            'exp': current_time + (10 * 60),  # JWT expiration time (10 minute maximum)
+            'iss': settings.GITHUB_APP_IDENTIFIER,  # GitHub App's identifier
+        }
+
+        token = jwt.encode(payload, private_key, algorithm='RS256').decode("utf-8")
+        return token
+
+    def get_access_token(self, installation_id):
+        logger.info(f'---> GitHub get_access_token installation_id={installation_id}')
+        """
+        Authenticate as a Github App and get an installation access token.
+        """
+        url = f'/app/installations/{installation_id}/access_tokens'
+
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'Bearer %s' % self.create_jwt(),
+        }
+
+        out = self._post(url, headers=headers)
+        token = out['token']
+        print("Installation access token: %s" % token)
+
+        return token
+
+    def get_repository(self, repository_full_name):
+        logger.info(f'---> GitHub get_repository repository_full_name={repository_full_name}')
+        url = f'/repos/{repository_full_name}'
+
+        return self._get(url)
+
+    def get_user(self):
+        logger.info(f'---> GitHub get_user')
+        url = f'/user'
+
+        if not self.user_access_token:
+            return None
+
+        headers = {
+            'Authorization': 'token %s' % self.user_access_token,
+        }
+
+        return self._get(url, headers=headers)
+
+    def get_installation_repositories(self, installations_id):
+        url = f'/user/installations/{installations_id}/repositories'
+
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'token %s' % self.user_access_token,
+        }
+
+        return self._get(url, headers=headers)

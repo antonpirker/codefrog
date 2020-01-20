@@ -66,18 +66,6 @@ def get_user_access_token(code, state):
     return access_token
 
 
-def get_user(access_token):
-    api_url = f'https://api.github.com/user'
-
-    headers = {
-        'Authorization': 'token %s' % access_token,
-    }
-
-    out = requests.get(api_url, headers=headers)
-
-    return json.loads(out.content)
-
-
 def get_app_installations():
     headers = {
         'Accept': 'application/vnd.github.machine-man-preview+json',

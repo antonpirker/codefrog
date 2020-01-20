@@ -1,4 +1,5 @@
 import json
+import logging
 import subprocess
 import tempfile
 
@@ -14,9 +15,10 @@ from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
 from core.models import Project, UserProfile
+from core.utils import GitHub
 from incomingwebhooks.github.router import github_hook
-from incomingwebhooks.github.utils import get_user_access_token, get_user, \
-    get_installations, get_installation_repositories
+
+logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
@@ -66,12 +68,12 @@ def gitlab_merge_request(request):
 
 @csrf_exempt
 def hook(request):
-    print('########## hook')
-    print('-----------------------------------------------------------')
-    print('request.headers: %s ' % request.headers)
-    print('-----------------------------------------------------------')
-    print('request.body: %s' % request.body)
-    print('-----------------------------------------------------------')
+    logger.debug('########## hook')
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.headers: %s ' % request.headers)
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.body: %s' % request.body)
+    logger.debug('-----------------------------------------------------------')
 
     if 'X-Github-Event' in request.headers:
         msg = github_hook(request)
@@ -83,23 +85,24 @@ def hook(request):
 
 @csrf_exempt
 def authorization(request):
-    print('########## authorization')
-    print('-----------------------------------------------------------')
-    print('request.headers: %s ' % request.headers)
-    print('-----------------------------------------------------------')
-    print('request.body: %s' % request.body)
-    print('-----------------------------------------------------------')
+    logger.debug('########## authorization')
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.headers: %s ' % request.headers)
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.body: %s' % request.body)
+    logger.debug('-----------------------------------------------------------')
 
     state = request.GET.get('state', None)
     code = request.GET.get('code', None)
+    installation_id = request.GET.get('installation_id', None)
 
     # TODO: compare the state with the state we create in the index page.
     #  (if we did not create a state in the index (the app was installed from github.com) there is no state,
     #  so both must be none
 
     # get information about the user
-    access_token = get_user_access_token(code, state)
-    user_data = get_user(access_token)
+    gh = GitHub(code=code, state=state)
+    user_data = gh.get_user()
     username = user_data['login']
     email = user_data['email'] or ''
 
@@ -111,51 +114,38 @@ def authorization(request):
     )
     user_profile, created = UserProfile.objects.update_or_create(
         user=user,
+        defaults={
+            'github_app_installation_refid': installation_id,
+        }
     )
 
     login(request, user)
 
     # import projects of the user
-    installations = get_installations(access_token)
-    print('-----------------------------------------------------------')
-    print('installations: %s' % installations)
-    print('-----------------------------------------------------------')
-    for installation in installations['installations']:
-        installation_id = installation['id']
-        print('-----------------------------------------------------------')
-        print('installation_id: %s' % installation_id)
-        print('-----------------------------------------------------------')
-
-        user_profile, created = UserProfile.objects.update_or_create(
+    repositories = gh.get_installation_repositories(installation_id)
+    for repository in repositories['repositories']:
+        project, created = Project.objects.get_or_create(
             user=user,
+            source='github',
+            slug=slugify(repository['full_name'].replace('/', '-')),
+            name=repository['name'],
+            git_url=repository['clone_url'],
             defaults={
-                'github_app_installation_refid': installation_id,
-            }
+                'private': repository['private'],
+            },
         )
-        repositories = get_installation_repositories(access_token, installation_id)
-        for repository in repositories['repositories']:
-            project, created = Project.objects.get_or_create(
-                user=user,
-                source='github',
-                slug=slugify(repository['full_name'].replace('/', '-')),
-                name=repository['name'],
-                git_url=repository['clone_url'],
-                defaults={
-                    'private': repository['private'],
-                },
-            )
 
     return HttpResponseRedirect(reverse('index'))
 
 
 @csrf_exempt
 def setup(request):
-    print('########## setup')
-    print('-----------------------------------------------------------')
-    print('request.headers: %s ' % request.headers)
-    print('-----------------------------------------------------------')
-    print('request.body: %s' % request.body)
-    print('-----------------------------------------------------------')
+    logger.debug('########## setup')
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.headers: %s ' % request.headers)
+    logger.debug('-----------------------------------------------------------')
+    logger.debug('request.body: %s' % request.body)
+    logger.debug('-----------------------------------------------------------')
     # request.GET: <QueryDict: {'installation_id': ['2115097'], 'setup_action': ['install']}>
 
     # Redirect back to where request came from

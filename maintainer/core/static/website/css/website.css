@@ -1,0 +1,78 @@
+body.bg {
+    background-image: url('/static/website/images/bg-abstract-white.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+body img.logo {
+    height: 5em;
+}
+body .header div.logo {
+    padding-top: 0;
+}
+body .lang-typescript {
+    background: #294E80;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    text-shadow: none;
+}
+body .lang-go {
+    background: #007d9c;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    text-shadow: none;
+    font-weight: bold;
+}
+body .lang-java {
+    background: #f9001d;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    text-shadow: none;
+    font-weight: bold;
+}
+body .contributors {
+    background: #fff;
+    color: #555;
+    padding: 5px 15px;
+    border-radius: 10px;
+    text-shadow: none;
+}
+body .contributors .count {
+    font-weight: bold;
+    color: #000;
+}
+.show-cases {
+    text-shadow: 0px 0 0.4em #fff;
+}
+.button.primary {
+    background: #ffac33;
+    color: #000;
+}
+.button.primary:hover, .button.primary:focus {
+    background: #ffac33;
+}
+.button {
+    box-shadow: none;
+}
+.button:hover, .button:focus {
+    box-shadow: none;
+}
+a {
+    color: #000;
+    box-shadow: inset 0 -4px 0 -1px #ffac33;
+}
+a:hover, a:focus {
+    color: #000;
+    box-shadow: inset 0 -15px 0 -1px #ffac33;
+}
+input:checked ~ .switch-paddle {
+    background: #000;
+}
+.logo a {
+    box-shadow: none;
+}
+.logo a:hover, .logo a:focus {{
+    box-shadow: none;
+}

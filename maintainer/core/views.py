@@ -1,7 +1,5 @@
 import datetime
 import json
-import os
-import secrets
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -17,6 +15,7 @@ from django.utils.text import slugify
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release, UserProfile, Usage
 from core.utils import resample_metrics, resample_releases
+from core.views_website import landing
 from incomingwebhooks.github.utils import get_access_token, \
     get_app_installation_repositories
 
@@ -24,6 +23,10 @@ MONTH = 30
 YEAR = 365
 
 def index(request):
+    # users that are not logged in see the landing page.
+    if not request.user.is_authenticated:
+        return landing(request)
+
     projects = Project.objects.none()
 
     if request.user.is_authenticated and not request.user.is_superuser:
@@ -54,28 +57,16 @@ def index(request):
         'projects': projects,
         'github_app_client_id': settings.GITHUB_APP_CLIENT_ID,
         'github_redirect_uri': settings.GITHUB_AUTH_REDIRECT_URI,
-        'github_state': secrets.token_urlsafe(50),
     }
 
-    if request.user.is_authenticated:
-        Usage.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            project_id=None,
-            timestamp=datetime.datetime.utcnow(),
-            action='repository_list.view',
-        )
+    Usage.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        project_id=None,
+        timestamp=datetime.datetime.utcnow(),
+        action='repository_list.view',
+    )
 
-        html = render_to_string('index.html', context=context, request=request)
-    else:
-        Usage.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            project_id=None,
-            timestamp=datetime.datetime.utcnow(),
-            action='landing_page.view',
-        )
-
-        html = render_to_string('landing.html', context=context, request=request)
-
+    html = render_to_string('index.html', context=context, request=request)
     return HttpResponse(html)
 
 
