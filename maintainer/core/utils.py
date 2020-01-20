@@ -6,10 +6,13 @@ import subprocess
 import time
 import requests
 import json
+import urllib
 from datetime import timedelta
+from dateutil.parser import parse
 from urllib.parse import parse_qs
 
 import pandas as pd
+from django.utils import timezone
 
 from ingest.models import RawCodeChange
 
@@ -44,11 +47,15 @@ def date_range(start_date, end_date):
         yield start_date + timedelta(n)
 
 
-def get_file_changes(filename, project):
+def get_file_changes(filename, project, days=30):
+    ref_date = timezone.now() - timedelta(days=days)
+    ref_date = ref_date.replace(hour=0, minute=0, second=0, microsecond=0)
+
     filename = filename.replace('{}{}'.format(project.repo_dir, os.sep), '')
     return RawCodeChange.objects.filter(
         project=project,
         file_path=filename,
+        timestamp__gte=ref_date,
     ).count()
 
 
@@ -191,6 +198,8 @@ class GitHub:
     """
     api_base_url = 'https://api.github.com'
 
+    GITHUB_ISSUES_PER_PAGE = 100
+
     user_access_token = None
     installation_access_token = None
 
@@ -303,3 +312,55 @@ class GitHub:
         }
 
         return self._get(url, headers=headers)
+
+    def get_issues(self, repo_owner, repo_name, start_date=None):
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'token %s' % self.installation_access_token,
+        }
+
+        params = {
+            'state': 'all',
+            'sort': 'created',
+            'direction': 'asc',
+            'per_page': str(self.GITHUB_ISSUES_PER_PAGE),
+        }
+
+        if start_date:
+            if isinstance(start_date, str):
+                start_date = parse(start_date)
+
+            params['since'] = start_date.isoformat()
+
+        list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
+        url = f'{self.api_base_url}{list_issues_url}?%s' % urllib.parse.urlencode(params)
+
+        while url:
+            r = requests.get(url, headers=headers)
+            # TODO: handle api errors with retry!
+            #if r.status_code != 200:
+                # retry
+                #import_past_github_issues.apply_async(
+                #    kwargs={
+                #        'project_id': project_id,
+                #        'repo_owner': repo_owner,
+                #        'repo_name': repo_name,
+                #    },
+                #    countdown=10,
+                #)
+                #return
+
+            issues = json.loads(r.content)
+            for issue in issues:
+                yield issue
+
+            # get url of next page (if any)
+            url = None
+            try:
+                links = requests.utils.parse_header_links(r.headers['Link'])
+                for link in links:
+                    if link['rel'] == 'next':
+                        url = link['url']
+                        break
+            except KeyError:
+                pass

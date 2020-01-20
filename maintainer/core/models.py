@@ -54,24 +54,17 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
-        #TODO: call ingest_code_metrics (import raw code changes)
+        self.import_past_github_issues()  # can be run async
 
-        # call get_source_tree_metrics (needs raw code changes!!!)
-        from core.tasks import get_source_tree_metrics
-        get_source_tree_metrics.apply_async(kwargs={
-            'project_id': self.pk,
-        })
-        # TODO: im get_file_changes() sollte man noch die anzahl tage übergeben (jetzt sind immer alle)
+        self.clone_repo() # must be the first thing
+        self.import_raw_code_changes()  # depends on clone_repo()
+        self.get_source_tree_metrics()  # depends on import_raw_code_changes()
 
-        # TODO: call import_past_github_issues
-        # TODO: import_past_github_issues auf GitHub() class umbauen.
-
-        # TODO: setup import von offenen github issues
-        # TODO: was ist mit den releases?
-
+        self.ingest_github_releases()  # can be run async
+        self.ingest_git_tags()  # can be run async
 
         """
-        from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
+        from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_past_github_issues
 
         clone = clone_repo.s(
@@ -81,7 +74,7 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest_jobs = [
-            ingest_code_metrics.s(
+            import_raw_code_changes.s(
                 repo_dir=self.repo_dir,
             ),
 
@@ -112,7 +105,7 @@ class Project(GithubMixin, models.Model):
         #self.save()
 
     def update_data(self):
-        from ingest.tasks.git import clone_repo, ingest_code_metrics, ingest_git_tags
+        from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_open_github_issues
 
         clone = clone_repo.s(
@@ -122,7 +115,7 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest_jobs = [
-            ingest_code_metrics.s(
+            import_raw_code_changes.s(
                 repo_dir=self.repo_dir,
                 start_date=self.last_update,
             ),
@@ -160,11 +153,17 @@ class Project(GithubMixin, models.Model):
             repo_dir=self.repo_dir,
         )
 
-    def ingest_code_metrics(self):
-        from ingest.tasks.git import ingest_code_metrics
-        ingest_code_metrics(
+    def import_raw_code_changes(self):
+        from ingest.tasks.git import import_raw_code_changes
+        import_raw_code_changes(
             project_id=self.pk,
             repo_dir=self.repo_dir,
+        )
+
+    def get_source_tree_metrics(self):
+        from core.tasks import get_source_tree_metrics
+        get_source_tree_metrics(
+            project_id=self.pk,
         )
 
     def ingest_git_tags(self):
@@ -208,7 +207,7 @@ class Project(GithubMixin, models.Model):
         )
 
     def get_complexity_change(self, days=30):
-        ref_date = timezone.now() - timedelta(days=30)
+        ref_date = timezone.now() - timedelta(days=days)
         ref_metric = Metric.objects.filter(project=self, date__lte=ref_date)\
             .order_by('date')\
             .last()

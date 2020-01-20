@@ -1,5 +1,5 @@
 
-from ingest.tasks.git import ingest_code_metrics
+from ingest.tasks.git import import_raw_code_changes
 from ingest.tasks.git import calculate_code_metrics
 from ingest.tasks.git import ingest_git_tags
 

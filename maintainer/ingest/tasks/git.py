@@ -4,7 +4,6 @@ import os
 from collections import defaultdict
 
 from celery import shared_task
-from dateutil.parser import parse
 
 from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
@@ -15,7 +14,7 @@ from ingest.models import RawCodeChange, Complexity
 logger = logging.getLogger(__name__)
 
 
-DAYS_PER_CHUNK = 30
+DAYS_PER_CHUNK = 3650
 
 
 @shared_task
@@ -55,15 +54,14 @@ def clone_repo(project_id, git_url, repo_dir):
     return project_id
 
 @shared_task
-def ingest_code_metrics(project_id, repo_dir, start_date=None):
+def import_raw_code_changes(project_id, repo_dir, start_date=None):
     """
-
     :param project_id:
     :param repo_dir:
     :param start_date:
     :return:
     """
-    logger.info('Project(%s): Starting ingest_code_metrics(%s).', project_id, start_date)
+    logger.info('Project(%s): Starting import_raw_code_changes(%s).', project_id, start_date)
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
@@ -82,7 +80,7 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
     current_date = start_date
 
     logger.info(
-        f'Project(%s): Running ingest_code_metrics from %s to %s.',
+        f'Project(%s): Running import_raw_code_changes from %s to %s.',
         project_id,
         start_date.strftime("%Y-%m-%d"),
         end_date.strftime("%Y-%m-%d"),
@@ -135,17 +133,17 @@ def ingest_code_metrics(project_id, repo_dir, start_date=None):
         if start_date <= current_date:
             current_date = end_date
         logger.info(
-            'Project(%s): Calling ingest_code_metrics for next chunk. (start_date=%s)',
+            'Project(%s): Calling import_raw_code_changes for next chunk. (start_date=%s)',
             project_id,
             current_date,
         )
-        ingest_code_metrics.apply_async(kwargs={
+        import_raw_code_changes.apply_async(kwargs={
             'project_id': project_id,
             'repo_dir': repo_dir,
             'start_date': current_date,
         })
 
-    logger.info('Project(%s): Finished ingest_code_metrics(%s).', project_id, start_date)
+    logger.info('Project(%s): Finished import_raw_code_changes(%s).', project_id, start_date)
 
     return project_id
 

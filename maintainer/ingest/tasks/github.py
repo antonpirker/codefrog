@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Project, Release
-from core.utils import date_range
+from core.utils import date_range, GitHub
 from incomingwebhooks.github.utils import get_access_token
 from ingest.models import OpenIssue, RawIssue
 
@@ -121,93 +121,46 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         logger.info('Project(%s): Finished ingest_github_releases.', project_id)
         return
 
-    installation_access_token = None
-    if project.private:
-        installation_id = project.user.profile.github_app_installation_refid
-        installation_access_token = get_access_token(installation_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    gh = GitHub(installation_id=installation_id)
 
-    headers = {
-        'Accept': 'application/vnd.github.machine-man-preview+json',
-    }
+    issues = gh.get_issues(
+        repo_owner=repo_owner,
+        repo_name=repo_name,
+        start_date=start_date,
+    )
 
-    if installation_access_token:
-        headers['Authorization'] = 'token %s' % installation_access_token
+    for issue in issues:
+        is_pull_request = 'pull_request' in issue
+        if not is_pull_request:
+            try:
+                labels = [label['name'] for label in issue['labels']]
+            except TypeError:
+                labels = []
 
-    params = {
-        'state': 'all',
-        'sort': 'created',
-        'direction': 'asc',
-        'per_page': str(GITHUB_ISSUES_PER_PAGE),
-    }
+            opened_at = datetime.datetime.strptime(
+                issue['created_at'],
+                '%Y-%m-%dT%H:%M:%SZ',
+            ).replace(tzinfo=timezone.utc)
 
-    if start_date:
-        if isinstance(start_date, str):
-            start_date = parse(start_date)
-
-        params['since'] = start_date.isoformat()
-
-    list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
-    url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
-
-    while url:
-        r = requests.get(url, headers=headers)
-        if r.status_code != 200:
-            logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
-            # retry
-            import_past_github_issues.apply_async(
-                kwargs={
-                    'project_id': project_id,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                },
-                countdown=10,
-            )
-            return
-
-        issues = json.loads(r.content)
-
-        for issue in issues:
-            is_pull_request = 'pull_request' in issue
-            if not is_pull_request:
-                try:
-                    labels = [label['name'] for label in issue['labels']]
-                except TypeError:
-                    labels = []
-
-                opened_at = datetime.datetime.strptime(
-                    issue['created_at'],
+            if issue['closed_at']:
+                closed_at = datetime.datetime.strptime(
+                    issue['closed_at'],
                     '%Y-%m-%dT%H:%M:%SZ',
                 ).replace(tzinfo=timezone.utc)
+            else:
+                closed_at = None
 
-                if issue['closed_at']:
-                    closed_at = datetime.datetime.strptime(
-                        issue['closed_at'],
-                        '%Y-%m-%dT%H:%M:%SZ',
-                    ).replace(tzinfo=timezone.utc)
-                else:
-                    closed_at = None
-
-                raw_issue, created = RawIssue.objects.update_or_create(
-                    project_id=project_id,
-                    issue_refid=issue['number'],
-                    opened_at=opened_at,
-                    defaults={
-                        'closed_at': closed_at,
-                        'labels': labels,
-                    }
-                )
-                logger.info(f'RawIssue {raw_issue}: created: {created}')
-
-        # get url of next page (if any)
-        url = None
-        try:
-            links = requests.utils.parse_header_links(r.headers['Link'])
-            for link in links:
-                if link['rel'] == 'next':
-                    url = link['url']
-                    break
-        except KeyError:
-            pass
+            raw_issue, created = RawIssue.objects.update_or_create(
+                project_id=project_id,
+                issue_refid=issue['number'],
+                opened_at=opened_at,
+                defaults={
+                    'closed_at': closed_at,
+                    'labels': labels,
+                }
+            )
+            logger.info(f'RawIssue {raw_issue}: created: {created}')
 
     calculate_github_issue_metrics.apply_async(
         kwargs={
@@ -221,6 +174,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
     )
 
     return project_id
+
 
 @shared_task
 def import_open_github_issues(project_id, repo_owner, repo_name):
