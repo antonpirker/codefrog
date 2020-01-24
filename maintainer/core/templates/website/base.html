@@ -1,35 +1,46 @@
 {% load static %}
 <!doctype html>
 <html class="no-js" lang="en" dir="ltr">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Codefrog - Manage your technical debt. Minimize lead time. Keep code quality high.</title>
-        <link rel="stylesheet" href="{% static "website/css/foundation.min.css" %}">
-        <link rel="stylesheet" href="{% static "website/css/website.css" %} ">
-        <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
-    </head>
-    <body class="bg landingpage">
-        <div class="grid-container header">
-            <!-- Header -->
-            <div class="grid-x grid-margin-x grid-padding-y">
-                <div class="logo large-6 cell text-center large-text-left">
-                    <a href="{% url 'index' %}"><img class="logo" src="{% static "images/codefrog-logo-black-transparent.svg" %}"></a>
-                </div>
-                <div class="large-6 cell text-center large-text-right">
-                    <a href="{% url 'connect-github' %}">Connect Codefrog to your GitHub account</a>
-                </div>
-            </div>
-
-            {% block content %}{% endblock content %}
-
-            <!-- Footer -->
-            <div class="grid-x grid-padding-x grid-padding-y text-center" style="margin-top: 25em;">
-                <div class="footer large-12 cell text-center">
-                    Made with 🐸 by Anton Pirker. Contact:&nbsp;<a href="mailto:anton@ignaz.at">anton@ignaz.at</a>
-                </div>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codefrog - Manage your technical debt. Minimize lead time. Keep code quality high.</title>
+    <link rel="stylesheet" href="{% static "website/css/foundation.min.css" %}">
+    <link rel="stylesheet" href="{% static "website/css/website.css" %} ">
+    <script src="https://kit.fontawesome.com/ed7547b377.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg landingpage">
+<!-- Header -->
+<div class="section header">
+    <div class="grid-container">
+        <div class="grid-x">
+            <!--
+                <a href="{% url 'index' %}"><img class="logo" src="{% static "images/codefrog-logo-black-transparent.svg" %}"></a>
+            -->
+            <div class="cell large-6 large-offset-6 large-text-right">
+                <a href="{% url 'connect-github' %}" class="button primary clear">
+                    Pricing
+                </a>
+                <a href="{% url 'connect-github' %}" class="button primary">
+                    Connect Codefrog to your GitHub account
+                </a>
             </div>
         </div>
-    </body>
+    </div>
+</div>
+
+{% block content %}{% endblock content %}
+
+<!-- Footer -->
+<div class="section footer">
+    <div class="grid-container">
+        <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
+            <div class="large-12 cell text-center">
+                Made with 🐸 by Anton Pirker. Contact:&nbsp;<a href="mailto:anton@ignaz.at">anton@ignaz.at</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>
