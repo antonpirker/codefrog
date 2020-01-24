@@ -1,15 +1,23 @@
 {% extends "website/base.html" %}
 
+{% load static %}
+
+{% block header_left %}
+    <a href="{% url 'index' %}">
+        <img class="logo" src="{% static "images/codefrog-logo-black-transparent.svg" %}">
+    </a>
+{% endblock header_left %}
+
 {% block content %}
     <div class="grid-x grid-padding-x grid-padding-y text-center">
         <div class="large-12 cell text-center">
             <h1>Alright!</h1>
             <p>
                 When you connect Codefrog to your Github account you will get:
-                <ul>
-                    <li>On every pull request we will check the change in complexity.</li>
-                    <li>A account on codefrog.io where you can view in depth analytics of your code base.</li>
-                </ul>
+            <ul>
+                <li>On every pull request we will check the change in complexity.</li>
+                <li>A account on codefrog.io where you can view in depth analytics of your code base.</li>
+            </ul>
             </p>
         </div>
         <div class="large-12 cell text-center">

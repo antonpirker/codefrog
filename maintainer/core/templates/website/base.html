@@ -15,16 +15,19 @@
 <div class="section header">
     <div class="grid-container">
         <div class="grid-x">
-            <!--
-                <a href="{% url 'index' %}"><img class="logo" src="{% static "images/codefrog-logo-black-transparent.svg" %}"></a>
-            -->
-            <div class="cell large-6 large-offset-6 large-text-right">
-                <a href="{% url 'connect-github' %}" class="button primary clear">
+            <div class="cell large-6">
+                {% block header_left %}{% endblock header_left %}
+            </div>
+            <div class="cell large-6 large-text-right">
+                {% block header_rigth %}{% endblock header_rigth %}
+                <a href="{% url 'pricing' %}" class="button clear">
                     Pricing
                 </a>
+                <!--
                 <a href="{% url 'connect-github' %}" class="button primary">
                     Connect Codefrog to your GitHub account
                 </a>
+            -->
             </div>
         </div>
     </div>

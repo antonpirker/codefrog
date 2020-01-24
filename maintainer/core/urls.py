@@ -33,4 +33,5 @@ urlpatterns = [
 
     # website
     path('connect-github', views_website.connect_github, name='connect-github'),
+    path('pricing', views_website.pricing, name='pricing'),
 ]

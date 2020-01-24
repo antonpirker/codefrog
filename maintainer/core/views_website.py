@@ -42,3 +42,21 @@ def connect_github(request):
 
     return HttpResponse(html)
 
+def pricing(request):
+    """
+    List pricing model
+    """
+    Usage.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        project_id=None,
+        timestamp=datetime.datetime.utcnow(),
+        action='pricing_page.view',
+    )
+
+    context = {
+        'github_state': secrets.token_urlsafe(50),
+    }
+    html = render_to_string('website/pricing.html', context=context, request=request)
+
+    return HttpResponse(html)
+
