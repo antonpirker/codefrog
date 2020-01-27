@@ -51,4 +51,4 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         scp -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
-        ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa codefrog@142.93.196.203 "cd /codefrog; cat ~/.pwd | docker login --username codefrogio --password-stdin; docker-compose up --detach"
+        ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa codefrog@142.93.196.203 "cd /codefrog; cat ~/.pwd | docker login --username codefrogio --password-stdin; docker-compose pull; docker-compose up --detach"
