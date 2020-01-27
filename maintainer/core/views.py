@@ -169,6 +169,9 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'min_changes': project.source_tree_metrics['min_changes'],
         'max_changes': project.source_tree_metrics['max_changes'],
     }
+
+    # THIS IS ONLY FOR MAKING NICE SCREENSHOTS!
+    """
     from pprint import pprint
     pprint(context)
 
@@ -552,6 +555,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         },
     ]
     context['metrics'] = metrics
+    """
 
     # Usage statistics
     utcnow = datetime.datetime.utcnow()
@@ -716,6 +720,8 @@ def project_file_stats(request, slug):
         'code_ownership_labels': [o['author'].split('<')[0].strip() for o in ownership],
     }
 
+    # THIS IS ONLY FOR MAKING NICE SCREENSHOTS!
+    """
     print('-----------------------------------------------------------------')
     print(json['commit_counts'])
     print('-----------------------------------------------------------------')
@@ -731,5 +737,6 @@ def project_file_stats(request, slug):
 
     json['commit_counts'] = [1, 12]
     json['commit_counts_labels'] = ['Sergey Brin', 'Grace Hopper',]
+    """
 
     return JsonResponse(json)
