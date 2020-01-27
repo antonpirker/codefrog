@@ -57,11 +57,15 @@ class Project(GithubMixin, models.Model):
         self.import_past_github_issues()  # can be run async
 
         self.clone_repo() # must be the first thing
-        self.import_raw_code_changes()  # depends on clone_repo()
+        self.import_raw_code_changes()  # depends on clone_repo()  # TODO: see todos in import_raw_code_changes for optimization
         self.get_source_tree_metrics()  # depends on import_raw_code_changes()
+            # TODO: import_raw_code_changes should be called first with massive parallelication, so it is fast.
+            #  inside is then called calculate_code_metrics after import_raw_code_changes is finished.
+            #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
+            #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
 
-        self.ingest_github_releases()  # can be run async
-        self.ingest_git_tags()  # can be run async
+#        self.ingest_github_releases()  # can be run async, performance does not matter
+#        self.ingest_git_tags()  # can be run async, performance does not matter
 
         """
         from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags

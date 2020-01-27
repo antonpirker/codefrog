@@ -12,7 +12,10 @@
                     <h2>Create better software faster.</h2>
                     <p>
                         Codefrog helps you decide to work on the important parts of your project. Making project
-                        managers and engineers happy.
+                        managers, engineers and customers happy.
+                    </p>
+                    <p>
+                        Codefrog connects to your Github repository and uses the data that is already there.
                         <br/><br/>
                     </p>
                     <p>
@@ -22,7 +25,7 @@
                     </p>
                 </div>
                 <div class="cell medium-6 text-left">
-                    <img src="{% static "images/dummy.png" %}">
+                    <img src="{% static "images/screenshots/screen-desktop.png" %}" class="shadow">
                 </div>
             </div>
         </div>
@@ -109,11 +112,9 @@
             <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
                 <div class="cell small-12 text-center">
                     <h2>Ready for a better life?</h2>
-                    <h5>Codefrog is your way to get babck control over your technical debt. Stop to react in your
-                        project ant
-                        start acting again.</h5>
+                    <h5>Codefrog is your way to get back control over your technical debt. Stop reacting and start acting again.</h5>
                 </div>
-                <div class="cell large-6 text-center large-offset-3">
+                <div class="cell text-center">
                     <a href="{% url 'connect-github' %}" class="button primary large">
                         Connect Codefrog to your GitHub account!
                     </a>
@@ -122,83 +123,81 @@
         </div>
     </div>
 
-    <!-- -->
-    <div class="section odd">
+    <!-- Complexity in check -->
+    <div class="section even">
         <div class="grid-container">
             <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
                 <div class="cell medium-6 text-center medium-text-right">
-                    <h2>Know where you waste your resources</h2>
-                    <h5>lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor
-                        sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet
-                        irgendwas. </h5>
+                    <img src="{% static "images/screenshots/evolution-wide.png" %}" class="shadow">
                 </div>
-                <div class="cell medium-6">
-                    <img src="{% static "images/dummy.png" %}">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- -->
-    <div class="section even">
-        <div class="grid-container">
-            <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
-                <div class="cell medium-6 text-right">
-                    <img src="{% static "images/dummy.png" %}">
-                </div>
-                <div class="cell medium-6 text-center medium-text-left">
+                <div class="cell medium-6 text-center medium-text-left align-self-middle">
                     <h2>Keep code complexity in check</h2>
-                    <h5>lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor
-                        sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet
-                        irgendwas. </h5>
+                    <h5>See how the complexity of your system evolves over time. Bugs like complex code.
+                        See when it is time for some refactoring.</h5>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- -->
+    <!-- Minimize lead time -->
     <div class="section odd">
         <div class="grid-container">
             <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
-                <div class="cell medium-6  text-center medium-text-right">
+                <div class="cell medium-6  text-center medium-text-right align-self-middle">
                     <h2>Minimize lead time</h2>
-                    <h5>lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor
-                        sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet
-                        irgendwas. </h5>
+                    <h5>Simpler code means rapid development.</h5>
+                    <h5>See your projects velocity and how it changes over time.</h5>
                 </div>
-                <div class="cell medium-6">
-                    <img src="{% static "images/dummy.png" %}">
+                <div class="cell medium-6 text-center medium-text-left">
+                    <img src="{% static "images/screenshots/minimize-leadtime.png" %}" class="shadow">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- -->
+    <!-- Waste of resources -->
     <div class="section even">
         <div class="grid-container">
             <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
-                <div class="cell medium-6 text-right">
-                    <img src="{% static "images/dummy.png" %}">
+                <div class="cell medium-6 text-center medium-text-right">
+                    <img src="{% static "images/screenshots/problem-areas.png" %}" class="shadow">
+                </div>
+                <div class="cell medium-6 text-center medium-text-left align-self-middle">
+                    <h2>Know where you waste your resources</h2>
+                    <h5>Discover the areas in your code where bugs keep popping up.
+                        The areas that suck your engineers time and souls.</h5>
+                    <h5>Knowing where you have to start fixing your code
+                        is half the way to a clean and maintainable code base.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right engineers for refactoring -->
+    <div class="section odd">
+        <div class="grid-container">
+            <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
+                <div class="cell medium-6 text-center medium-text-right align-self-middle">
+                    <h2>Choose the right engineers for refactoring</h2>
+                    <h5>See who owns the code and who worked on it recently.
+                        This helps you assign the right engineers to your refactoring endeavours.</h5>
                 </div>
                 <div class="cell medium-6 text-center medium-text-left">
-                    <h2>Choose the right engineers for refactoring</h2>
-                    <h5>lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor
-                        sit amet irgendwas. lorem ipsum dolor sit amet irgendwas. lorem ipsum dolor sit amet
-                        irgendwas. </h5>
+                    <img src="{% static "images/screenshots/code-ownership.png" %}" class="shadow">
                 </div>
             </div>
         </div>
     </div>
 
     <!-- call to action 2 -->
-    <div class="section call-to-action1 odd">
+    <div class="section call-to-action1 even">
         <div class="grid-container">
             <div class="grid-x grid-padding-x grid-margin-x grid-margin-y">
 
                 <div class="cell small-12 text-center">
                     <h2>Start now!</h2>
                 </div>
-                <div class="cell large-6 text-center large-offset-3">
+                <div class="cell text-center">
                     <a href="{% url 'connect-github' %}" class="button primary large">
                         Connect Codefrog to your GitHub account!
                     </a>

@@ -335,10 +335,17 @@ class GitHub:
         list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
         url = f'{self.api_base_url}{list_issues_url}?%s' % urllib.parse.urlencode(params)
 
+        retries = 0
+
         while url:
             r = requests.get(url, headers=headers)
             # TODO: handle api errors with retry!
-            #if r.status_code != 200:
+            if r.status_code != 200:
+                if retries >= 5:
+                    time.sleep(1)
+                    retries += 1
+                    continue
+
                 # retry
                 #import_past_github_issues.apply_async(
                 #    kwargs={
@@ -361,6 +368,7 @@ class GitHub:
                 for link in links:
                     if link['rel'] == 'next':
                         url = link['url']
+                        retries = 0
                         break
             except KeyError:
                 pass

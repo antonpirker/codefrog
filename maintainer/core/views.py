@@ -169,6 +169,389 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'min_changes': project.source_tree_metrics['min_changes'],
         'max_changes': project.source_tree_metrics['max_changes'],
     }
+    from pprint import pprint
+    pprint(context)
+
+    from django.utils.dateparse import parse_datetime
+    metrics = [{
+            'complexity': -37663,
+            'date': parse_datetime('2019-12-28 00:00:00'),
+            'github_issue_age': 119.79222648752399,
+            'github_issues_open': 382
+        },
+        {
+            'complexity': -37663,
+            'date': parse_datetime('2019-12-29 00:00:00'),
+            'github_issue_age': 119.82637889688249,
+            'github_issues_open': 383
+        },
+        {
+            'complexity': -37416,
+            'date': parse_datetime('2019-12-30 00:00:00'),
+            'github_issue_age': 119.80330618112123,
+            'github_issues_open': 386
+        },
+        {
+            'complexity': -37416,
+            'date': parse_datetime('2019-12-31 00:00:00'),
+            'github_issue_age': 119.80967201340675,
+            'github_issues_open': 388
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-01 00:00:00'),
+            'github_issue_age': 119.78784979669935,
+            'github_issues_open': 390
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-02 00:00:00'),
+            'github_issue_age': 119.73793597706641,
+            'github_issues_open': 393
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-03 00:00:00'),
+            'github_issue_age': 119.77459407831901,
+            'github_issues_open': 393
+        },
+        {
+            'complexity': -37142,
+            'date': parse_datetime('2020-01-04 00:00:00'),
+            'github_issue_age': 119.86843361986628,
+            'github_issues_open': 389
+        },
+        {
+            'complexity': -36936,
+            'date': parse_datetime('2020-01-05 00:00:00'),
+            'github_issue_age': 119.84685114503817,
+            'github_issues_open': 388
+        },
+
+        {
+            'complexity': -36405,
+            'date': parse_datetime('2020-01-06 00:00:00'),
+            'github_issue_age': 119.84769775678866,
+            'github_issues_open': 407
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-07 00:00:00'),
+            'github_issue_age': 119.91548630783758,
+            'github_issues_open': 406
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-08 00:00:00'),
+            'github_issue_age': 119.92639773531494,
+            'github_issues_open': 408
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-09 00:00:00'),
+            'github_issue_age': 119.96604574392832,
+            'github_issues_open': 409
+        },
+        {
+            'complexity': -35379,
+            'date': parse_datetime('2020-01-10 00:00:00'),
+            'github_issue_age': 120.03418198962754,
+            'github_issues_open': 405
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-11 00:00:00'),
+            'github_issue_age': 119.90352941176471,
+            'github_issues_open': 408
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-12 00:00:00'),
+            'github_issue_age': 119.88669487541138,
+            'github_issues_open': 411
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-13 00:00:00'),
+            'github_issue_age': 119.84245127964311,
+            'github_issues_open': 415
+        },
+        {
+            'complexity': -34255,
+            'date': parse_datetime('2020-01-14 00:00:00'),
+            'github_issue_age': 119.82735163030729,
+            'github_issues_open': 415
+        },
+        {
+            'complexity': -34255,
+            'date': parse_datetime('2020-01-15 00:00:00'),
+            'github_issue_age': 119.86846424384525,
+            'github_issues_open': 415
+        },
+        {
+            'complexity': -36936,
+            'date': parse_datetime('2020-01-16 00:00:00'),
+            'github_issue_age': 119.85363528009535,
+            'github_issues_open': 389
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-17 00:00:00'),
+            'github_issue_age': 119.7750535586765,
+            'github_issues_open': 393
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-18 00:00:00'),
+            'github_issue_age': 117.78306374881066,
+            'github_issues_open': 393
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-19 00:00:00'),
+            'github_issue_age': 117,
+            'github_issues_open': 396
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-20 00:00:00'),
+            'github_issue_age': 115.9,
+            'github_issues_open': 380
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-21 00:00:00'),
+            'github_issue_age': 112.7,
+            'github_issues_open': 376
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-22 00:00:00'),
+            'github_issue_age': 111.6,
+            'github_issues_open': 371
+        },
+        {
+            'complexity': -36721,
+            'date': parse_datetime('2020-01-23 00:00:00'),
+            'github_issue_age': 110.2,
+            'github_issues_open': 372
+        },
+        {
+            'complexity': -36618,
+            'date': parse_datetime('2020-01-24 00:00:00'),
+            'github_issue_age': 108,
+            'github_issues_open': 355
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-25 00:00:00'),
+            'github_issue_age': 107.7,
+            'github_issues_open': 351
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-26 00:00:00'),
+            'github_issue_age': 104.6,
+            'github_issues_open': 347
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-27 00:00:00'),
+            'github_issue_age': 100.5,
+            'github_issues_open': 330
+        },
+    ]
+
+
+    metrics = [{
+            'complexity': -37663,
+            'date': parse_datetime('2019-12-28 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37663,
+            'date': parse_datetime('2019-12-29 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37416,
+            'date': parse_datetime('2019-12-30 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37416,
+            'date': parse_datetime('2019-12-31 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-01 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-02 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37415,
+            'date': parse_datetime('2020-01-03 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -37142,
+            'date': parse_datetime('2020-01-04 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36936,
+            'date': parse_datetime('2020-01-05 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+
+        {
+            'complexity': -36405,
+            'date': parse_datetime('2020-01-06 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-07 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-08 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -35551,
+            'date': parse_datetime('2020-01-09 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -35379,
+            'date': parse_datetime('2020-01-10 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-11 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-12 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -34273,
+            'date': parse_datetime('2020-01-13 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -34255,
+            'date': parse_datetime('2020-01-14 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -34255,
+            'date': parse_datetime('2020-01-15 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36936,
+            'date': parse_datetime('2020-01-16 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-17 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-18 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-19 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-20 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-21 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36725,
+            'date': parse_datetime('2020-01-22 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36721,
+            'date': parse_datetime('2020-01-23 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36618,
+            'date': parse_datetime('2020-01-24 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-25 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-26 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+        {
+            'complexity': -36413,
+            'date': parse_datetime('2020-01-27 00:00:00'),
+            'github_issue_age': 0,
+            'github_issues_open': 0
+        },
+    ]
+    context['metrics'] = metrics
 
     # Usage statistics
     utcnow = datetime.datetime.utcnow()
@@ -332,5 +715,21 @@ def project_file_stats(request, slug):
         'code_ownership': [o['lines'] for o in ownership],
         'code_ownership_labels': [o['author'].split('<')[0].strip() for o in ownership],
     }
+
+    print('-----------------------------------------------------------------')
+    print(json['commit_counts'])
+    print('-----------------------------------------------------------------')
+    print(json['commit_counts_labels'])
+    print('-----------------------------------------------------------------')
+
+    json['path'] = 'internal/converter/pages_capture.go'
+    json['complexity_trend'] = [4, 4, 8, 8, 8, 10, 10, 12, 12, 12, 12, 12, 16, 34, 34, 34, 7, 7, 7, 7, 17, 18, 24, 24, 37, 37, 37, 37, 37, 37, ]
+    json['changes_trend'] = [4, 4, 12, 4, 4, 4, 10, 8, 10, 4, 4, 4, 4, 4, 10, 4, 4, 4, 10, 10, 12, 4, 10, 4, 4, 4, 4, 12, 13, 15, ]
+
+    json['code_ownership'] = [60, 13, 6, 1, 19]
+    json['code_ownership_labels'] = ['Sergey Brin', 'Grace Hopper', '李彦宏', 'Elliot Alderson', '12 Others']
+
+    json['commit_counts'] = [1, 12]
+    json['commit_counts_labels'] = ['Sergey Brin', 'Grace Hopper',]
 
     return JsonResponse(json)

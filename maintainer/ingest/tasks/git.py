@@ -76,6 +76,7 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
     first_commit_date = parse(output).date()
 
     start_date = start_date if start_date >= first_commit_date else first_commit_date
+    # TODO: skip the end_date, just get everything!
     end_date = start_date + datetime.timedelta(days=DAYS_PER_CHUNK)
     current_date = start_date
 
@@ -95,6 +96,12 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
     )
     output = run_shell_command(cmd, cwd=repo_dir)
     code_changes = [line for line in output.split('\n') if line]
+
+    # TODO: here I have then all the code_changes of the whole repository.
+    #  split this up so it is imported by multiple workers.
+    #  for this to work, every worker needs her own copy of the repo on disk.
+    #  celery chunks may be useful for this: http://docs.celeryproject.org/en/latest/userguide/canvas.html#chunks
+    #  the ordering of this is not important, because we need all RawCodeChange to be present to run calculations on them.
 
     for code_change in code_changes:
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
@@ -117,12 +124,15 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
         current_date = timestamp.date() \
             if timestamp.date() > current_date else current_date
 
+    # TODO: this should then be started otherwise, but the basic function of calculate_code_metrics stays the same.
+    # TODO: check how fast this calculate_code_metrics is.
     # Calculate code metrics for this chunk.
     calculate_code_metrics.apply_async(kwargs={
         'project_id': project_id,
         'start_date': start_date,
     })
 
+    # TODO: this can then be ommited
     # Get last commit
     cmd = 'git log --pretty="%ad" --date-order --date=iso8601-strict-local -1'
     output = run_shell_command(cmd, cwd=repo_dir)

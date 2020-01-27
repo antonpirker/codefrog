@@ -121,6 +121,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         logger.info('Project(%s): Finished ingest_github_releases.', project_id)
         return
 
+    import ipdb; ipdb.set_trace()
     installation_id = project.user.profile.github_app_installation_refid
     gh = GitHub(installation_id=installation_id)
 

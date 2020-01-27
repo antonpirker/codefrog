@@ -48,6 +48,7 @@ def get_source_tree_metrics(project_id):
     min_changes = 0
     max_changes = 0
 
+    # TODO: maybe do not do this here but outside? now it is done outside and here.
     project.clone_repo()
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
@@ -94,6 +95,9 @@ def get_source_tree_metrics(project_id):
                     if complexity < COMPLEXITY_THRESSHOLD:
                         try:
                             changes = get_file_changes(full_path, project)
+                            # TODO: get_file_changes is the only thing that needs RawCodeChanges.
+                            #  Maybe refactore this, that get_file_changes is not calculated on first run, but in another seperate run.
+                            #  So the first run is fast and does not have the number of changes, the second run includes then the number of changes.
                         except FileNotFoundError:
                             changes = 0
 
