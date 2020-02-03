@@ -24,6 +24,10 @@ class UserProfile(models.Model):
         related_name='profile',
     )
     github_app_installation_refid = models.IntegerField(null=True)
+
+    fastspring_subscription_refid = models.CharField(max_length=100, blank=True, default='')
+    fastspring_account_refid = models.CharField(max_length=100, blank=True, default='')
+
     newly_registered = models.BooleanField(default=True)
 
 

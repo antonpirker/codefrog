@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def installation__created(payload, request=None):
     logger.info("### INSTALLATION / CREATED")
     # create a user in our database
-    user, created = User.objects.get_or_create(
+    user, created = User.objects.update_or_create(
         username=payload['sender']['login'],
         is_staff=False,
         is_active=True,
@@ -29,7 +29,7 @@ def installation__created(payload, request=None):
             'password': secrets.token_urlsafe(90),
         },
     )
-    profile, created = UserProfile.objects.get_or_create(
+    profile, created = UserProfile.objects.update_or_create(
         user=user,
         defaults={
             'github_app_installation_refid': payload['installation']['id'],
@@ -42,7 +42,7 @@ def installation__created(payload, request=None):
     # add all repositories to the user
     for repository in payload['repositories']:
         repository_data = gh.get_repository(repository['full_name'])
-        project, created = Project.objects.get_or_create(
+        project, created = Project.objects.update_or_create(
             user=user,
             source='github',
             slug=slugify(repository_data['full_name'].replace('/', '-')),
