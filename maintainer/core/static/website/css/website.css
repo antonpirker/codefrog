@@ -113,3 +113,35 @@ a:hover, a:focus {
     margin-top: 20em;
     margin-bottom: 5em;
 }
+
+/* PRICING PAGE */
+.pricing .plan {
+    background: #fff;
+    -webkit-box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    -moz-box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    box-shadow: 2px 2px 5px 0px rgba(148,148,148,1);
+    overflow: hidden;
+}
+.pricing .plan ul li {
+    list-style: none;
+}
+.pricing .plan ul li:before
+{
+    content: '✔';
+    margin-left: -1em;
+    margin-right: .100em;
+}
+.pricing .plan ul li del {
+    color: #afafaf;
+}
+
+.pricing .plan h3 {
+    color: #666;
+}
+.pricing .plan h3 span {
+    color: #666;
+    font-size: 0.7em;
+}
+.pricing .plan h5 {
+    color: #666;
+}
