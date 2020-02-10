@@ -90,18 +90,17 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
-        self.import_past_github_issues()  # can be run async
-
-        self.clone_repo() # must be the first thing
-        self.import_raw_code_changes()  # depends on clone_repo()  # TODO: see todos in import_raw_code_changes for optimization
-        self.get_source_tree_metrics()  # depends on import_raw_code_changes()
+#        self.clone_repo() # must be the first thing
+#        self.import_raw_code_changes()  # depends on clone_repo()  # TODO: see todos in import_raw_code_changes for optimization
+#        self.get_source_tree_metrics()  # depends on import_raw_code_changes()
             # TODO: import_raw_code_changes should be called first with massive parallelication, so it is fast.
             #  inside is then called calculate_code_metrics after import_raw_code_changes is finished.
             #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
             #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
 
-#        self.ingest_github_releases()  # can be run async, performance does not matter
-#        self.ingest_git_tags()  # can be run async, performance does not matter
+#        self.import_past_github_issues()  # can be run async
+        self.import_github_releases()  # can be run async, performance does not matter
+        self.import_git_tags()  # can be run async, performance does not matter
 
         """
         from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
@@ -206,13 +205,6 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
-    def ingest_git_tags(self):
-        from ingest.tasks.git import ingest_git_tags
-        ingest_git_tags(
-            project_id=self.pk,
-            repo_dir=self.repo_dir,
-        )
-
     def import_past_github_issues(self, start_date=None):
         from ingest.tasks.github import import_past_github_issues
         import_past_github_issues(
@@ -230,17 +222,23 @@ class Project(GithubMixin, models.Model):
             repo_name=self.github_repo_name,
         )
 
-    def ingest_open_github_issues(self):
-        from ingest.tasks.github import ingest_open_github_issues
-        ingest_open_github_issues(
+    def import_github_releases(self):
+        from ingest.tasks.github import import_github_releases
+        import_github_releases(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
         )
 
-    def ingest_github_releases(self):
-        from ingest.tasks.github import ingest_github_releases
-        ingest_github_releases(
+    def import_git_tags(self):
+        from ingest.tasks.github import import_git_tags
+        import_git_tags(
+            project_id=self.pk,
+        )
+
+    def ingest_open_github_issues(self):
+        from ingest.tasks.github import ingest_open_github_issues
+        ingest_open_github_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,

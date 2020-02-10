@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Project, Release
-from core.utils import date_range, GitHub
+from core.utils import date_range, GitHub, run_shell_command
 from incomingwebhooks.github.utils import get_access_token
 from ingest.models import OpenIssue, RawIssue
 
@@ -118,7 +118,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        logger.info('Project(%s): Finished import_past_github_issues.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
@@ -184,7 +184,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        logger.info('Project(%s): Finished import_open_github_issues.', project_id)
         return
 
     installation_access_token = None
@@ -332,85 +332,104 @@ def calculate_github_issue_metrics(project_id):
 
 
 @shared_task
-def ingest_github_releases(project_id, repo_owner, repo_name, page=1):
-    logger.info('Project(%s): Starting ingest_github_releases.', project_id)
+def import_git_tags(project_id):
+    logger.info(
+        'Project(%s): Starting import_git_tags.',
+        project_id,
+    )
 
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        logger.info('Project(%s): Finished import_github_releases.', project_id)
         return
 
-    installation_access_token = None
-    if project.private:
-        installation_id = project.user.profile.github_app_installation_refid
-        installation_access_token = get_access_token(installation_id)
+    cmd = (
+        f'git tag --list '
+        f'--format "%(refname:strip=2);%(taggerdate);%(committerdate)"'
+    )
+    output = run_shell_command(cmd, cwd=project.repo_dir)
+    tags = [line for line in output.split('\n') if line]
 
-    headers = {}
+    for tag in tags:
+        tag_name, tagger_date, committer_date = tag.split(';')
 
-    if installation_access_token:
-        headers['Authorization'] = 'token %s' % installation_access_token
-
-    params = GITHUB_API_DEFAULT_PARAMS
-    params.update({
-        'per_page': str(GITHUB_ISSUES_PER_PAGE),
-        'page': page,
-    })
-
-    list_tags_url = f'/repos/{repo_owner}/{repo_name}/releases'
-    url = f'{GITHUB_API_BASE_URL}{list_tags_url}?%s' % urllib.parse.urlencode(params)
-
-    pages_processed = 0
-
-    while url:
-        r = requests.get(url, headers=headers)
-        releases = json.loads(r.content)
-
-        for release in releases:
-            tag_name = release['tag_name']
-            tag_date = release['published_at']
-            tag_url = release['html_url']
-
-            logger.debug(
-                'Project(%s): Github Release %s %s.',
-                project_id,
-                tag_name,
-                tag_date,
-            )
-            Release.objects.update_or_create(
-                project_id=project_id,
-                timestamp=tag_date,
-                type='github_release',
-                name=tag_name,
-                url=tag_url,
-            )
-
-        url = None
         try:
-            links = requests.utils.parse_header_links(r.headers['Link'])
-            for link in links:
-                if link['rel'] == 'next':
-                    url = link['url']
-                    break
-        except KeyError:
-            pass
+            tagger_date = parse(tagger_date)
+        except ValueError:
+            tagger_date = None
 
-        pages_processed += 1
-        if pages_processed >= PAGES_PER_CHUNK:
-            ingest_github_releases.apply_async(
-                kwargs={
-                    'project_id': project_id,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                    'page': page + pages_processed,
-                }
-            )
-            return
+        try:
+            committer_date = parse(committer_date)
+        except ValueError:
+            committer_date = None
 
-    logger.info('Project(%s): Finished ingest_github_releases.', project_id)
+        tag_date = tagger_date or committer_date
+
+        logger.debug(
+            'Project(%s): Git Tag %s %s',
+            project_id,
+            tag_name,
+            tag_date,
+        )
+        Release.objects.update_or_create(
+            project_id=project_id,
+            timestamp=tag_date,
+            type='git_tag',
+            name=tag_name,
+        )
+
+    logger.info('Project(%s): Finished import_git_tags.', project_id)
 
     return project_id
+
+
+@shared_task
+def import_github_releases(project_id, repo_owner, repo_name):
+    logger.info(
+        'Project(%s): Starting import_github_releases.',
+        project_id,
+    )
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished import_github_releases.', project_id)
+        return
+
+    installation_id = project.user.profile.github_app_installation_refid
+    gh = GitHub(installation_id=installation_id)
+
+    releases = gh.get_releases(
+        repo_owner=repo_owner,
+        repo_name=repo_name,
+    )
+
+    for release in releases:
+        release_name = release['tag_name']
+        release_date = release['published_at']
+        release_url = release['html_url']
+
+        logger.debug(
+            'Project(%s): Github Release %s %s.',
+            project_id,
+            release_name,
+            release_date,
+        )
+        Release.objects.update_or_create(
+            project_id=project_id,
+            timestamp=release_date,
+            type='github_release',
+            name=release_name,
+            url=release_url,
+        )
+
+    logger.info(
+        'Project(%s): Finished import_github_releases.',
+        project_id,
+    )
 
 
 @shared_task

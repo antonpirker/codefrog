@@ -339,27 +339,52 @@ class GitHub:
 
         while url:
             r = requests.get(url, headers=headers)
-            # TODO: handle api errors with retry!
             if r.status_code != 200:
                 if retries >= 5:
                     time.sleep(1)
                     retries += 1
                     continue
 
-                # retry
-                #import_past_github_issues.apply_async(
-                #    kwargs={
-                #        'project_id': project_id,
-                #        'repo_owner': repo_owner,
-                #        'repo_name': repo_name,
-                #    },
-                #    countdown=10,
-                #)
-                #return
-
             issues = json.loads(r.content)
             for issue in issues:
                 yield issue
+
+            # get url of next page (if any)
+            url = None
+            try:
+                links = requests.utils.parse_header_links(r.headers['Link'])
+                for link in links:
+                    if link['rel'] == 'next':
+                        url = link['url']
+                        retries = 0
+                        break
+            except KeyError:
+                pass
+
+    def get_releases(self, repo_owner, repo_name):
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'token %s' % self.installation_access_token,
+        }
+
+        params = {}
+
+        list_releases_url = f'/repos/{repo_owner}/{repo_name}/releases'
+        url = f'{self.api_base_url}{list_releases_url}?%s' % urllib.parse.urlencode(params)
+
+        retries = 0
+
+        while url:
+            r = requests.get(url, headers=headers)
+            if r.status_code != 200:
+                if retries >= 5:
+                    time.sleep(1)
+                    retries += 1
+                    continue
+
+            releases = json.loads(r.content)
+            for release in releases:
+                yield release
 
             # get url of next page (if any)
             url = None
