@@ -39,6 +39,19 @@ class UserProfile(models.Model):
 
     date_joined = models.DateTimeField(default=timezone.now, null=False)
 
+    @property
+    def plan_name_and_status(self):
+        plan_name = f'{ self.plan.name } Plan'
+
+        if self.plan.has_trial_period:
+            expiration_date = self.date_joined + timedelta(days=self.plan.free_trial_days)
+            plan_name = '%s (Free trial period until: %s)' % (
+                plan_name,
+                expiration_date.strftime('%B %d, %Y'),
+            )
+
+        return plan_name
+
     def __str__(self):
         return f'{self.user.username} ({self.pk})'
 
@@ -398,6 +411,8 @@ class Usage(models.Model):
 class Plan(models.Model):
     name = models.CharField(max_length=40)
     slug = models.CharField(max_length=40)
+    has_trial_period = models.BooleanField(default=False)
+    free_trial_days = models.IntegerField(default=14)
 
     def __str__(self):
         return f'{self.name} ({self.pk})'
