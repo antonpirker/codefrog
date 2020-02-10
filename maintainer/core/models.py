@@ -45,10 +45,17 @@ class UserProfile(models.Model):
 
         if self.plan.has_trial_period:
             expiration_date = self.date_joined + timedelta(days=self.plan.free_trial_days)
-            plan_name = '%s (Free trial period until: %s)' % (
-                plan_name,
-                expiration_date.strftime('%B %d, %Y'),
-            )
+
+            if expiration_date >= timezone.now():
+                plan_name = '%s (Free trial period until: %s)' % (
+                    plan_name,
+                    expiration_date.strftime('%B %d, %Y'),
+                )
+            else:
+                plan_name = '%s (Free trial expired: %s)' % (
+                    plan_name,
+                    expiration_date.strftime('%B %d, %Y'),
+                )
 
         return plan_name
 
