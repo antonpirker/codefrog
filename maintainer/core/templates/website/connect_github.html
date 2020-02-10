@@ -11,20 +11,28 @@
 {% block content %}
     <div class="grid-x grid-padding-x grid-padding-y text-center">
         <div class="large-12 cell text-center">
-            <h1>Alright!</h1>
+            <h1>Signing up for  up for {{ plan|capfirst }} plan!</h1>
             <p>
-                When you connect Codefrog to your Github account you will get:
-            <ul>
-                <li>On every pull request we will check the change in complexity.</li>
-                <li>A account on codefrog.io where you can view in depth analytics of your code base.</li>
-            </ul>
+                On the next page you will be redirected to Github where you can connect your GitHub account with Codefrog:
             </p>
+             <a href="https://github.com/apps/codefrog-insights-dev/installations/new?state={{ github_state }}">
+                <img class="shadow" style="width: 600px; opacity: 80%;" src="{% static 'images/github-connect-screenshot.png' %}" />
+             </a>
         </div>
         <div class="large-12 cell text-center">
             <a href="https://github.com/apps/codefrog-insights-dev/installations/new?state={{ github_state }}"
                class="button primary">
-                Let's do this!
+                {% if plan == 'free' %}
+                    Start Free plan.
+                {% endif %}
+                {% if plan == 'individual' %}
+                    Start free trial of Individual plan.
+                {% endif %}
+                {% if plan == 'team' %}
+                    Start free trial of Team plan.
+                {% endif %}
             </a>
+
         </div>
     </div>
 {% endblock content %}

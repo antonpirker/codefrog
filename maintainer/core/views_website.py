@@ -35,12 +35,16 @@ def connect_github(request):
         action='connect_github_page.view',
     )
 
+    plan = request.GET.get('plan', 'free')
+
     context = {
         'github_state': secrets.token_urlsafe(50),
+        'plan': plan,
     }
     html = render_to_string('website/connect_github.html', context=context, request=request)
 
     return HttpResponse(html)
+
 
 def pricing(request):
     """
