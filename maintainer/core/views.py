@@ -150,6 +150,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         if releases.count() > 0:
             releases = resample_releases(releases, frequency)
 
+    source_tree_metrics = project.source_tree_metrics if project.source_tree_metrics else {}
     # Render the HTML and send to client.
     context = {
         'user': request.user,
@@ -163,11 +164,11 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,
-        'data_tree': json.dumps(project.source_tree_metrics['tree']),
-        'min_complexity': project.source_tree_metrics['min_complexity'],
-        'max_complexity': project.source_tree_metrics['max_complexity'],
-        'min_changes': project.source_tree_metrics['min_changes'],
-        'max_changes': project.source_tree_metrics['max_changes'],
+        'data_tree': json.dumps(source_tree_metrics['tree'] if 'tree' in source_tree_metrics else {}),
+        'min_complexity': source_tree_metrics['min_complexity'] if 'min_complexity' in source_tree_metrics else 0,
+        'max_complexity': source_tree_metrics['max_complexity'] if 'max_complexity' in source_tree_metrics else 0,
+        'min_changes': source_tree_metrics['min_changes'] if 'min_changes' in source_tree_metrics else 0,
+        'max_changes': source_tree_metrics['max_changes'] if 'max_changes' in source_tree_metrics else 0,
     }
 
     # THIS IS ONLY FOR MAKING NICE SCREENSHOTS!

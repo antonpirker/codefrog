@@ -30,6 +30,18 @@ class UserProfile(models.Model):
 
     newly_registered = models.BooleanField(default=True)
 
+    plan = models.ForeignKey(
+        'Plan',
+        on_delete=models.SET_NULL,
+        db_index=True,
+        null=True,
+    )
+
+    date_joined = models.DateTimeField(default=timezone.now, null=False)
+
+    def __str__(self):
+        return f'{self.user.username} ({self.pk})'
+
 
 class Project(GithubMixin, models.Model):
     user = models.ForeignKey(
@@ -51,7 +63,7 @@ class Project(GithubMixin, models.Model):
     last_update = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} ({self.pk})'
 
     @property
     def repo_dir(self):
@@ -362,6 +374,9 @@ class Release(models.Model):
     name = models.CharField(max_length=100)
     url = models.CharField(max_length=255, blank=True)
 
+    def __str__(self):
+        return f'{self.name} ({self.pk})'
+
 
 class Usage(models.Model):
     user = models.ForeignKey(
@@ -378,3 +393,11 @@ class Usage(models.Model):
     )
     timestamp = models.DateTimeField(db_index=True)
     action = models.CharField(max_length=100, blank=False, db_index=True)
+
+
+class Plan(models.Model):
+    name = models.CharField(max_length=40)
+    slug = models.CharField(max_length=40)
+
+    def __str__(self):
+        return f'{self.name} ({self.pk})'

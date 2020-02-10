@@ -15,7 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
 from core import fastspring
-from core.models import Project, UserProfile
+from core.models import Project, UserProfile, Plan
 from core.utils import GitHub
 from incomingwebhooks.github.router import github_hook
 
@@ -117,6 +117,7 @@ def authorization(request):
         user=user,
         defaults={
             'github_app_installation_refid': installation_id,
+            'plan': Plan.objects.get(slug=state),
         }
     )
 
