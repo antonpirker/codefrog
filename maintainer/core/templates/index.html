@@ -2,7 +2,6 @@
 
 {% block content %}
     <div class="grid-container">
-            {% include "new_user_welcome.html" %}
         {% if user.profile.newly_registered %}
             {% include "new_user_welcome.html" %}
         {% endif %}
