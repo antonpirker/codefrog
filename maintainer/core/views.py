@@ -171,6 +171,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'max_changes': source_tree_metrics['max_changes'] if 'max_changes' in source_tree_metrics else 0,
     }
 
+    """
     # THIS IS ONLY FOR MAKING NICE SCREENSHOTS!
     from pprint import pprint
     pprint(context)
@@ -364,7 +365,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
             'github_issues_open': 30
         },
     ]
-
+    """
     """
     metrics = [{
             'complexity': -37663,
@@ -555,6 +556,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         },
     ]
     """
+
     context['metrics'] = metrics
 
     # Usage statistics
@@ -720,6 +722,7 @@ def project_file_stats(request, slug):
         'code_ownership_labels': [o['author'].split('<')[0].strip() for o in ownership],
     }
 
+    """
     # THIS IS ONLY FOR MAKING NICE SCREENSHOTS!
 
     print('-----------------------------------------------------------------')
@@ -737,5 +740,6 @@ def project_file_stats(request, slug):
 
     json['commit_counts'] = [1, 12]
     json['commit_counts_labels'] = ['Sergey Brin', 'Grace Hopper',]
+    """
 
     return JsonResponse(json)
