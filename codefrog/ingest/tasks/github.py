@@ -48,14 +48,14 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 
 @shared_task
-def import_open_github_issues(project_id, repo_owner, repo_name):
-    logger.info('Project(%s): Starting import_open_github_issues.', project_id)
+def import_open_issues(project_id, repo_owner, repo_name):
+    logger.info('Project(%s): Starting import_open_issues.', project_id)
 
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_open_github_issues.', project_id)
+        logger.info('Project(%s): Finished import_open_issues.', project_id)
         return
 
     installation_access_token = None
@@ -89,7 +89,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
         if r.status_code != 200:
             logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
             # retry
-            import_open_github_issues.apply_async(
+            import_open_issues.apply_async(
                 kwargs={
                     'project_id': project_id,
                     'repo_owner': repo_owner,
@@ -140,7 +140,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
         }
     )
 
-    logger.info('Project(%s): Finished import_open_github_issues.', project_id)
+    logger.info('Project(%s): Finished import_open_issues.', project_id)
 
     return project_id
 

@@ -147,7 +147,7 @@ class Project(GithubMixin, models.Model):
 
     def update_data(self):
         from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, import_open_github_issues
+        from ingest.tasks.github import ingest_github_releases, import_open_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -165,7 +165,7 @@ class Project(GithubMixin, models.Model):
                 repo_dir=self.repo_dir,
             ),
 
-            import_open_github_issues.s(
+            import_open_issues.s(
                 repo_owner=self.github_repo_owner,
                 repo_name=self.github_repo_name,
             )
@@ -230,9 +230,9 @@ class Project(GithubMixin, models.Model):
             start_date=start_date,
         )
 
-    def import_open_github_issues(self):
-        from ingest.tasks.github import import_open_github_issues
-        import_open_github_issues(
+    def import_open_issues(self):
+        from ingest.tasks.github import import_open_issues
+        import_open_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
