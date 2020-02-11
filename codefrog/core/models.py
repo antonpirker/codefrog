@@ -190,8 +190,8 @@ class Project(GithubMixin, models.Model):
 
     def purge_data(self):
         from core.models import Metric, Release, Usage
-        from ingest.models import Complexity, OpenIssue, Issue
-        from engine.models import CodeChange
+        from ingest.models import Complexity
+        from engine.models import CodeChange, Issue, OpenIssue
 
         Release.objects.filter(project=self).delete()
         Metric.objects.filter(project=self).delete()

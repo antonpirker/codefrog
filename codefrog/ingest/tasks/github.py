@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from core.models import Metric, Project, Release
 from core.utils import date_range, GitHub, run_shell_command
-from ingest.models import OpenIssue, Issue
+from engine.models import Issue, OpenIssue
 
 logger = logging.getLogger(__name__)
 

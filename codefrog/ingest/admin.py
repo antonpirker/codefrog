@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from ingest.models import OpenIssue, Issue
-from engine.models import CodeChange
+from engine.models import CodeChange, Issue, OpenIssue
 
 
 @admin.register(Issue)
