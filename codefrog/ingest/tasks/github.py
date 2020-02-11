@@ -110,9 +110,9 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 
 
 @shared_task
-def import_github_past_issues(project_id, repo_owner, repo_name, start_date=None):
+def import_issues(project_id, repo_owner, repo_name, start_date=None):
     logger.info(
-        'Project(%s): Starting import_github_past_issues. (%s)',
+        'Project(%s): Starting import_issues. (%s)',
         project_id,
         start_date,
     )
@@ -121,7 +121,7 @@ def import_github_past_issues(project_id, repo_owner, repo_name, start_date=None
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_github_past_issues.', project_id)
+        logger.info('Project(%s): Finished import_issues.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
@@ -171,7 +171,7 @@ def import_github_past_issues(project_id, repo_owner, repo_name, start_date=None
         },
     )
     logger.info(
-        'Project(%s): Finished import_github_past_issues. (%s)',
+        'Project(%s): Finished import_issues. (%s)',
         project_id,
         start_date,
     )
@@ -263,7 +263,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
     # to calculate the updated average age of issues.
     start_date = (timezone.now() - datetime.timedelta(days=1))\
         .replace(hour=0, minute=0, second=0, microsecond=0)
-    import_github_past_issues.apply_async(
+    import_issues.apply_async(
         kwargs={
             'project_id': project_id,
             'repo_owner': repo_owner,

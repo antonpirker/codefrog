@@ -54,14 +54,14 @@ def clone_repo(project_id, git_url, repo_dir):
     return project_id
 
 @shared_task
-def import_raw_code_changes(project_id, repo_dir, start_date=None):
+def import_code_changes(project_id, repo_dir, start_date=None):
     """
     :param project_id:
     :param repo_dir:
     :param start_date:
     :return:
     """
-    logger.info('Project(%s): Starting import_raw_code_changes(%s).', project_id, start_date)
+    logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
@@ -81,7 +81,7 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
     current_date = start_date
 
     logger.info(
-        f'Project(%s): Running import_raw_code_changes from %s to %s.',
+        f'Project(%s): Running import_code_changes from %s to %s.',
         project_id,
         start_date.strftime("%Y-%m-%d"),
         end_date.strftime("%Y-%m-%d"),
@@ -143,17 +143,17 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
         if start_date <= current_date:
             current_date = end_date
         logger.info(
-            'Project(%s): Calling import_raw_code_changes for next chunk. (start_date=%s)',
+            'Project(%s): Calling import_code_changes for next chunk. (start_date=%s)',
             project_id,
             current_date,
         )
-        import_raw_code_changes.apply_async(kwargs={
+        import_code_changes.apply_async(kwargs={
             'project_id': project_id,
             'repo_dir': repo_dir,
             'start_date': current_date,
         })
 
-    logger.info('Project(%s): Finished import_raw_code_changes(%s).', project_id, start_date)
+    logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
 
     return project_id
 

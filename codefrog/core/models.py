@@ -91,21 +91,21 @@ class Project(GithubMixin, models.Model):
 
     def import_data(self):
 #        self.clone_repo() # must be the first thing
-#        self.import_raw_code_changes()  # depends on clone_repo()  # TODO: see todos in import_raw_code_changes for optimization
-#        self.get_source_tree_metrics()  # depends on import_raw_code_changes() NOT calculate_code_metrics
-            # TODO: import_raw_code_changes should be called first with massive parallelication, so it is fast.
-            #  inside is then called calculate_code_metrics after import_raw_code_changes is finished.
+#        self.import_code_changes()  # depends on clone_repo()  # TODO: see todos in import_code_changes for optimization
+#        self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
+            # TODO: import_code_changes should be called first with massive parallelication, so it is fast.
+            #  inside is then called calculate_code_metrics after import_code_changes is finished.
             #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
             #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
-        # self.calculate_code_metrics() # depends on import_raw_code_changes() NOT get_source_tree_metrics
+        # self.calculate_code_metrics() # depends on import_code_changes() NOT get_source_tree_metrics
 
-#        self.import_github_past_issues()  # async
+#        self.import_issues()  # async
 #        self.import_github_releases()  # async, performance does not matter
 #        self.import_git_tags()  # async, performance does not matter
 
         """
-        from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, import_github_past_issues
+        from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
+        from ingest.tasks.github import ingest_github_releases, import_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -114,7 +114,7 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest_jobs = [
-            import_raw_code_changes.s(
+            import_code_changes.s(
                 repo_dir=self.repo_dir,
             ),
 
@@ -122,7 +122,7 @@ class Project(GithubMixin, models.Model):
                 repo_dir=self.repo_dir,
             ),
 
-            import_github_past_issues.s(
+            import_issues.s(
                 repo_owner=self.github_repo_owner,
                 repo_name=self.github_repo_name,
             ),
@@ -145,7 +145,7 @@ class Project(GithubMixin, models.Model):
         #self.save()
 
     def update_data(self):
-        from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
+        from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_open_github_issues
 
         clone = clone_repo.s(
@@ -155,7 +155,7 @@ class Project(GithubMixin, models.Model):
         )
 
         ingest_jobs = [
-            import_raw_code_changes.s(
+            import_code_changes.s(
                 repo_dir=self.repo_dir,
                 start_date=self.last_update,
             ),
@@ -207,9 +207,9 @@ class Project(GithubMixin, models.Model):
             repo_dir=self.repo_dir,
         )
 
-    def import_raw_code_changes(self):
-        from ingest.tasks.git import import_raw_code_changes
-        import_raw_code_changes(
+    def import_code_changes(self):
+        from ingest.tasks.git import import_code_changes
+        import_code_changes(
             project_id=self.pk,
             repo_dir=self.repo_dir,
         )
@@ -220,9 +220,9 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
-    def import_github_past_issues(self, start_date=None):
-        from ingest.tasks.github import import_github_past_issues
-        import_github_past_issues(
+    def import_issues(self, start_date=None):
+        from ingest.tasks.github import import_issues
+        import_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
