@@ -165,7 +165,7 @@ def import_issues(project_id, repo_owner, repo_name, start_date=None):
             )
             logger.info(f'Issue {raw_issue}: created: {created}')
 
-    calculate_github_issue_metrics.apply_async(
+    calculate_issue_metrics.apply_async(
         kwargs={
             'project_id': project_id,
         },
@@ -277,8 +277,8 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
     return project_id
 
 @shared_task
-def calculate_github_issue_metrics(project_id):
-    logger.info('Project(%s): Starting calculate_github_issue_metrics.', project_id)
+def calculate_issue_metrics(project_id):
+    logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
 
     issues = Issue.objects.filter(
         project_id=project_id,
@@ -286,7 +286,7 @@ def calculate_github_issue_metrics(project_id):
 
     if issues.count() == 0:
         logger.info('Project(%s): No issues found. Aborting.', project_id)
-        logger.info('Project(%s): Finished calculate_github_issue_metrics.', project_id)
+        logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
         return
 
     start_date = issues.first().opened_at
@@ -331,7 +331,7 @@ def calculate_github_issue_metrics(project_id):
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Project(%s): Finished calculate_github_issue_metrics.', project_id)
+    logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
 
 
 @shared_task
