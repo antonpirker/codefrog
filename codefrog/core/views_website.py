@@ -4,7 +4,7 @@ import secrets
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 
-from core.models import Usage
+from web.models import Usage
 
 
 def landing(request):

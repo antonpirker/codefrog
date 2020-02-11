@@ -13,12 +13,12 @@ from django.utils.text import slugify
 
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
-from core.models import Metric, Project, Release, Usage
+from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
 from core.views_website import landing
 from connectors.github.utils import get_access_token, \
     get_app_installation_repositories
-from web.models import UserProfile
+from web.models import UserProfile, Usage
 
 MONTH = 30
 YEAR = 365

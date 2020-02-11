@@ -143,9 +143,10 @@ class Project(GithubMixin, models.Model):
         self.save()
 
     def purge_data(self):
-        from core.models import Metric, Release, Usage
+        from core.models import Metric, Release
         from ingest.models import Complexity
         from engine.models import CodeChange, Issue, OpenIssue
+        from web.models import Usage
 
         Release.objects.filter(project=self).delete()
         Metric.objects.filter(project=self).delete()
@@ -359,22 +360,3 @@ class Release(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.pk})'
-
-
-class Usage(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        db_index=True,
-        null=True,
-    )
-    project = models.ForeignKey(
-        'Project',
-        on_delete=models.CASCADE,
-        db_index=True,
-        null=True,
-    )
-    timestamp = models.DateTimeField(db_index=True)
-    action = models.CharField(max_length=100, blank=False, db_index=True)
-
-
