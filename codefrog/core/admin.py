@@ -64,12 +64,3 @@ class ReleaseAdmin(ModelAdminWithJSONWidget):
     ordering = ['project__name', '-timestamp', ]
 
 
-@admin.register(Usage)
-class UsageAdmin(admin.ModelAdmin):
-    list_display = (
-        'project', 'user', 'timestamp', 'action',
-    )
-    list_filter = (
-        'project', 'user', 'timestamp', 'action',
-    )
-    ordering = ['-timestamp', ]
