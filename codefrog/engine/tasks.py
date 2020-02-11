@@ -1,14 +1,21 @@
 import datetime
 import logging
 import os
+import json
+import urllib
 from collections import defaultdict
 
+import requests
 from celery import shared_task
 
+from django.conf import settings
+from django.db.models import Q
+from django.utils import timezone
+
 from core.models import Metric, Release, Project
-from core.utils import date_range, run_shell_command
+from core.utils import date_range, run_shell_command, GitHub
 from dateutil.parser import parse
-from ingest.models import CodeChange, Complexity
+from ingest.models import CodeChange, Complexity, OpenIssue, Issue
 
 logger = logging.getLogger(__name__)
 
@@ -151,3 +158,61 @@ def calculate_code_metrics(project_id, start_date=None):
         old_change_frequency = metric_json['change_frequency']
 
     logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
+
+
+@shared_task
+def calculate_issue_metrics(project_id):
+    logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
+
+    issues = Issue.objects.filter(
+        project_id=project_id,
+    ).order_by('opened_at', 'closed_at')
+
+    if issues.count() == 0:
+        logger.info('Project(%s): No issues found. Aborting.', project_id)
+        logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
+        return
+
+    start_date = issues.first().opened_at
+    end_date = timezone.now()
+
+    for day in date_range(start_date, end_date):
+        # open issues
+        open_issues = issues.filter(
+            Q(opened_at__date__lte=day)
+            & (Q(closed_at__isnull=True) | Q(closed_at__date__gt=day))
+        )
+        count_open_issues = open_issues.count()
+        age_opened_issues = sum([i.get_age(at_date=day) for i in open_issues])
+
+        # closed issues
+        closed_issues = issues.filter(closed_at__isnull=False, closed_at__date__lte=day)
+        count_closed_issues = closed_issues.count()
+        age_closed_issues = sum([i.get_age() for i in closed_issues])
+
+        # age
+        try:
+            age = (age_closed_issues+age_opened_issues)/(count_closed_issues+count_open_issues)
+        except ZeroDivisionError:
+            age = 0
+
+        logger.debug(
+            f'{day}: '
+            f'open/age_opened/closed/age_closed/age: '
+            f'{count_open_issues}/{age_opened_issues}/'
+            f'{count_closed_issues}/{age_closed_issues}/{age}'
+        )
+        metric, _ = Metric.objects.get_or_create(
+            project_id=project_id,
+            date=day,
+        )
+
+        metric_json = metric.metrics
+        if not metric_json:
+            metric_json = {}
+        metric_json['github_issues_open'] = count_open_issues
+        metric_json['github_issue_age'] = age
+        metric.metrics = metric_json
+        metric.save()
+
+    logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
