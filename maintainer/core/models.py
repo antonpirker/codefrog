@@ -184,6 +184,20 @@ class Project(GithubMixin, models.Model):
         self.last_update = timezone.now()
         self.save()
 
+    def purge_data(self):
+        from core.models import Metric, Release, Usage
+        from ingest.models import Complexity, OpenIssue, RawCodeChange, RawIssue
+
+        Release.objects.filter(project=self).delete()
+        Metric.objects.filter(project=self).delete()
+        OpenIssue.objects.filter(project=self).delete()
+        RawCodeChange.objects.filter(project=self).delete()
+        RawIssue.objects.filter(project=self).delete()
+        Complexity.objects.filter(project=self).delete()
+        self.source_tree_metrics = {}
+        self.last_update = None
+        self.save()
+
     def clone_repo(self):
         from ingest.tasks.git import clone_repo
         clone_repo(
