@@ -8,7 +8,8 @@ from celery import shared_task
 from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
 from dateutil.parser import parse
-from ingest.models import CodeChange, Complexity
+from ingest.models import Complexity
+from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
 

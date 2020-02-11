@@ -12,7 +12,8 @@ from django.utils import timezone
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
-from ingest.models import CodeChange, Complexity
+from ingest.models import Complexity
+from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +190,8 @@ class Project(GithubMixin, models.Model):
 
     def purge_data(self):
         from core.models import Metric, Release, Usage
-        from ingest.models import Complexity, OpenIssue, CodeChange, Issue
+        from ingest.models import Complexity, OpenIssue, Issue
+        from engine.models import CodeChange
 
         Release.objects.filter(project=self).delete()
         Metric.objects.filter(project=self).delete()

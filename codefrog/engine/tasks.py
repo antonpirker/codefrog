@@ -15,7 +15,8 @@ from django.utils import timezone
 from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command, GitHub
 from dateutil.parser import parse
-from ingest.models import CodeChange, Complexity, OpenIssue, Issue
+from ingest.models import Complexity, OpenIssue, Issue
+from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
 

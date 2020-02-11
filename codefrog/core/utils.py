@@ -14,7 +14,7 @@ from urllib.parse import parse_qs
 import pandas as pd
 from django.utils import timezone
 
-from ingest.models import CodeChange
+from engine.models import CodeChange
 
 from django.conf import settings
 
