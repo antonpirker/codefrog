@@ -21,6 +21,43 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
+def clone_repo(project_id, git_url, repo_dir):
+    """
+    Clone the remote git repository to local directory.
+
+    If the directory already exists only a `git pull` is done.
+
+    :return: None
+    """
+    logger.info('Project(%s): Starting clone_repo.', project_id)
+
+    project = Project.objects.get(pk=project_id)
+
+    installation_access_token = None
+    if project.private:
+        installation_id = project.user.profile.github_app_installation_refid
+        installation_access_token = get_access_token(installation_id)
+
+    if os.path.exists(repo_dir):
+        logger.info('Project(%s): Repo Exists. Start pulling new changes.', project_id)
+        cmd = f'git pull'
+        run_shell_command(cmd, cwd=repo_dir)
+        logger.info('Project(%s): Finished pulling new changes.', project_id)
+    else:
+        logger.info('Project(%s): Start cloning.', project_id)
+        if installation_access_token:
+            git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
+
+        cmd = f'git clone {git_url} {repo_dir}'
+        run_shell_command(cmd)
+        logger.info('Project(%s): Finished cloning.', project_id)
+
+    logger.info('Project(%s): Finished clone_repo.', project_id)
+
+    return project_id
+
+
+@shared_task
 def import_code_changes(project_id, repo_dir, start_date=None):
     """
     :param project_id:
