@@ -105,7 +105,8 @@ class Project(GithubMixin, models.Model):
 
         """
         from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, import_issues
+        from ingest.tasks.github import ingest_github_releases
+        from connectors.github.tasks import import_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -221,7 +222,7 @@ class Project(GithubMixin, models.Model):
         )
 
     def import_issues(self, start_date=None):
-        from ingest.tasks.github import import_issues
+        from connectors.github.tasks import import_issues
         import_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
