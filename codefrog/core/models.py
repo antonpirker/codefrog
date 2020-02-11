@@ -12,7 +12,6 @@ from django.utils import timezone
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
-from core.models import Complexity
 from engine.models import CodeChange
 
 

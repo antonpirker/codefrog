@@ -60,8 +60,11 @@ INSTALLED_APPS = [
     'django_json_widget',
 
     'core.apps.CoreConfig',
-    'ingest.apps.IngestConfig',
-    'incomingwebhooks.apps.IncomingWebhooksConfig',
+    'connectors.apps.ConnectorsConfig',
+    'engine.apps.EngineConfig',
+    'web.apps.WebConfig',
+    'ingest.apps.IngestConfig',  # DEPRECATED!
+    'incomingwebhooks.apps.IncomingWebhooksConfig', # DEPRECATED!
 ]
 
 MIDDLEWARE = [

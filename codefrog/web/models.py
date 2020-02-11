@@ -82,7 +82,7 @@ class Usage(models.Model):
         null=True,
     )
     project = models.ForeignKey(
-        'Project',
+        'core.Project',
         on_delete=models.CASCADE,
         db_index=True,
         null=True,
