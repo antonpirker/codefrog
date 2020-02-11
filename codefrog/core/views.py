@@ -16,7 +16,7 @@ from core.decorators import add_user_and_project, only_matching_authenticated_us
 from core.models import Metric, Project, Release, UserProfile, Usage
 from core.utils import resample_metrics, resample_releases
 from core.views_website import landing
-from incomingwebhooks.github.utils import get_access_token, \
+from connectors.github.utils import get_access_token, \
     get_app_installation_repositories
 
 MONTH = 30

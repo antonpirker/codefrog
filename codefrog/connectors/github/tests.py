@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.test.client import RequestFactory
 
-from incomingwebhooks.views import authorization, hook, setup
+from connectors.github.views import authorization, hook, setup
 
 
 class GithubChecksWebhooksTestCase(TestCase):

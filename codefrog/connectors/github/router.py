@@ -1,7 +1,7 @@
 import json
 from importlib import import_module
 
-from incomingwebhooks.github.utils import check_github_webhook_secret
+from connectors.github.utils import check_github_webhook_secret
 
 
 @check_github_webhook_secret

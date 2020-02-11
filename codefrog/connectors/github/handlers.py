@@ -12,7 +12,7 @@ from git import Repo
 
 from core.models import Project, UserProfile
 from core.utils import get_path_complexity, GitHub
-from incomingwebhooks.github.utils import create_check_run, get_access_token, get_repository
+from connectors.github.utils import create_check_run, get_access_token, get_repository
 
 logger = logging.getLogger(__name__)
 

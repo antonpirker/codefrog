@@ -7,7 +7,6 @@ from celery import shared_task
 
 from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
-from incomingwebhooks.github.utils import get_access_token
 from dateutil.parser import parse
 from ingest.models import CodeChange, Complexity
 
