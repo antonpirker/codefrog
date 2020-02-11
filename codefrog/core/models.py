@@ -101,7 +101,7 @@ class Project(GithubMixin, models.Model):
 
 #        self.import_issues()  # async
 #        self.import_github_releases()  # async, performance does not matter
-#        self.import_git_tags()  # async, performance does not matter
+#        self.import_tags()  # async, performance does not matter
 
         """
         from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
@@ -245,9 +245,9 @@ class Project(GithubMixin, models.Model):
             repo_name=self.github_repo_name,
         )
 
-    def import_git_tags(self):
-        from ingest.tasks.github import import_git_tags
-        import_git_tags(
+    def import_tags(self):
+        from connectors.git.tasks import import_tags
+        import_tags(
             project_id=self.pk,
         )
 
