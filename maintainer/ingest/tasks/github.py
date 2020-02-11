@@ -13,7 +13,7 @@ from django.utils import timezone
 from core.models import Metric, Project, Release
 from core.utils import date_range, GitHub, run_shell_command
 from incomingwebhooks.github.utils import get_access_token
-from ingest.models import OpenIssue, RawIssue
+from ingest.models import OpenIssue, Issue
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,9 @@ GITHUB_BUG_ISSUE_LABELS = [
 
 @shared_task
 def ingest_open_github_issues(project_id, repo_owner, repo_name):
+    """
+    DEPRECATED!
+    """
     logger.info('Project(%s): Starting ingest_open_github_issues.', project_id)
 
     params = GITHUB_API_DEFAULT_PARAMS
@@ -107,9 +110,9 @@ def ingest_open_github_issues(project_id, repo_owner, repo_name):
 
 
 @shared_task
-def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None):
+def import_github_past_issues(project_id, repo_owner, repo_name, start_date=None):
     logger.info(
-        'Project(%s): Starting import_past_github_issues. (%s)',
+        'Project(%s): Starting import_github_past_issues. (%s)',
         project_id,
         start_date,
     )
@@ -118,7 +121,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_past_github_issues.', project_id)
+        logger.info('Project(%s): Finished import_github_past_issues.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
@@ -151,7 +154,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
             else:
                 closed_at = None
 
-            raw_issue, created = RawIssue.objects.update_or_create(
+            raw_issue, created = Issue.objects.update_or_create(
                 project_id=project_id,
                 issue_refid=issue['number'],
                 opened_at=opened_at,
@@ -160,7 +163,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
                     'labels': labels,
                 }
             )
-            logger.info(f'RawIssue {raw_issue}: created: {created}')
+            logger.info(f'Issue {raw_issue}: created: {created}')
 
     calculate_github_issue_metrics.apply_async(
         kwargs={
@@ -168,7 +171,7 @@ def import_past_github_issues(project_id, repo_owner, repo_name, start_date=None
         },
     )
     logger.info(
-        'Project(%s): Finished import_past_github_issues. (%s)',
+        'Project(%s): Finished import_github_past_issues. (%s)',
         project_id,
         start_date,
     )
@@ -260,7 +263,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
     # to calculate the updated average age of issues.
     start_date = (timezone.now() - datetime.timedelta(days=1))\
         .replace(hour=0, minute=0, second=0, microsecond=0)
-    import_past_github_issues.apply_async(
+    import_github_past_issues.apply_async(
         kwargs={
             'project_id': project_id,
             'repo_owner': repo_owner,
@@ -277,7 +280,7 @@ def import_open_github_issues(project_id, repo_owner, repo_name):
 def calculate_github_issue_metrics(project_id):
     logger.info('Project(%s): Starting calculate_github_issue_metrics.', project_id)
 
-    issues = RawIssue.objects.filter(
+    issues = Issue.objects.filter(
         project_id=project_id,
     ).order_by('opened_at', 'closed_at')
 

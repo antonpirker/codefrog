@@ -9,7 +9,7 @@ from core.models import Metric, Release, Project
 from core.utils import date_range, run_shell_command
 from incomingwebhooks.github.utils import get_access_token
 from dateutil.parser import parse
-from ingest.models import RawCodeChange, Complexity
+from ingest.models import CodeChange, Complexity
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
     #  split this up so it is imported by multiple workers.
     #  for this to work, every worker needs her own copy of the repo on disk.
     #  celery chunks may be useful for this: http://docs.celeryproject.org/en/latest/userguide/canvas.html#chunks
-    #  the ordering of this is not important, because we need all RawCodeChange to be present to run calculations on them.
+    #  the ordering of this is not important, because we need all CodeChange to be present to run calculations on them.
 
     for code_change in code_changes:
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
@@ -110,8 +110,8 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
         file_names = list(set(list(added.keys()) + list(removed.keys())))
         try:
             for file_name in file_names:
-                logger.debug('Project(%s): RawCodeChange %s', project_id, timestamp)
-                RawCodeChange.objects.update_or_create(
+                logger.debug('Project(%s): CodeChange %s', project_id, timestamp)
+                CodeChange.objects.update_or_create(
                     project_id=project_id,
                     timestamp=timestamp,
                     file_path=file_name,
@@ -120,7 +120,7 @@ def import_raw_code_changes(project_id, repo_dir, start_date=None):
                     complexity_removed=removed[file_name],
                 )
         except ValueError as err:
-            logger.error('Project(%s): Error saving RawCodeChange: %s', project_id, err)
+            logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)
         current_date = timestamp.date() \
             if timestamp.date() > current_date else current_date
 
@@ -181,7 +181,7 @@ def calculate_code_metrics(project_id, start_date=None):
         end_date.strftime("%Y-%m-%d"),
     )
 
-    code_changes = RawCodeChange.objects.filter(
+    code_changes = CodeChange.objects.filter(
         project_id=project_id,
         timestamp__date__gte=start_date,
         timestamp__date__lte=end_date,
@@ -323,7 +323,7 @@ def calculate_code_complexity(project_id):
         timestamp = datetime.datetime(1970, 1, 1)
 
     # List all code change since the newest complexity we have
-    code_changes = RawCodeChange.objects.filter(
+    code_changes = CodeChange.objects.filter(
         project_id=project_id,
         timestamp__gte=timestamp,
     ).order_by('file_path', 'timestamp')

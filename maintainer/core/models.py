@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
-from ingest.models import RawCodeChange, Complexity
+from ingest.models import CodeChange, Complexity
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +92,20 @@ class Project(GithubMixin, models.Model):
     def import_data(self):
 #        self.clone_repo() # must be the first thing
 #        self.import_raw_code_changes()  # depends on clone_repo()  # TODO: see todos in import_raw_code_changes for optimization
-#        self.get_source_tree_metrics()  # depends on import_raw_code_changes()
+#        self.get_source_tree_metrics()  # depends on import_raw_code_changes() NOT calculate_code_metrics
             # TODO: import_raw_code_changes should be called first with massive parallelication, so it is fast.
             #  inside is then called calculate_code_metrics after import_raw_code_changes is finished.
             #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
             #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
+        # self.calculate_code_metrics() # depends on import_raw_code_changes() NOT get_source_tree_metrics
 
-#        self.import_past_github_issues()  # can be run async
-        self.import_github_releases()  # can be run async, performance does not matter
-        self.import_git_tags()  # can be run async, performance does not matter
+#        self.import_github_past_issues()  # async
+#        self.import_github_releases()  # async, performance does not matter
+#        self.import_git_tags()  # async, performance does not matter
 
         """
         from ingest.tasks.git import clone_repo, import_raw_code_changes, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, import_past_github_issues
+        from ingest.tasks.github import ingest_github_releases, import_github_past_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -121,7 +122,7 @@ class Project(GithubMixin, models.Model):
                 repo_dir=self.repo_dir,
             ),
 
-            import_past_github_issues.s(
+            import_github_past_issues.s(
                 repo_owner=self.github_repo_owner,
                 repo_name=self.github_repo_name,
             ),
@@ -186,13 +187,13 @@ class Project(GithubMixin, models.Model):
 
     def purge_data(self):
         from core.models import Metric, Release, Usage
-        from ingest.models import Complexity, OpenIssue, RawCodeChange, RawIssue
+        from ingest.models import Complexity, OpenIssue, CodeChange, Issue
 
         Release.objects.filter(project=self).delete()
         Metric.objects.filter(project=self).delete()
         OpenIssue.objects.filter(project=self).delete()
-        RawCodeChange.objects.filter(project=self).delete()
-        RawIssue.objects.filter(project=self).delete()
+        CodeChange.objects.filter(project=self).delete()
+        Issue.objects.filter(project=self).delete()
         Complexity.objects.filter(project=self).delete()
         self.source_tree_metrics = {}
         self.last_update = None
@@ -219,9 +220,9 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
-    def import_past_github_issues(self, start_date=None):
-        from ingest.tasks.github import import_past_github_issues
-        import_past_github_issues(
+    def import_github_past_issues(self, start_date=None):
+        from ingest.tasks.github import import_github_past_issues
+        import_github_past_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,
@@ -251,6 +252,9 @@ class Project(GithubMixin, models.Model):
         )
 
     def ingest_open_github_issues(self):
+        """
+        DEPRECATED!
+        """
         from ingest.tasks.github import ingest_open_github_issues
         ingest_open_github_issues(
             project_id=self.pk,
@@ -334,7 +338,7 @@ class Project(GithubMixin, models.Model):
         for day in date_range(ref_date, today):
             changes[day.strftime('%Y%m%d')] = 0
 
-        raw_changes = RawCodeChange.objects.filter(
+        raw_changes = CodeChange.objects.filter(
                 project=self,
                 file_path=path,
                 timestamp__gte=ref_date,

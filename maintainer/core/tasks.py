@@ -95,7 +95,7 @@ def get_source_tree_metrics(project_id):
                     if complexity < COMPLEXITY_THRESSHOLD:
                         try:
                             changes = get_file_changes(full_path, project)
-                            # TODO: get_file_changes is the only thing that needs RawCodeChanges.
+                            # TODO: get_file_changes is the only thing that needs CodeChanges.
                             #  Maybe refactore this, that get_file_changes is not calculated on first run, but in another seperate run.
                             #  So the first run is fast and does not have the number of changes, the second run includes then the number of changes.
                         except FileNotFoundError:

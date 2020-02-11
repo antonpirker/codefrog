@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 
-class RawIssue(models.Model):
+class Issue(models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,
@@ -48,7 +48,7 @@ class OpenIssue(models.Model):
     )
 
 
-class RawCodeChange(models.Model):
+class CodeChange(models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,

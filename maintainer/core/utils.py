@@ -14,7 +14,7 @@ from urllib.parse import parse_qs
 import pandas as pd
 from django.utils import timezone
 
-from ingest.models import RawCodeChange
+from ingest.models import CodeChange
 
 from django.conf import settings
 
@@ -52,7 +52,7 @@ def get_file_changes(filename, project, days=30):
     ref_date = ref_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     filename = filename.replace('{}{}'.format(project.repo_dir, os.sep), '')
-    return RawCodeChange.objects.filter(
+    return CodeChange.objects.filter(
         project=project,
         file_path=filename,
         timestamp__gte=ref_date,

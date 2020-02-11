@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from ingest.models import OpenIssue, RawCodeChange, RawIssue
+from ingest.models import OpenIssue, CodeChange, Issue
 
 
-@admin.register(RawIssue)
-class RawIssueAdmin(admin.ModelAdmin):
+@admin.register(Issue)
+class IssueAdmin(admin.ModelAdmin):
     list_display = (
         'project', 'issue_refid', 'opened_at', 'closed_at', 'labels',
     )
@@ -25,8 +25,8 @@ class OpenIssueAdmin(admin.ModelAdmin):
     ordering = ['project', '-query_time']
 
 
-@admin.register(RawCodeChange)
-class RawCodeChangeAdmin(admin.ModelAdmin):
+@admin.register(CodeChange)
+class CodeChange(admin.ModelAdmin):
     list_display = (
         'project', 'file_path', 'author',
         'complexity_added', 'complexity_removed', 'timestamp',
