@@ -251,17 +251,6 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
-    def ingest_open_github_issues(self):
-        """
-        DEPRECATED!
-        """
-        from ingest.tasks.github import ingest_open_github_issues
-        ingest_open_github_issues(
-            project_id=self.pk,
-            repo_owner=self.github_repo_owner,
-            repo_name=self.github_repo_name,
-        )
-
     def get_complexity_change(self, days=30):
         ref_date = timezone.now() - timedelta(days=days)
         ref_metric = Metric.objects.filter(project=self, date__lte=ref_date)\
