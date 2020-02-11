@@ -5,14 +5,14 @@ echo "Setup shell..."
 BASH_PROFILE="${HOME}/.bash_profile"
 touch ${BASH_PROFILE}
 
-cp /maintainer/scripts/.bash_prompt.sh ${HOME}
+cp /codefrog/scripts/.bash_prompt.sh ${HOME}
 LINES=(
     "export PATH=\"/home/vagrant/.pyenv/bin:\$PATH\""
     "eval \"\$(pyenv init -)\""
     "eval \"\$(pyenv virtualenv-init -)\""
 
     "source ~/.bash_prompt.sh"
-    "cd /maintainer"
+    "cd /codefrog"
 )
 for i in ${!LINES[@]}; do
     grep -q -F "${LINES[$i]}" "${BASH_PROFILE}" || echo "${LINES[$i]}" >> "${BASH_PROFILE}"
@@ -28,17 +28,17 @@ source ${BASH_PROFILE}
 
 echo "Install python..."
 
-cd /maintainer
+cd /codefrog
 pyenv install || true
 
 
 echo "Install project requirements "
 
 pip install --upgrade pip
-pip install --disable-pip-version-check -r /maintainer/requirements.txt
+pip install --disable-pip-version-check -r /codefrog/requirements.txt
 
 
 echo "Running migrations "
 
-cd /maintainer/maintainer
+cd /codefrog/codefrog
 ./manage.py migrate

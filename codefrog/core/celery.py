@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
-app = Celery('maintainer')
+app = Celery('codefrog')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

@@ -25,7 +25,7 @@ GITHUB_ISSUES_PER_PAGE = 100
 GITHUB_API_BASE_URL = 'https://api.github.com'
 GITHUB_API_DEFAULT_HEADERS = {
     'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'Maintainer',
+    'User-Agent': 'Codefrog',
 }
 
 GITHUB_API_DEFAULT_PARAMS = {

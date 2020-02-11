@@ -2,7 +2,7 @@ import datetime
 
 from django.test import TestCase
 
-from maintainer.core.utils import date_range, foo
+from codefrog.core.utils import date_range, foo
 
 
 class DateRangeTestCase(TestCase):

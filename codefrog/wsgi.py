@@ -1,5 +1,5 @@
 """
-WSGI config for maintainer project.
+WSGI config for codefrog project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

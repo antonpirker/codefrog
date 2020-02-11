@@ -25,11 +25,11 @@ assert get_env(env.list, ENV_NAME, default=None) == None
 assert get_env(env.url, ENV_NAME, default=None) == None
 assert get_env(env.url, ENV_NAME, default='redis://localhost:6379/0').geturl() == 'redis://localhost:6379/0'
 assert get_env(env.db, ENV_NAME, default=None) == None
-assert get_env(env.db, ENV_NAME, default='postgres://maintainer:maintainer@127.0.0.1/maintainer?CONN_MAX_AGE=600') == \
+assert get_env(env.db, ENV_NAME, default='postgres://codefrog:codefrog@127.0.0.1/codefrog?CONN_MAX_AGE=600') == \
        {
-           'NAME': 'maintainer',
-           'USER': 'maintainer',
-           'PASSWORD': 'maintainer',
+           'NAME': 'codefrog',
+           'USER': 'codefrog',
+           'PASSWORD': 'codefrog',
            'HOST': '127.0.0.1',
            'PORT': '',
            'CONN_MAX_AGE': 600,
@@ -108,7 +108,7 @@ DATABASES = {
     'default': get_env(
         env.db,
         'DATABASE_URL',
-        default='postgres://maintainer:maintainer@127.0.0.1/maintainer?CONN_MAX_AGE=600',
+        default='postgres://codefrog:codefrog@127.0.0.1/codefrog?CONN_MAX_AGE=600',
     ),
 }
 
