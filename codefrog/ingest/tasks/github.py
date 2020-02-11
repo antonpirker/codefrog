@@ -204,51 +204,6 @@ def calculate_issue_metrics(project_id):
 
 
 
-@shared_task
-def import_releases(project_id, repo_owner, repo_name):
-    logger.info(
-        'Project(%s): Starting import_releases.',
-        project_id,
-    )
-
-    try:
-        project = Project.objects.get(pk=project_id)
-    except Project.DoesNotExist:
-        logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_releases.', project_id)
-        return
-
-    installation_id = project.user.profile.github_app_installation_refid
-    gh = GitHub(installation_id=installation_id)
-
-    releases = gh.get_releases(
-        repo_owner=repo_owner,
-        repo_name=repo_name,
-    )
-
-    for release in releases:
-        release_name = release['tag_name']
-        release_date = release['published_at']
-        release_url = release['html_url']
-
-        logger.debug(
-            'Project(%s): Github Release %s %s.',
-            project_id,
-            release_name,
-            release_date,
-        )
-        Release.objects.update_or_create(
-            project_id=project_id,
-            timestamp=release_date,
-            type='github_release',
-            name=release_name,
-            url=release_url,
-        )
-
-    logger.info(
-        'Project(%s): Finished import_releases.',
-        project_id,
-    )
 
 
 @shared_task

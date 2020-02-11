@@ -239,7 +239,7 @@ class Project(GithubMixin, models.Model):
         )
 
     def import_releases(self):
-        from ingest.tasks.github import import_releases
+        from connectors.github.tasks import import_releases
         import_releases(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
