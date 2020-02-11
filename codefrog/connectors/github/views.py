@@ -15,10 +15,11 @@ from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
 from core import fastspring
-from core.models import Project, UserProfile
+from core.models import Project
 from web.models import Plan
 from core.utils import GitHub
 from connectors.github.router import github_hook
+from web.models import UserProfile
 
 logger = logging.getLogger(__name__)
 

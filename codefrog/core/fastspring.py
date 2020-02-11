@@ -3,7 +3,8 @@ import secrets
 
 from django.contrib.auth.models import User
 
-from core.models import Project, UserProfile
+from core.models import Project
+from web.models import UserProfile
 
 logger = logging.getLogger(__name__)
 
