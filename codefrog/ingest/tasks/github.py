@@ -45,10 +45,6 @@ GITHUB_BUG_ISSUE_LABELS = [
 ]
 
 
-
-
-
-
 @shared_task
 def calculate_issue_metrics(project_id):
     logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
@@ -105,10 +101,6 @@ def calculate_issue_metrics(project_id):
         metric.save()
 
     logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
-
-
-
-
 
 
 @shared_task
