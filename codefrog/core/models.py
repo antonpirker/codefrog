@@ -32,7 +32,7 @@ class UserProfile(models.Model):
     newly_registered = models.BooleanField(default=True)
 
     plan = models.ForeignKey(
-        'Plan',
+        'web.Plan',
         on_delete=models.SET_NULL,
         db_index=True,
         null=True,
@@ -424,11 +424,3 @@ class Usage(models.Model):
     action = models.CharField(max_length=100, blank=False, db_index=True)
 
 
-class Plan(models.Model):
-    name = models.CharField(max_length=40)
-    slug = models.CharField(max_length=40)
-    has_trial_period = models.BooleanField(default=False)
-    free_trial_days = models.IntegerField(default=14)
-
-    def __str__(self):
-        return f'{self.name} ({self.pk})'

@@ -4,7 +4,7 @@ from django.db import migrations
 
 
 def up(apps, schema_editor):
-    Plan = apps.get_model('core', 'Plan')
+    Plan = apps.get_model('web', 'Plan')
     Plan.objects.filter(name='Free').update(has_trial_period=False, free_trial_days=0)
     Plan.objects.filter(name='Individual').update(has_trial_period=True, free_trial_days=14)
     Plan.objects.filter(name='Team').update(has_trial_period=True, free_trial_days=14)

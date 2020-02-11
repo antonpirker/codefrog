@@ -15,7 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from git import Repo
 
 from core import fastspring
-from core.models import Project, UserProfile, Plan
+from core.models import Project, UserProfile
+from web.models import Plan
 from core.utils import GitHub
 from connectors.github.router import github_hook
 
