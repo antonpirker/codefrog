@@ -2,6 +2,8 @@ import datetime
 import json
 import logging
 import urllib
+import os
+from collections import defaultdict
 
 import requests
 from celery import shared_task
@@ -13,9 +15,114 @@ from django.utils import timezone
 from core.models import Metric, Project, Release
 from core.utils import date_range, GitHub, run_shell_command
 from incomingwebhooks.github.utils import get_access_token
-from ingest.models import OpenIssue, Issue
+from ingest.models import OpenIssue, Issue, CodeChange, Complexity
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task
+def import_code_changes(project_id, repo_dir, start_date=None):
+    """
+    :param project_id:
+    :param repo_dir:
+    :param start_date:
+    :return:
+    """
+    logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
+
+    if isinstance(start_date, str):
+        start_date = parse(start_date)
+    start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
+
+    # get first commit date
+    cmd = (
+        f'git rev-list --max-parents=0 HEAD '
+        f' --pretty="%ad" --date=iso8601-strict-local'
+    )
+    output = run_shell_command(cmd, cwd=repo_dir).split('\n')[1]
+    first_commit_date = parse(output).date()
+
+    start_date = start_date if start_date >= first_commit_date else first_commit_date
+    # TODO: skip the end_date, just get everything!
+    end_date = start_date + datetime.timedelta(days=DAYS_PER_CHUNK)
+    current_date = start_date
+
+    logger.info(
+        f'Project(%s): Running import_code_changes from %s to %s.',
+        project_id,
+        start_date.strftime("%Y-%m-%d"),
+        end_date.strftime("%Y-%m-%d"),
+    )
+
+    # get git commits for date range
+    cmd = (
+        f'git log --reverse --date-order'
+        f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
+        f' --before="{end_date.strftime("%Y-%m-%d")} 00:00"'
+        f' --pretty="%ad;%H;%aN;%aE" --date=iso8601-strict-local'
+    )
+    output = run_shell_command(cmd, cwd=repo_dir)
+    code_changes = [line for line in output.split('\n') if line]
+
+    # TODO: here I have then all the code_changes of the whole repository.
+    #  split this up so it is imported by multiple workers.
+    #  for this to work, every worker needs her own copy of the repo on disk.
+    #  celery chunks may be useful for this: http://docs.celeryproject.org/en/latest/userguide/canvas.html#chunks
+    #  the ordering of this is not important, because we need all CodeChange to be present to run calculations on them.
+
+    for code_change in code_changes:
+        timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
+        timestamp = parse(timestamp)
+        added, removed = get_complexity_change(repo_dir, git_commit_hash)
+        file_names = list(set(list(added.keys()) + list(removed.keys())))
+        try:
+            for file_name in file_names:
+                logger.debug('Project(%s): CodeChange %s', project_id, timestamp)
+                CodeChange.objects.update_or_create(
+                    project_id=project_id,
+                    timestamp=timestamp,
+                    file_path=file_name,
+                    author=f'{author_name} <{author_email}>',
+                    complexity_added=added[file_name],
+                    complexity_removed=removed[file_name],
+                )
+        except ValueError as err:
+            logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)
+        current_date = timestamp.date() \
+            if timestamp.date() > current_date else current_date
+
+    # TODO: this should then be started otherwise, but the basic function of calculate_code_metrics stays the same.
+    # TODO: check how fast this calculate_code_metrics is.
+    # Calculate code metrics for this chunk.
+    calculate_code_metrics.apply_async(kwargs={
+        'project_id': project_id,
+        'start_date': start_date,
+    })
+
+    # TODO: this can then be ommited
+    # Get last commit
+    cmd = 'git log --pretty="%ad" --date-order --date=iso8601-strict-local -1'
+    output = run_shell_command(cmd, cwd=repo_dir)
+    last_commit_date = parse(output).date()
+
+    # If we are not at the end, start ingesting the next chunk
+    if current_date < last_commit_date:
+        if start_date <= current_date:
+            current_date = end_date
+        logger.info(
+            'Project(%s): Calling import_code_changes for next chunk. (start_date=%s)',
+            project_id,
+            current_date,
+        )
+        import_code_changes.apply_async(kwargs={
+            'project_id': project_id,
+            'repo_dir': repo_dir,
+            'start_date': current_date,
+        })
+
+    logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
+
+    return project_id
 
 
 @shared_task

@@ -146,8 +146,9 @@ class Project(GithubMixin, models.Model):
         #self.save()
 
     def update_data(self):
-        from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
+        from ingest.tasks.git import clone_repo, ingest_git_tags
         from ingest.tasks.github import ingest_github_releases, import_open_issues
+        from connectors.git.tasks import import_code_changes
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -209,7 +210,7 @@ class Project(GithubMixin, models.Model):
         )
 
     def import_code_changes(self):
-        from ingest.tasks.git import import_code_changes
+        from connectors.git.tasks import import_code_changes
         import_code_changes(
             project_id=self.pk,
             repo_dir=self.repo_dir,
