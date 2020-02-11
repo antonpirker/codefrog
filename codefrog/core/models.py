@@ -5,15 +5,16 @@ from datetime import timedelta
 
 from celery import chain, group
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
 from django.db.models import Count
 from django.utils import timezone
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
-from ingest.models import Complexity
+from core.models import Complexity
 from engine.models import CodeChange
+
 
 logger = logging.getLogger(__name__)
 
@@ -143,8 +144,7 @@ class Project(GithubMixin, models.Model):
         self.save()
 
     def purge_data(self):
-        from core.models import Metric, Release
-        from ingest.models import Complexity
+        from core.models import Metric, Release, Complexity
         from engine.models import CodeChange, Issue, OpenIssue
         from web.models import Usage
 
@@ -360,3 +360,13 @@ class Release(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.pk})'
+
+
+class Complexity(models.Model):
+    project = models.ForeignKey(
+        'core.Project',
+        on_delete=models.CASCADE,
+    )
+    timestamp = models.DateTimeField()
+    file_path = models.CharField(max_length=255)
+    complexity = models.PositiveIntegerField()

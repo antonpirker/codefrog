@@ -12,10 +12,9 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import Metric, Release, Project
+from core.models import Metric, Release, Project, Complexity
 from core.utils import date_range, run_shell_command, GitHub
 from dateutil.parser import parse
-from ingest.models import Complexity
 from engine.models import CodeChange, Issue, OpenIssue
 
 logger = logging.getLogger(__name__)
