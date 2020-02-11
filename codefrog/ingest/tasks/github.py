@@ -205,9 +205,9 @@ def calculate_issue_metrics(project_id):
 
 
 @shared_task
-def import_github_releases(project_id, repo_owner, repo_name):
+def import_releases(project_id, repo_owner, repo_name):
     logger.info(
-        'Project(%s): Starting import_github_releases.',
+        'Project(%s): Starting import_releases.',
         project_id,
     )
 
@@ -215,7 +215,7 @@ def import_github_releases(project_id, repo_owner, repo_name):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_github_releases.', project_id)
+        logger.info('Project(%s): Finished import_releases.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
@@ -246,7 +246,7 @@ def import_github_releases(project_id, repo_owner, repo_name):
         )
 
     logger.info(
-        'Project(%s): Finished import_github_releases.',
+        'Project(%s): Finished import_releases.',
         project_id,
     )
 

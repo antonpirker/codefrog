@@ -100,7 +100,7 @@ class Project(GithubMixin, models.Model):
         # self.calculate_code_metrics() # depends on import_code_changes() NOT get_source_tree_metrics
 
 #        self.import_issues()  # async
-#        self.import_github_releases()  # async, performance does not matter
+#        self.import_releases()  # async, performance does not matter
 #        self.import_tags()  # async, performance does not matter
 
         """
@@ -238,9 +238,9 @@ class Project(GithubMixin, models.Model):
             repo_name=self.github_repo_name,
         )
 
-    def import_github_releases(self):
-        from ingest.tasks.github import import_github_releases
-        import_github_releases(
+    def import_releases(self):
+        from ingest.tasks.github import import_releases
+        import_releases(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,
             repo_name=self.github_repo_name,

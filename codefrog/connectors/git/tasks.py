@@ -29,7 +29,7 @@ def import_tags(project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_github_releases.', project_id)
+        logger.info('Project(%s): Finished import_releases.', project_id)
         return
 
     cmd = (
