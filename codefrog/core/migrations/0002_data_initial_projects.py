@@ -6,7 +6,7 @@ from django.db import migrations
 def up(apps, schema_editor):
     Project = apps.get_model('core', 'Project')
 
-    Project.objects.create(
+    Project.objects.update_or_create(
         name='Elasticsearch',
         slug='elasticsearch',
         private=False,
@@ -22,7 +22,7 @@ def up(apps, schema_editor):
         source_tree_metrics={},
     )
 
-    Project.objects.create(
+    Project.objects.update_or_create(
         name='Kubernetes',
         slug='kubernetes',
         private=False,
@@ -38,7 +38,7 @@ def up(apps, schema_editor):
         source_tree_metrics={},
     )
 
-    Project.objects.create(
+    Project.objects.update_or_create(
         name='Visual Studio Code',
         slug='vscode',
         private=False,

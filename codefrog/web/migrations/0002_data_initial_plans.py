@@ -5,19 +5,19 @@ from django.db import migrations
 
 def up(apps, schema_editor):
     Plan = apps.get_model('web', 'Plan')
-    Plan.objects.create(
+    Plan.objects.update_or_create(
         name='Free',
         slug='free',
         has_trial_period=False,
         free_trial_days=0,
     )
-    Plan.objects.create(
+    Plan.objects.update_or_create(
         name='Individual',
         slug='individual',
         has_trial_period=True,
         free_trial_days=14,
     )
-    Plan.objects.create(
+    Plan.objects.update_or_create(
         name='Team',
         slug='team',
         has_trial_period=True,
