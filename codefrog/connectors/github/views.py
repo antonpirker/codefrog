@@ -1,24 +1,17 @@
-import json
 import logging
-import subprocess
-import tempfile
 
-import requests
-from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http.response import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
-from git import Repo
 
-from core import fastspring
-from core.models import Project
-from web.models import Plan
-from core.utils import GitHub
 from connectors.github.router import github_hook
+from core.models import Project
+from core.utils import GitHub
+from web.models import Plan
 from web.models import UserProfile
 
 logger = logging.getLogger(__name__)
