@@ -45,10 +45,10 @@ class Project(GithubMixin, models.Model):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from connectors.github.tasks import import_issues, import_releases
-        from core.tasks import get_source_tree_metrics
+        from core.tasks import get_source_tree_metrics, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
-        ingest_data = chain(
+        ingest_project = chain(
             clone_repo.s(),
             import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
             group(
@@ -60,17 +60,27 @@ class Project(GithubMixin, models.Model):
                 ),
                 import_releases.s(),
                 import_tags.s(),
-            )
+            ),
+            save_last_update.s(),
         )
-        ingest_data.apply_async((self.pk, ))
+        ingest_project.apply_async((self.pk, ))
 
-        # TODO: save last_update after all async tasks have finished.
-        self.last_update = timezone.now()
-        self.save()
-
-    def udpate(self):
+    def update(self):
         # TODO: import everything from the last 24 hours.
-        raise NotImplementedError
+        from celery import chain, group
+        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
+        from connectors.github.tasks import import_issues, import_releases
+        from core.tasks import get_source_tree_metrics, save_last_update
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+
+        start_date = timezone.now() - timedelta(days=1)
+
+        update_project = chain(
+            clone_repo.s(),
+            import_code_changes.s(start_date=start_date),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+            save_last_update.s(),
+        )
+        update_project.apply_async((self.pk, ))
 
     def purge(self):
         from core.models import Metric, Release, Complexity

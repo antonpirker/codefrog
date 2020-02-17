@@ -1,6 +1,8 @@
 import logging
 import os
 
+from django.utils import timezone
+
 from celery import shared_task
 from core.models import Project
 from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE
@@ -31,7 +33,7 @@ def update_project(project_id):
         logger.info('Project(%s): Finished update_project_data.', project_id)
         return
 
-    project.udpate()
+    project.update()
 
     logger.info('Project(%s): Finished update_project_data.', project_id)
 
@@ -153,3 +155,21 @@ def get_source_tree_metrics(project_id):
 
     return project_id
 
+
+@shared_task
+def save_last_update(project_id):
+    logger.info('Project(%s): Starting save_last_update.', project_id)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) save_last_update.', project_id)
+        return
+
+    project.last_update = timezone.now()
+    project.save(update_fields=['last_update'])
+
+    logger.info('Project(%s): Finished save_last_update.', project_id)
+
+    return project_id
