@@ -101,9 +101,8 @@ class Project(GithubMixin, models.Model):
         #self.save()
 
     def update_data(self):
-        from ingest.tasks.git import clone_repo, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases, import_open_issues
-        from connectors.git.tasks import import_code_changes
+        from connectors.git.tasks import clone_repo, import_tags, import_code_changes
+        from connectors.github.tasks import import_releases, import_open_issues
 
         clone = clone_repo.s(
             project_id=self.pk,
@@ -111,13 +110,13 @@ class Project(GithubMixin, models.Model):
             repo_dir=self.repo_dir,
         )
 
-        ingest_jobs = [
+        import_jobs = [
             import_code_changes.s(
                 repo_dir=self.repo_dir,
                 start_date=self.last_update,
             ),
 
-            ingest_git_tags.s(
+            import_tags.s(
                 repo_dir=self.repo_dir,
             ),
 
@@ -128,16 +127,16 @@ class Project(GithubMixin, models.Model):
         ]
 
         if self.on_github:
-            ingest_jobs.append(
-                ingest_github_releases.s(
+            import_jobs.append(
+                import_releases.s(
                     repo_owner=self.github_repo_owner,
                     repo_name=self.github_repo_name,
                 ),
             )
 
-        ingest = group(ingest_jobs)
+        importing = group(import_jobs)
 
-        chain(clone, ingest).apply_async()
+        chain(clone, importing).apply_async()
 
         self.last_update = timezone.now()
         self.save()
@@ -158,7 +157,7 @@ class Project(GithubMixin, models.Model):
         self.save()
 
     def clone_repo(self):
-        from ingest.tasks.git import clone_repo
+        from conectors.git.tasks import clone_repo
         clone_repo(
             project_id=self.pk,
             git_url=self.git_url,
@@ -188,7 +187,7 @@ class Project(GithubMixin, models.Model):
         )
 
     def import_open_issues(self):
-        from ingest.tasks.github import import_open_issues
+        from connectors.github.tasks import import_open_issues
         import_open_issues(
             project_id=self.pk,
             repo_owner=self.github_repo_owner,

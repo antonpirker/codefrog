@@ -138,7 +138,7 @@ def import_code_changes(project_id, repo_dir, start_date=None):
     output = run_shell_command(cmd, cwd=repo_dir)
     last_commit_date = parse(output).date()
 
-    # If we are not at the end, start ingesting the next chunk
+    # If we are not at the end, start importing the next chunk
     if current_date < last_commit_date:
         if start_date <= current_date:
             current_date = end_date

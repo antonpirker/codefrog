@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'connectors.apps.ConnectorsConfig',
     'engine.apps.EngineConfig',
     'web.apps.WebConfig',
-#    'ingest.apps.IngestConfig',  # DEPRECATED!
 #    'incomingwebhooks.apps.IncomingWebhooksConfig', # DEPRECATED!
 ]
 
