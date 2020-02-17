@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def import_issues(project_id, repo_owner, repo_name, start_date=None):
+def import_issues(project_id, start_date=None):
     logger.info(
         'Project(%s): Starting import_issues. (%s)',
         project_id,
@@ -30,15 +30,15 @@ def import_issues(project_id, repo_owner, repo_name, start_date=None):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_issues.', project_id)
+        logger.info('Project(%s): Finished (aborted) import_issues.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
     gh = GitHub(installation_id=installation_id)
 
     issues = gh.get_issues(
-        repo_owner=repo_owner,
-        repo_name=repo_name,
+        repo_owner=project.github_repo_owner,
+        repo_name=project.github_repo_name,
         start_date=start_date,
     )
 
@@ -72,7 +72,7 @@ def import_issues(project_id, repo_owner, repo_name, start_date=None):
                     'labels': labels,
                 }
             )
-            logger.info(f'Issue {raw_issue}: created: {created}')
+            logger.debug(f'{raw_issue}: created: {created}')
 
     logger.info(
         'Project(%s): Finished import_issues. (%s)',
@@ -182,7 +182,7 @@ def import_open_issues(project_id, repo_owner, repo_name):
 
 
 @shared_task
-def import_releases(project_id, repo_owner, repo_name):
+def import_releases(project_id):
     logger.info(
         'Project(%s): Starting import_releases.',
         project_id,
@@ -192,15 +192,15 @@ def import_releases(project_id, repo_owner, repo_name):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_releases.', project_id)
+        logger.info('Project(%s): Finished (aborted) import_releases.', project_id)
         return
 
     installation_id = project.user.profile.github_app_installation_refid
     gh = GitHub(installation_id=installation_id)
 
     releases = gh.get_releases(
-        repo_owner=repo_owner,
-        repo_name=repo_name,
+        repo_owner=project.github_repo_owner,
+        repo_name=project.github_repo_name,
     )
 
     for release in releases:
@@ -226,3 +226,5 @@ def import_releases(project_id, repo_owner, repo_name):
         'Project(%s): Finished import_releases.',
         project_id,
     )
+
+    return project_id

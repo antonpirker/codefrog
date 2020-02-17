@@ -18,7 +18,7 @@ DAYS_PER_CHUNK = 3650
 
 
 @shared_task
-def clone_repo(project_id, git_url, repo_dir):
+def clone_repo(project_id):
     """
     Clone the remote git repository to local directory.
 
@@ -28,24 +28,31 @@ def clone_repo(project_id, git_url, repo_dir):
     """
     logger.info('Project(%s): Starting clone_repo.', project_id)
 
-    project = Project.objects.get(pk=project_id)
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) clone_repo.', project_id)
+        return
+
+    git_url = project.git_url
 
     installation_access_token = None
     if project.private:
         installation_id = project.user.profile.github_app_installation_refid
         installation_access_token = get_access_token(installation_id)
 
-    if os.path.exists(repo_dir):
+    if os.path.exists(project.repo_dir):
         logger.info('Project(%s): Repo Exists. Start pulling new changes.', project_id)
         cmd = f'git pull'
-        run_shell_command(cmd, cwd=repo_dir)
+        run_shell_command(cmd, cwd=project.repo_dir)
         logger.info('Project(%s): Finished pulling new changes.', project_id)
     else:
         logger.info('Project(%s): Start cloning.', project_id)
         if installation_access_token:
             git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
 
-        cmd = f'git clone {git_url} {repo_dir}'
+        cmd = f'git clone {git_url} {project.repo_dir}'
         run_shell_command(cmd)
         logger.info('Project(%s): Finished cloning.', project_id)
 
@@ -55,14 +62,20 @@ def clone_repo(project_id, git_url, repo_dir):
 
 
 @shared_task
-def import_code_changes(project_id, repo_dir, start_date=None):
+def import_code_changes(project_id, start_date=None):
     """
     :param project_id:
-    :param repo_dir:
     :param start_date:
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) import_code_changes.', project_id)
+        return
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
@@ -73,7 +86,7 @@ def import_code_changes(project_id, repo_dir, start_date=None):
         f'git rev-list --max-parents=0 HEAD '
         f' --pretty="%ad" --date=iso8601-strict-local'
     )
-    output = run_shell_command(cmd, cwd=repo_dir).split('\n')[1]
+    output = run_shell_command(cmd, cwd=project.repo_dir).split('\n')[1]
     first_commit_date = parse(output).date()
 
     start_date = start_date if start_date >= first_commit_date else first_commit_date
@@ -90,7 +103,7 @@ def import_code_changes(project_id, repo_dir, start_date=None):
         f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
         f' --pretty="%ad;%H;%aN;%aE" --date=iso8601-strict-local'
     )
-    output = run_shell_command(cmd, cwd=repo_dir)
+    output = run_shell_command(cmd, cwd=project.repo_dir)
     code_changes = [line for line in output.split('\n') if line]
 
     # TODO: here I have then all the code_changes of the whole repository.
@@ -102,7 +115,7 @@ def import_code_changes(project_id, repo_dir, start_date=None):
     for code_change in code_changes:
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
         timestamp = parse(timestamp)
-        added, removed = _get_complexity_change(repo_dir, git_commit_hash)
+        added, removed = _get_complexity_change(project.repo_dir, git_commit_hash)
         file_names = list(set(list(added.keys()) + list(removed.keys())))
         try:
             for file_name in file_names:
@@ -191,7 +204,7 @@ def import_tags(project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_releases.', project_id)
+        logger.info('Project(%s): Finished (aborted) import_tags.', project_id)
         return
 
     cmd = (

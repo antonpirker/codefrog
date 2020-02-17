@@ -43,59 +43,29 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
-        self.clone_repo() # must be the first thing
-        self.import_code_changes()  # depends on clone_repo()  # TODO: see todos in import_code_changes for optimization
-        self.calculate_code_metrics() # depends on import_code_changes() NOT get_source_tree_metrics
-        # TODO: import_code_changes should be called first with massive parallelication, so it is fast.
-        #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
-        #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
-        self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
+        from celery import chain, group
+        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
+        from connectors.github.tasks import import_issues, import_releases
+        from core.tasks import get_source_tree_metrics
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
-        self.import_issues()  # async
-        self.calculate_issue_metrics()  # depends on import_issues()
-
-        self.import_releases()  # async, performance does not matter
-        self.import_tags()  # async, performance does not matter
-
-        """
-        from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
-        from ingest.tasks.github import ingest_github_releases
-        from connectors.github.tasks import import_issues
-
-        clone = clone_repo.s(
-            project_id=self.pk,
-            git_url=self.git_url,
-            repo_dir=self.repo_dir,
-        )
-
-        ingest_jobs = [
-            import_code_changes.s(
-                repo_dir=self.repo_dir,
-            ),
-
-            ingest_git_tags.s(
-                repo_dir=self.repo_dir,
-            ),
-
-            import_issues.s(
-                repo_owner=self.github_repo_owner,
-                repo_name=self.github_repo_name,
-            ),
-        ]
-
-        if self.on_github:
-            ingest_jobs.append(
-                ingest_github_releases.s(
-                    repo_owner=self.github_repo_owner,
-                    repo_name=self.github_repo_name,
+        ingest_data = chain(
+            clone_repo.s(),
+            import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+            group(
+                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+                chain(
+                    import_issues.s(),
+                    calculate_issue_metrics.s(),
                 ),
+                import_releases.s(),
+                import_tags.s(),
             )
+        )
+        ingest_data.apply_async((self.pk, ))
 
-        ingest = group(ingest_jobs)
-
-        chain(clone, ingest).apply_async()
-        """
-
+        # TODO: save last_update after all async tasks have finished.
         self.last_update = timezone.now()
         self.save()
 

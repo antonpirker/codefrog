@@ -49,7 +49,7 @@ def get_source_tree_metrics(project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished get_source_tree_metrics.', project_id)
+        logger.info('Project(%s): Finished (aborted) get_source_tree_metrics.', project_id)
         return
 
     root = {
@@ -62,8 +62,6 @@ def get_source_tree_metrics(project_id):
     min_changes = 0
     max_changes = 0
 
-    # TODO: maybe do not do this here but outside? now it is done outside and here.
-    project.clone_repo()
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
             full_path = os.path.join(root_dir, f)
@@ -152,3 +150,6 @@ def get_source_tree_metrics(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree_metrics.', project_id)
+
+    return project_id
+

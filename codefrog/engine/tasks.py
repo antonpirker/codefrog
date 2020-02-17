@@ -153,6 +153,8 @@ def calculate_code_metrics(project_id, start_date=None):
 
     logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
 
+    return project_id
+
 
 @shared_task
 def calculate_issue_metrics(project_id):
@@ -210,3 +212,5 @@ def calculate_issue_metrics(project_id):
         metric.save()
 
     logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
+
+    return project_id

@@ -1,4 +1,3 @@
-from urllib.parse import parse_qs
 import hashlib
 import hmac
 import json
@@ -9,6 +8,7 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.utils.crypto import constant_time_compare
+from urllib.parse import parse_qs
 
 
 def create_jwt():
@@ -44,7 +44,6 @@ def get_access_token(installation_id):
     out = requests.post(api_url, headers=headers)
     out = json.loads(out.content)
     token = out['token']
-    print("Installation access token: %s" % token)
     return token
 
 
