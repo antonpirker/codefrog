@@ -1,7 +1,6 @@
 from django.urls import path, include
 
 from core import views, views_website
-import django.contrib.auth.views as auth_views
 
 urlpatterns = [
     path('', views.index, name='index'),

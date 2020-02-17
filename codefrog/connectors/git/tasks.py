@@ -4,10 +4,11 @@ import os
 from collections import defaultdict
 
 from celery import shared_task
+from dateutil.parser import parse
+
 from connectors.github.utils import get_access_token
 from core.models import Project, Release
 from core.utils import run_shell_command
-from dateutil.parser import parse
 from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)

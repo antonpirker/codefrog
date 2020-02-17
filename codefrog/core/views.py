@@ -4,21 +4,16 @@ import json
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
-from django.utils.text import slugify
-
 
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
 from core.views_website import landing
-from connectors.github.utils import get_access_token, \
-    get_app_installation_repositories
-from web.models import UserProfile, Usage
+from web.models import Usage
 
 MONTH = 30
 YEAR = 365

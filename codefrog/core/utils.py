@@ -1,22 +1,21 @@
 import datetime
+import json
 import logging
 import os
-import jwt
 import subprocess
 import time
-import requests
-import json
 import urllib
 from datetime import timedelta
+
+import jwt
+import pandas as pd
+import requests
 from dateutil.parser import parse
+from django.conf import settings
+from django.utils import timezone
 from urllib.parse import parse_qs
 
-import pandas as pd
-from django.utils import timezone
-
 from engine.models import CodeChange
-
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

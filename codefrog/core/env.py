@@ -1,6 +1,6 @@
 import random
+
 from django.core.exceptions import ImproperlyConfigured
-from urllib.parse import urlparse
 
 
 class NoValue(object):

@@ -2,7 +2,6 @@ import logging
 import os
 
 from celery import shared_task
-
 from core.models import Project
 from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE
 
