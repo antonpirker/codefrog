@@ -40,7 +40,7 @@ assert get_env(env.db, ENV_NAME, default='postgres://codefrog:codefrog@127.0.0.1
 
 SECRET_KEY = get_env(env.str, 'SECRET_KEY')
 
-DEBUG = get_env(env.bool, 'DEBUG', default=True)
+DEBUG = get_env(env.bool, 'DEBUG', default=False)
 
 ALLOWED_HOSTS = get_env(env.list, 'ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
 
