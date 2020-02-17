@@ -41,7 +41,7 @@ services:
             - redis
         env_file:
           - ./.env
-        volumnes:
+        volumes:
             - project_source_code:/project_source_code
 
     celery_worker:
@@ -83,7 +83,7 @@ services:
             - redis
         env_file:
           - ./.env
-        volumnes:
+        volumes:
             - project_source_code:/project_source_code
 
     celery_beat:
@@ -125,7 +125,7 @@ services:
             - redis
         env_file:
           - ./.env
-        volumnes:
+        volumes:
             - project_source_code:/project_source_code
 
     redis:
