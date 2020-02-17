@@ -11,36 +11,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# tests
-ENV_NAME=str(random.random())
-os.environ[ENV_NAME]= ''
-assert get_env(env.bool, ENV_NAME, default=True) == True
-assert get_env(env.bool, ENV_NAME, default=None) == None
-assert get_env(env.int, ENV_NAME, default=5) == 5
-assert get_env(env.int, ENV_NAME, default=None) == None
-assert get_env(env.str, ENV_NAME, default=None) == None
-assert get_env(env.str, ENV_NAME, default='hallo') == 'hallo'
-assert get_env(env.list, ENV_NAME, default=['eins', 'zwei']) == ['eins', 'zwei']
-assert get_env(env.list, ENV_NAME, default=None) == None
-assert get_env(env.url, ENV_NAME, default=None) == None
-assert get_env(env.url, ENV_NAME, default='redis://localhost:6379/0').geturl() == 'redis://localhost:6379/0'
-assert get_env(env.db, ENV_NAME, default=None) == None
-assert get_env(env.db, ENV_NAME, default='postgres://codefrog:codefrog@127.0.0.1/codefrog?CONN_MAX_AGE=600') == \
-       {
-           'NAME': 'codefrog',
-           'USER': 'codefrog',
-           'PASSWORD': 'codefrog',
-           'HOST': '127.0.0.1',
-           'PORT': '',
-           'CONN_MAX_AGE': 600,
-           'OPTIONS': {},
-           'ENGINE': 'django.db.backends.postgresql',
-       }
-
-
 SECRET_KEY = get_env(env.str, 'SECRET_KEY')
 
-DEBUG = get_env(env.bool, 'DEBUG', default=False)
+DEBUG = get_env(env.bool, 'DEBUG', default=True)
 
 ALLOWED_HOSTS = get_env(env.list, 'ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
 
@@ -156,6 +129,8 @@ STATIC_ROOT = get_env(env.str, 'STATIC_ROOT', default=os.path.join(BASE_DIR, 'st
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+WHITENOISE_ALLOW_ALL_ORIGINS = False
+
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging
 
@@ -203,7 +178,7 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = \
     get_env(env.int, 'CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
     get_env(env.int, 'CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1024)
-CELERY_TASK_ALWAYS_EAGER = get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
+CELERY_TASK_ALWAYS_EAGER = get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=False)
 
 
 # Github Setup
