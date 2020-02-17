@@ -6,35 +6,45 @@ from django.db.utils import IntegrityError
 
 def up(apps, schema_editor):
     Plan = apps.get_model('web', 'Plan')
+
     try:
+        plan = Plan.objects.get(slug='free')
+    except Plan.DoesNotExist:
+        plan = None
+
+    if not plan:
         Plan.objects.create(
             name='Free',
             slug='free',
             has_trial_period=False,
             free_trial_days=0,
         )
-    except IntegrityError:
-        pass
 
     try:
+        plan = Plan.objects.get(slug='individual')
+    except Plan.DoesNotExist:
+        plan = None
+
+    if not plan:
         Plan.objects.create(
             name='Individual',
             slug='individual',
             has_trial_period=True,
             free_trial_days=14,
         )
-    except IntegrityError:
-        pass
 
     try:
+        plan = Plan.objects.get(slug='team')
+    except Plan.DoesNotExist:
+        plan = None
+
+    if not plan:
         Plan.objects.create(
             name='Team',
             slug='team',
             has_trial_period=True,
             free_trial_days=14,
         )
-    except IntegrityError:
-        pass
 
 
 class Migration(migrations.Migration):
