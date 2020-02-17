@@ -197,6 +197,8 @@ LOGGING = {
 # Celery
 CELERY_BROKER_URL = \
     get_env(env.url, 'CELERY_BROKER_URL', default='redis://localhost:6379/0').geturl()
+CELERY_RESULT_BACKEND = \
+    get_env(env.url, 'CELERY_RESULT_BACKEND', default='redis://localhost:6379/1').geturl()
 CELERY_WORKER_MAX_TASKS_PER_CHILD = \
     get_env(env.int, 'CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
