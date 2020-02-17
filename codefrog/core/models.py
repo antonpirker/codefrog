@@ -1,19 +1,17 @@
-import datetime
 import logging
 import os
 from datetime import timedelta
 
-from celery import chain, group
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Count
 from django.utils import timezone
 
+from celery import chain, group
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
 from engine.models import CodeChange
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +43,13 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def import_data(self):
-#        self.clone_repo() # must be the first thing
-#        self.import_code_changes()  # depends on clone_repo()  # TODO: see todos in import_code_changes for optimization
-#        self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
-            # TODO: import_code_changes should be called first with massive parallelication, so it is fast.
-            #  inside is then called calculate_code_metrics after import_code_changes is finished.
-            #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
-            #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
-        # self.calculate_code_metrics() # depends on import_code_changes() NOT get_source_tree_metrics
+        self.clone_repo() # must be the first thing
+        self.import_code_changes()  # depends on clone_repo()  # TODO: see todos in import_code_changes for optimization
+        self.calculate_code_metrics() # depends on import_code_changes() NOT get_source_tree_metrics
+        # TODO: import_code_changes should be called first with massive parallelication, so it is fast.
+        #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
+        #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
+        # self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
 
 #        self.import_issues()  # async
 #        self.import_releases()  # async, performance does not matter
@@ -144,7 +141,6 @@ class Project(GithubMixin, models.Model):
     def purge_data(self):
         from core.models import Metric, Release, Complexity
         from engine.models import CodeChange, Issue, OpenIssue
-        from web.models import Usage
 
         Release.objects.filter(project=self).delete()
         Metric.objects.filter(project=self).delete()
@@ -157,7 +153,7 @@ class Project(GithubMixin, models.Model):
         self.save()
 
     def clone_repo(self):
-        from conectors.git.tasks import clone_repo
+        from connectors.git.tasks import clone_repo
         clone_repo(
             project_id=self.pk,
             git_url=self.git_url,
@@ -169,6 +165,12 @@ class Project(GithubMixin, models.Model):
         import_code_changes(
             project_id=self.pk,
             repo_dir=self.repo_dir,
+        )
+
+    def calculate_code_metrics(self):
+        from engine.tasks import calculate_code_metrics
+        calculate_code_metrics(
+            project_id=self.pk,
         )
 
     def get_source_tree_metrics(self):

@@ -1,26 +1,19 @@
 import datetime
 import logging
-import os
-import json
-import urllib
 from collections import defaultdict
 
-import requests
 from celery import shared_task
-
-from django.conf import settings
+from dateutil.parser import parse
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import Metric, Release, Project, Complexity
-from core.utils import date_range, run_shell_command, GitHub
-from dateutil.parser import parse
-from engine.models import CodeChange, Issue, OpenIssue
+from core.models import Metric, Complexity
+from core.utils import date_range
+from engine.models import CodeChange, Issue
 
 logger = logging.getLogger(__name__)
 
-
-DAYS_PER_CHUNK = 3650
+DAYS_PER_CHUNK = 365 * 10
 
 
 @shared_task
@@ -74,7 +67,6 @@ def calculate_code_metrics(project_id, start_date=None):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
 
     start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)
-    end_date = start_date + datetime.timedelta(days=DAYS_PER_CHUNK)
 
     # Get the last known complexity as starting point. (or 0)
     total_complexity = Metric.objects.filter(
@@ -87,18 +79,17 @@ def calculate_code_metrics(project_id, start_date=None):
     change_frequency = defaultdict(int)
 
     logger.info(
-        f'Project(%s): Running calculate_code_metrics from %s to %s.',
+        f'Project(%s): Running calculate_code_metrics starting with %s.',
         project_id,
         start_date.strftime("%Y-%m-%d"),
-        end_date.strftime("%Y-%m-%d"),
     )
 
     code_changes = CodeChange.objects.filter(
         project_id=project_id,
         timestamp__date__gte=start_date,
-        timestamp__date__lte=end_date,
     ).order_by('timestamp')
 
+    # Calculate complexity and change frequency at the end of the respective day
     for change in code_changes:
         day = change.timestamp.date()
 
@@ -110,6 +101,7 @@ def calculate_code_metrics(project_id, start_date=None):
         # overall change frequency
         change_frequency[day] += 1
 
+    # Save calculated complexity and change frequency to metrics
     for day in complexity.keys():
         logger.debug('Project(%s): Code Metric %s', project_id, day)
         # save the metrics to db
@@ -126,8 +118,7 @@ def calculate_code_metrics(project_id, start_date=None):
         metric.metrics = metric_json
         metric.save()
 
-    # Fill gaps in metrics (so there is one Metric object for every day
-    # that has all the metrics filled out)
+    # Fill gaps in metrics (so there is one Metric object all the metrics set for each and every day)
     try:
         old_metric = Metric.objects.get(
             project_id=project_id,
@@ -139,7 +130,7 @@ def calculate_code_metrics(project_id, start_date=None):
         old_complexity = 0
         old_change_frequency = 0
 
-    for day in date_range(start_date, end_date):
+    for day in date_range(start_date, timezone.now().date()):
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
             date=day,
@@ -149,7 +140,7 @@ def calculate_code_metrics(project_id, start_date=None):
             metric_json = {}
 
         metric_json['complexity'] = metric_json['complexity'] \
-            if 'complexity' in metric_json and metric_json['complexity']\
+            if 'complexity' in metric_json and metric_json['complexity'] \
             else old_complexity
         metric_json['change_frequency'] = metric_json['change_frequency'] \
             if 'change_frequency' in metric_json and metric_json['change_frequency'] \
@@ -195,7 +186,7 @@ def calculate_issue_metrics(project_id):
 
         # age
         try:
-            age = (age_closed_issues+age_opened_issues)/(count_closed_issues+count_open_issues)
+            age = (age_closed_issues + age_opened_issues) / (count_closed_issues + count_open_issues)
         except ZeroDivisionError:
             age = 0
 

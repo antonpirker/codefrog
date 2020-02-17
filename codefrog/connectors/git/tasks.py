@@ -76,22 +76,17 @@ def import_code_changes(project_id, repo_dir, start_date=None):
     first_commit_date = parse(output).date()
 
     start_date = start_date if start_date >= first_commit_date else first_commit_date
-    # TODO: skip the end_date, just get everything!
-    end_date = start_date + datetime.timedelta(days=DAYS_PER_CHUNK)
-    current_date = start_date
 
     logger.info(
-        f'Project(%s): Running import_code_changes from %s to %s.',
+        f'Project(%s): Running import_code_changes starting with %s.',
         project_id,
         start_date.strftime("%Y-%m-%d"),
-        end_date.strftime("%Y-%m-%d"),
     )
 
     # get git commits for date range
     cmd = (
         f'git log --reverse --date-order'
         f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
-        f' --before="{end_date.strftime("%Y-%m-%d")} 00:00"'
         f' --pretty="%ad;%H;%aN;%aE" --date=iso8601-strict-local'
     )
     output = run_shell_command(cmd, cwd=repo_dir)
@@ -121,37 +116,6 @@ def import_code_changes(project_id, repo_dir, start_date=None):
                 )
         except ValueError as err:
             logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)
-        current_date = timestamp.date() \
-            if timestamp.date() > current_date else current_date
-
-    # TODO: this should then be started otherwise, but the basic function of calculate_code_metrics stays the same.
-    # TODO: check how fast this calculate_code_metrics is.
-    # Calculate code metrics for this chunk.
-    calculate_code_metrics.apply_async(kwargs={
-        'project_id': project_id,
-        'start_date': start_date,
-    })
-
-    # TODO: this can then be ommited
-    # Get last commit
-    cmd = 'git log --pretty="%ad" --date-order --date=iso8601-strict-local -1'
-    output = run_shell_command(cmd, cwd=repo_dir)
-    last_commit_date = parse(output).date()
-
-    # If we are not at the end, start importing the next chunk
-    if current_date < last_commit_date:
-        if start_date <= current_date:
-            current_date = end_date
-        logger.info(
-            'Project(%s): Calling import_code_changes for next chunk. (start_date=%s)',
-            project_id,
-            current_date,
-        )
-        import_code_changes.apply_async(kwargs={
-            'project_id': project_id,
-            'repo_dir': repo_dir,
-            'start_date': current_date,
-        })
 
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
 
