@@ -1,23 +1,19 @@
 import datetime
-import json
 import logging
-import urllib
 import os
 from collections import defaultdict
 
-import requests
 from celery import shared_task
-from dateutil.parser import parse
-from django.conf import settings
-from django.db.models import Q
-from django.utils import timezone
-
-from core.models import Metric, Project, Release, Complexity
-from core.utils import date_range, GitHub, run_shell_command
 from connectors.github.utils import get_access_token
-from engine.models import CodeChange, Issue, OpenIssue
+from core.models import Project, Release
+from core.utils import run_shell_command
+from dateutil.parser import parse
+from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
+
+
+DAYS_PER_CHUNK = 3650
 
 
 @shared_task
@@ -110,7 +106,7 @@ def import_code_changes(project_id, repo_dir, start_date=None):
     for code_change in code_changes:
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
         timestamp = parse(timestamp)
-        added, removed = get_complexity_change(repo_dir, git_commit_hash)
+        added, removed = _get_complexity_change(repo_dir, git_commit_hash)
         file_names = list(set(list(added.keys()) + list(removed.keys())))
         try:
             for file_name in file_names:
@@ -160,6 +156,63 @@ def import_code_changes(project_id, repo_dir, start_date=None):
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
 
     return project_id
+
+
+def _get_complexity_change(source_dir, git_commit_hash):
+    """
+
+    :param source_dir:
+    :param git_commit_hash:
+    :return:
+    """
+    complexity_added = defaultdict(int)
+    complexity_removed = defaultdict(int)
+
+    # list files that where changed
+    cmd = f'git diff-tree --no-commit-id --name-only -r {git_commit_hash}'
+    files_changed = run_shell_command(cmd, cwd=source_dir)
+
+    is_root_commit = not files_changed
+    if is_root_commit:
+        cmd = f'git diff-tree --root --no-commit-id --name-only -r {git_commit_hash}'
+        files_changed = run_shell_command(cmd, cwd=source_dir)
+
+    for file_name in files_changed.split('\n'):
+        full_file_name = os.path.join(source_dir, file_name)
+        if not file_name or not os.path.exists(full_file_name):
+            continue
+
+        # lines added
+        # the `|| true` forces a exit code of 0,
+        # because grep returns an exit code of 1 if no lines matches.
+        cmd = f'git config merge.renameLimit 99999 ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{full_file_name}" ' \
+            f'| grep -v "^+++ " | grep "^+" || true'
+        lines_added = run_shell_command(cmd, cwd=source_dir)
+
+        for line in lines_added.split('\n'):
+            if not line:
+                continue
+
+            line = line[1:]  # skip first character
+            complexity_added[file_name] += len(line) - len(line.lstrip())
+
+        # lines removed
+        # the `|| true` forces a exit code of 0,
+        # because grep returns an exit code of 1 if no lines matches.
+        cmd = f'git config merge.renameLimit 99999 ' \
+            f'&& git diff-tree --no-commit-id -p -r {git_commit_hash} -- "{full_file_name}" ' \
+            f'| grep -v "^--- " | grep "^-" || true'
+        lines_removed = run_shell_command(cmd, cwd=source_dir)
+
+        for line in lines_removed.split('\n'):
+            if not line:
+                continue
+
+            line = line[1:]  # skip first character
+            complexity_removed[file_name] += len(line) - len(line.lstrip())
+
+    return complexity_added, complexity_removed
 
 
 @shared_task

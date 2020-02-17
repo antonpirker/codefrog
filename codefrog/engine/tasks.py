@@ -20,6 +20,9 @@ from engine.models import CodeChange, Issue, OpenIssue
 logger = logging.getLogger(__name__)
 
 
+DAYS_PER_CHUNK = 3650
+
+
 @shared_task
 def calculate_code_complexity(project_id):
     logger.info('Project(%s): Starting calculate_code_complexity.', project_id)
