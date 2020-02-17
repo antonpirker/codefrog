@@ -1,10 +1,28 @@
 from django.contrib import admin
-from django.contrib.postgres import fields
 
-from django_json_widget.widgets import JSONEditorWidget
+from web.models import Usage, Plan, UserProfile
 
-from core.models import Project, Metric, Release
-from web.models import Usage
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'newly_registered', 'plan', 'date_joined',
+    )
+    list_filter = (
+        'user', 'newly_registered', 'plan', 'date_joined',
+    )
+    ordering = ['-date_joined', ]
+
+
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'slug', 'has_trial_period', 'free_trial_days',
+    )
+    list_filter = (
+        'name', 'slug', 'has_trial_period', 'free_trial_days',
+    )
+    ordering = ['name', ]
 
 
 @admin.register(Usage)
