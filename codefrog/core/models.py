@@ -8,7 +8,6 @@ from django.db import models
 from django.db.models import Count
 from django.utils import timezone
 
-from celery import chain, group
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command
 from engine.models import CodeChange
@@ -42,7 +41,7 @@ class Project(GithubMixin, models.Model):
     def repo_dir(self):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
-    def import_data(self):
+    def ingest(self):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from connectors.github.tasks import import_issues, import_releases
@@ -69,48 +68,11 @@ class Project(GithubMixin, models.Model):
         self.last_update = timezone.now()
         self.save()
 
-    def update_data(self):
-        from connectors.git.tasks import clone_repo, import_tags, import_code_changes
-        from connectors.github.tasks import import_releases, import_open_issues
+    def udpate(self):
+        # TODO: import everything from the last 24 hours.
+        raise NotImplementedError
 
-        clone = clone_repo.s(
-            project_id=self.pk,
-            git_url=self.git_url,
-            repo_dir=self.repo_dir,
-        )
-
-        import_jobs = [
-            import_code_changes.s(
-                repo_dir=self.repo_dir,
-                start_date=self.last_update,
-            ),
-
-            import_tags.s(
-                repo_dir=self.repo_dir,
-            ),
-
-            import_open_issues.s(
-                repo_owner=self.github_repo_owner,
-                repo_name=self.github_repo_name,
-            )
-        ]
-
-        if self.on_github:
-            import_jobs.append(
-                import_releases.s(
-                    repo_owner=self.github_repo_owner,
-                    repo_name=self.github_repo_name,
-                ),
-            )
-
-        importing = group(import_jobs)
-
-        chain(clone, importing).apply_async()
-
-        self.last_update = timezone.now()
-        self.save()
-
-    def purge_data(self):
+    def purge(self):
         from core.models import Metric, Release, Complexity
         from engine.models import CodeChange, Issue, OpenIssue
 

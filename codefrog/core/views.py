@@ -646,7 +646,7 @@ def project_toggle(request, username, project_slug, user, project):
             timestamp=utcnow,
             action='project.activate',
         )
-        project.import_data()
+        project.ingest()
     else:
         Usage.objects.create(
             user=request.user if request.user.is_authenticated else None,

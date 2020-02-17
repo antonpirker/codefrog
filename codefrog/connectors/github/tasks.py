@@ -5,14 +5,11 @@ import urllib
 
 import requests
 from celery import shared_task
-from dateutil.parser import parse
-from django.conf import settings
-from django.db.models import Q
 from django.utils import timezone
 
-from core.models import Metric, Project, Release
-from core.utils import date_range, GitHub, run_shell_command
 from connectors.github.utils import get_access_token
+from core.models import Project, Release
+from core.utils import GitHub
 from engine.models import Issue, OpenIssue
 
 logger = logging.getLogger(__name__)

@@ -15,13 +15,13 @@ def update_all_projects():
     projects = Project.objects.filter(active=True).order_by('pk')
     for project in projects:
         logger.info(f'Calling update_project_data for project {project.pk}')
-        update_project_data.delay(project.pk)
+        update_project.delay(project.pk)
 
     logger.info('Finished update_all_projects.')
 
 
 @shared_task
-def update_project_data(project_id):
+def update_project(project_id):
     logger.info('Project(%s): Starting update_project_data.', project_id)
 
     try:
@@ -31,7 +31,7 @@ def update_project_data(project_id):
         logger.info('Project(%s): Finished update_project_data.', project_id)
         return
 
-    project.update_data()
+    project.udpate()
 
     logger.info('Project(%s): Finished update_project_data.', project_id)
 
