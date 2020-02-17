@@ -41,6 +41,8 @@ services:
             - redis
         env_file:
           - ./.env
+        volumnes:
+            - project_source_code:/project_source_code
 
     celery_worker:
         image: codefroghq/codefrog:latest
@@ -81,6 +83,8 @@ services:
             - redis
         env_file:
           - ./.env
+        volumnes:
+            - project_source_code:/project_source_code
 
     celery_beat:
         image: codefroghq/codefrog:latest
@@ -121,6 +125,8 @@ services:
             - redis
         env_file:
           - ./.env
+        volumnes:
+            - project_source_code:/project_source_code
 
     redis:
         image: redis:5-buster
@@ -131,5 +137,4 @@ services:
 
 volumes:
     redis_data:
-
-# this is just for retriggering the deployment. can be removed
+    project_source_code:
