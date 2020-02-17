@@ -5,7 +5,6 @@ from celery import shared_task
 
 from core.models import Project
 from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE
-from ingest.tasks.github import update_project_data
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +19,22 @@ def update_all_projects():
         update_project_data.delay(project.pk)
 
     logger.info('Finished update_all_projects.')
+
+
+@shared_task
+def update_project_data(project_id):
+    logger.info('Project(%s): Starting update_project_data.', project_id)
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished update_project_data.', project_id)
+        return
+
+    project.update_data()
+
+    logger.info('Project(%s): Finished update_project_data.', project_id)
 
 
 @shared_task
