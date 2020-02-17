@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'connectors.apps.ConnectorsConfig',
     'engine.apps.EngineConfig',
     'web.apps.WebConfig',
-#    'incomingwebhooks.apps.IncomingWebhooksConfig', # DEPRECATED!
 ]
 
 MIDDLEWARE = [
