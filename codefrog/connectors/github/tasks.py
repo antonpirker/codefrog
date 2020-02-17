@@ -74,11 +74,6 @@ def import_issues(project_id, repo_owner, repo_name, start_date=None):
             )
             logger.info(f'Issue {raw_issue}: created: {created}')
 
-    calculate_issue_metrics.apply_async(
-        kwargs={
-            'project_id': project_id,
-        },
-    )
     logger.info(
         'Project(%s): Finished import_issues. (%s)',
         project_id,

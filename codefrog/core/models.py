@@ -49,11 +49,13 @@ class Project(GithubMixin, models.Model):
         # TODO: import_code_changes should be called first with massive parallelication, so it is fast.
         #  get_source_tree_metrics can also be called at the same time as calculate_code_metrics (they do not depend on each other.) see todos in get_source_tree_metrics for optimization
         #  calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be parallelolized)
-        # self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
+        self.get_source_tree_metrics()  # depends on import_code_changes() NOT calculate_code_metrics
 
-#        self.import_issues()  # async
-#        self.import_releases()  # async, performance does not matter
-#        self.import_tags()  # async, performance does not matter
+        self.import_issues()  # async
+        self.calculate_issue_metrics()  # depends on import_issues()
+
+        self.import_releases()  # async, performance does not matter
+        self.import_tags()  # async, performance does not matter
 
         """
         from ingest.tasks.git import clone_repo, import_code_changes, ingest_git_tags
@@ -94,8 +96,8 @@ class Project(GithubMixin, models.Model):
         chain(clone, ingest).apply_async()
         """
 
-        #self.last_update = timezone.now()
-        #self.save()
+        self.last_update = timezone.now()
+        self.save()
 
     def update_data(self):
         from connectors.git.tasks import clone_repo, import_tags, import_code_changes
@@ -196,6 +198,11 @@ class Project(GithubMixin, models.Model):
             repo_name=self.github_repo_name,
         )
 
+    def calculate_issue_metrics(self):
+        from engine.tasks import calculate_issue_metrics
+        calculate_issue_metrics(
+            project_id=self.pk
+        )
     def import_releases(self):
         from connectors.github.tasks import import_releases
         import_releases(
