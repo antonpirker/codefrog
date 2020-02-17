@@ -16,7 +16,7 @@ def update_all_projects():
 
     projects = Project.objects.filter(active=True).order_by('pk')
     for project in projects:
-        logger.info(f'Calling update_project_data for project {project.pk}')
+        logger.info(f'Calling update_project for project {project.pk}')
         update_project.delay(project.pk)
 
     logger.info('Finished update_all_projects.')
@@ -24,18 +24,18 @@ def update_all_projects():
 
 @shared_task
 def update_project(project_id):
-    logger.info('Project(%s): Starting update_project_data.', project_id)
+    logger.info('Project(%s): Starting update_project.', project_id)
 
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished update_project_data.', project_id)
+        logger.info('Project(%s): Finished update_project.', project_id)
         return
 
     project.update()
 
-    logger.info('Project(%s): Finished update_project_data.', project_id)
+    logger.info('Project(%s): Finished update_project.', project_id)
 
 
 @shared_task
@@ -157,19 +157,22 @@ def get_source_tree_metrics(project_id):
 
 
 @shared_task
-def save_last_update(project_id):
-    logger.info('Project(%s): Starting save_last_update.', project_id)
+def save_last_update(project_ids):
+    logger.info('Project(%s): Starting save_last_update.', project_ids)
 
-    try:
-        project = Project.objects.get(pk=project_id)
-    except Project.DoesNotExist:
-        logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished (aborted) save_last_update.', project_id)
-        return
+    if isinstance(project_ids, int):
+        project_ids = [project_ids, ]
 
-    project.last_update = timezone.now()
-    project.save(update_fields=['last_update'])
+    for project_id in project_ids:
+        try:
+            project = Project.objects.get(pk=project_id)
+        except Project.DoesNotExist:
+            logger.warning('Project with id %s not found. ', project_id)
+            return
 
-    logger.info('Project(%s): Finished save_last_update.', project_id)
+        project.last_update = timezone.now()
+        project.save(update_fields=['last_update'])
 
-    return project_id
+    logger.info('Project(%s): Finished save_last_update.', project_ids)
+
+    return project_ids

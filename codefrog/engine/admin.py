@@ -17,7 +17,7 @@ class IssueAdmin(admin.ModelAdmin):
 @admin.register(OpenIssue)
 class OpenIssueAdmin(admin.ModelAdmin):
     list_display = (
-        'project', 'issue_refid', 'query_time', 'labels',
+        'project', 'query_time', 'issue_refid', 'labels',
     )
     list_filter = (
         'project',

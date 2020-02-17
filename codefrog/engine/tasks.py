@@ -66,7 +66,9 @@ def calculate_code_complexity(project_id):
 def calculate_code_metrics(project_id, start_date=None):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
 
-    start_date = parse(start_date).date() if start_date else datetime.date(1970, 1, 1)
+    if isinstance(start_date, str):
+        start_date = parse(start_date)
+    start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
 
     # Get the last known complexity as starting point. (or 0)
     total_complexity = Metric.objects.filter(

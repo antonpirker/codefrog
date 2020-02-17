@@ -42,6 +42,9 @@ class Project(GithubMixin, models.Model):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     def ingest(self):
+        """
+        Import all historical data of the project.
+        """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from connectors.github.tasks import import_issues, import_releases
@@ -66,23 +69,39 @@ class Project(GithubMixin, models.Model):
         ingest_project.apply_async((self.pk, ))
 
     def update(self):
-        # TODO: import everything from the last 24 hours.
+        """
+        Import new data from the last 24 hours.
+        """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from connectors.github.tasks import import_issues, import_releases
+        from connectors.github.tasks import import_issues, import_open_issues, import_releases
         from core.tasks import get_source_tree_metrics, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
-        start_date = timezone.now() - timedelta(days=1)
+        start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
 
         update_project = chain(
             clone_repo.s(),
             import_code_changes.s(start_date=start_date),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+            group(
+                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+                chain(
+                    import_open_issues.s(),
+                    import_issues.s(start_date=start_date),
+                    calculate_issue_metrics.s(),
+                ),
+                import_releases.s(),
+                import_tags.s(),
+            ),
             save_last_update.s(),
         )
         update_project.apply_async((self.pk, ))
 
     def purge(self):
+        """
+        Delete all imported data but not the project itself.
+        """
         from core.models import Metric, Release, Complexity
         from engine.models import CodeChange, Issue, OpenIssue
 
@@ -100,21 +119,20 @@ class Project(GithubMixin, models.Model):
         from connectors.git.tasks import clone_repo
         clone_repo(
             project_id=self.pk,
-            git_url=self.git_url,
-            repo_dir=self.repo_dir,
         )
 
-    def import_code_changes(self):
+    def import_code_changes(self, start_date=None):
         from connectors.git.tasks import import_code_changes
         import_code_changes(
             project_id=self.pk,
-            repo_dir=self.repo_dir,
+            start_date=start_date,
         )
 
-    def calculate_code_metrics(self):
+    def calculate_code_metrics(self, start_date=None):
         from engine.tasks import calculate_code_metrics
         calculate_code_metrics(
             project_id=self.pk,
+            start_date=start_date,
         )
 
     def get_source_tree_metrics(self):
@@ -127,8 +145,6 @@ class Project(GithubMixin, models.Model):
         from connectors.github.tasks import import_issues
         import_issues(
             project_id=self.pk,
-            repo_owner=self.github_repo_owner,
-            repo_name=self.github_repo_name,
             start_date=start_date,
         )
 
@@ -136,8 +152,6 @@ class Project(GithubMixin, models.Model):
         from connectors.github.tasks import import_open_issues
         import_open_issues(
             project_id=self.pk,
-            repo_owner=self.github_repo_owner,
-            repo_name=self.github_repo_name,
         )
 
     def calculate_issue_metrics(self):
@@ -149,8 +163,6 @@ class Project(GithubMixin, models.Model):
         from connectors.github.tasks import import_releases
         import_releases(
             project_id=self.pk,
-            repo_owner=self.github_repo_owner,
-            repo_name=self.github_repo_name,
         )
 
     def import_tags(self):

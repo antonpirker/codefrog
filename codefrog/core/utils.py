@@ -312,11 +312,6 @@ class GitHub:
         return self._get(url, headers=headers)
 
     def get_issues(self, repo_owner, repo_name, start_date=None):
-        headers = {
-            'Accept': 'application/vnd.github.machine-man-preview+json',
-            'Authorization': 'token %s' % self.installation_access_token,
-        }
-
         params = {
             'state': 'all',
             'sort': 'created',
@@ -329,6 +324,30 @@ class GitHub:
                 start_date = parse(start_date)
 
             params['since'] = start_date.isoformat()
+
+        return self._get_issues(repo_owner, repo_name, params)
+
+    def get_open_issues(self, repo_owner, repo_name, start_date=None):
+        params = {
+            'state': 'open',
+            'sort': 'created',
+            'direction': 'asc',
+            'per_page': str(self.GITHUB_ISSUES_PER_PAGE),
+        }
+
+        if start_date:
+            if isinstance(start_date, str):
+                start_date = parse(start_date)
+
+            params['since'] = start_date.isoformat()
+
+        return self._get_issues(repo_owner, repo_name, params)
+
+    def _get_issues(self, repo_owner, repo_name, params):
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'token %s' % self.installation_access_token,
+        }
 
         list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
         url = f'{self.api_base_url}{list_issues_url}?%s' % urllib.parse.urlencode(params)

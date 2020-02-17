@@ -81,99 +81,52 @@ def import_issues(project_id, start_date=None):
 
 
 @shared_task
-def import_open_issues(project_id, repo_owner, repo_name):
-    logger.info('Project(%s): Starting import_open_issues.', project_id)
+def import_open_issues(project_id):
+    logger.info(
+        'Project(%s): Starting import_open_issues.',
+        project_id,
+    )
 
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished import_open_issues.', project_id)
+        logger.info('Project(%s): Finished (aborted) import_open_issues.', project_id)
         return
 
-    installation_access_token = None
-    if project.private:
-        installation_id = project.user.profile.github_app_installation_refid
-        installation_access_token = get_access_token(installation_id)
+    installation_id = project.user.profile.github_app_installation_refid
+    gh = GitHub(installation_id=installation_id)
 
     # Delete all old open issues of today
     OpenIssue.objects.filter(
-        project_id=project_id,
-        query_time__date=timezone.now().date(),
+        project_id = project_id,
+        query_time__date = timezone.now().date(),
     ).delete()
 
-    headers = {
-        'Accept': 'application/vnd.github.machine-man-preview+json',
-        'Authorization': 'token %s' % installation_access_token,
-    }
-
-    params = {
-        'state': 'open',
-        'sort': 'created',
-        'direction': 'asc',
-        'per_page': str(GITHUB_ISSUES_PER_PAGE),
-    }
-
-    list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
-    url = f'{GITHUB_API_BASE_URL}{list_issues_url}?%s' % urllib.parse.urlencode(params)
-
-    while url:
-        r = requests.get(url, headers=headers)
-        if r.status_code != 200:
-            logger.error('Error %s: %s (%s) for Url: %s', r.status_code, r.content, r.reason, url)
-            # retry
-            import_open_issues.apply_async(
-                kwargs={
-                    'project_id': project_id,
-                    'repo_owner': repo_owner,
-                    'repo_name': repo_name,
-                },
-                countdown=10,
-            )
-            return
-
-        issues = json.loads(r.content)
-
-        for issue in issues:
-            is_pull_request = 'pull_request' in issue
-            if not is_pull_request:
-                try:
-                    labels = [label['name'] for label in issue['labels']]
-                except TypeError:
-                    labels = []
-
-                OpenIssue.objects.create(
-                    project_id=project_id,
-                    query_time=timezone.now(),
-                    issue_refid=issue['number'],
-                    labels=labels,
-                )
-
-        # get url of next page (if any)
-        url = None
-        try:
-            links = requests.utils.parse_header_links(r.headers['Link'])
-            for link in links:
-                if link['rel'] == 'next':
-                    url = link['url']
-                    break
-        except KeyError:
-            pass
-
-    # Also import the issues from the last 24 hours
-    # to calculate the updated average age of issues.
-    start_date = (timezone.now() - datetime.timedelta(days=1))\
-        .replace(hour=0, minute=0, second=0, microsecond=0)
-    import_issues.apply_async(
-        kwargs={
-            'project_id': project_id,
-            'repo_owner': repo_owner,
-            'repo_name': repo_name,
-            'start_date': start_date,
-        }
+    issues = gh.get_open_issues(
+        repo_owner=project.github_repo_owner,
+        repo_name=project.github_repo_name,
     )
 
-    logger.info('Project(%s): Finished import_open_issues.', project_id)
+    for issue in issues:
+        is_pull_request = 'pull_request' in issue
+        if not is_pull_request:
+            try:
+                labels = [label['name'] for label in issue['labels']]
+            except TypeError:
+                labels = []
+
+            OpenIssue.objects.create(
+                project_id=project_id,
+                issue_refid=issue['number'],
+                query_time=timezone.now(),
+                labels=labels,
+            )
+
+    logger.info(
+        'Project(%s): Finished import_open_issues.',
+        project_id,
+    )
 
     return project_id
 
