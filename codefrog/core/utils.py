@@ -59,7 +59,7 @@ def get_file_changes(filename, project, days=30):
 
 
 def get_file_ownership(filename, project):
-    cmd = f'git shortlog -s -n -e -- {filename}'
+    cmd = f'git shortlog -s -n -e -- "{filename}"'
     output = run_shell_command(cmd, cwd=project.repo_dir)
     output = [line for line in output.split('\n') if line]
 
