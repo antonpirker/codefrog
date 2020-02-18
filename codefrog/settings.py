@@ -125,11 +125,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = get_env(env.str, 'STATIC_ROOT', default=os.path.join(BASE_DIR, 'static/'))
+STATIC_ROOT = get_env(env.str, 'STATIC_ROOT', default=os.path.join(BASE_DIR, 'staticfiles/'))
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-WHITENOISE_ALLOW_ALL_ORIGINS = False
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/#configuring-logging

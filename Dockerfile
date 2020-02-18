@@ -27,4 +27,8 @@ RUN touch /app/.env
 
 # Copy application code
 COPY codefrog codefrog
+COPY docker-entrypoint.sh docker-entrypoint.sh
+
 WORKDIR /app/codefrog/
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
