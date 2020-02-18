@@ -23,6 +23,8 @@ RUN apt-get update -qy \
 COPY requirements.txt /requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
 
+RUN touch /app/.env
+
 # Copy application code
 COPY codefrog codefrog
 WORKDIR /app/codefrog/
