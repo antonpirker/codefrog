@@ -17,12 +17,12 @@ def get_env(*args, **kwargs):
     try:
         value = func(key, **kwargs)
     except (ImproperlyConfigured, ValueError):
-        value = None
+        value = NOTSET
 
-    default = kwargs['default'] if 'default' in kwargs else NoValue()
+    default = kwargs['default'] if 'default' in kwargs else NOTSET
     no_default_set = isinstance(default, NoValue)
 
-    no_value = not value \
+    no_value = value == NOTSET \
         or hasattr(value, 'geturl') and not value.geturl()
 
     if no_value and no_default_set:
