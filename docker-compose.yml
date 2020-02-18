@@ -6,33 +6,6 @@ services:
         restart: unless-stopped
         build:
             context: .
-            args:
-                # Django
-                - DEBUG
-                - SECRET_KEY
-                - ALLOWED_HOSTS
-                - STATIC_ROOT
-                - LOG_LEVEL
-                # Database
-                - DATABASE_URL
-                # Celery
-                - CELERY_BROKER_URL
-                - CELERY_TASK_ALWAYS_EAGER
-                - CELERY_WORKER_MAX_TASKS_PER_CHILD
-                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
-                # Github Oauth
-                # (for fetching information from GitHub from repos that have the Github App not installed.)
-                - GITHUB_CLIENT_ID
-                - GITHUB_CLIENT_SECRET
-                # Github App Setup
-                - GITHUB_APP_IDENTIFIER
-                - GITHUB_APP_CLIENT_ID
-                - GITHUB_APP_CLIENT_SECRET
-                - GITHUB_AUTH_REDIRECT_URI
-                - GITHUB_WEBHOOK_SECRET
-                - GITHUB_PRIVATE_KEY
-                # Codefrog
-                - PROJECT_SOURCE_CODE_DIR
         ports:
             - "8000:8000"
         depends_on:
@@ -50,33 +23,6 @@ services:
         restart: unless-stopped
         build:
             context: .
-            args:
-                # Django
-                - DEBUG
-                - SECRET_KEY
-                - ALLOWED_HOSTS
-                - STATIC_ROOT
-                - LOG_LEVEL
-                # Database
-                - DATABASE_URL
-                # Celery
-                - CELERY_BROKER_URL
-                - CELERY_TASK_ALWAYS_EAGER
-                - CELERY_WORKER_MAX_TASKS_PER_CHILD
-                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
-                # Github Oauth
-                # (for fetching information from GitHub from repos that have the Github App not installed.)
-                - GITHUB_CLIENT_ID
-                - GITHUB_CLIENT_SECRET
-                # Github App Setup
-                - GITHUB_APP_IDENTIFIER
-                - GITHUB_APP_CLIENT_ID
-                - GITHUB_APP_CLIENT_SECRET
-                - GITHUB_AUTH_REDIRECT_URI
-                - GITHUB_WEBHOOK_SECRET
-                - GITHUB_PRIVATE_KEY
-                # Codefrog
-                - PROJECT_SOURCE_CODE_DIR
         depends_on:
             - redis
         links:
@@ -94,33 +40,6 @@ services:
         restart: unless-stopped
         build:
             context: .
-            args:
-                # Django
-                - DEBUG
-                - SECRET_KEY
-                - ALLOWED_HOSTS
-                - STATIC_ROOT
-                - LOG_LEVEL
-                # Database
-                - DATABASE_URL
-                # Celery
-                - CELERY_BROKER_URL
-                - CELERY_TASK_ALWAYS_EAGER
-                - CELERY_WORKER_MAX_TASKS_PER_CHILD
-                - CELERY_WORKER_MAX_MEMORY_PER_CHILD
-                # Github Oauth
-                # (for fetching information from GitHub from repos that have the Github App not installed.)
-                - GITHUB_CLIENT_ID
-                - GITHUB_CLIENT_SECRET
-                # Github App Setup
-                - GITHUB_APP_IDENTIFIER
-                - GITHUB_APP_CLIENT_ID
-                - GITHUB_APP_CLIENT_SECRET
-                - GITHUB_AUTH_REDIRECT_URI
-                - GITHUB_WEBHOOK_SECRET
-                - GITHUB_PRIVATE_KEY
-                # Codefrog
-                - PROJECT_SOURCE_CODE_DIR
         depends_on:
             - redis
         links:
