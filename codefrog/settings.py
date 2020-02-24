@@ -15,6 +15,8 @@ SECRET_KEY = get_env(env.str, 'SECRET_KEY')
 
 DEBUG = get_env(env.bool, 'DEBUG', default=True)
 
+LIVE_SYSTEM = get_env(env.bool, 'LIVE_SYSTEM', default=False)
+
 ALLOWED_HOSTS = get_env(env.list, 'ALLOWED_HOSTS', default=['localhost:8000', 'localhost'])
 
 
@@ -64,6 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.settings',
             ],
         },
     },
