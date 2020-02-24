@@ -51,6 +51,21 @@ services:
         volumes:
             - project_source_code:/project_source_code
 
+    celery_flower:
+        image: codefroghq/codefrog:latest
+        command: ["celery", "flower", "--app", "core", "--port=5555"]
+        restart: unless-stopped
+        build:
+            context: .
+        ports:
+            - "5555:5555"
+        depends_on:
+            - redis
+        links:
+            - redis
+        env_file:
+          - ./.env
+
     redis:
         image: redis:5-buster
         command: ["redis-server", "--appendonly", "yes"]
