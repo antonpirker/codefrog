@@ -73,18 +73,22 @@ input:checked ~ .switch-paddle {
 
 body.app .header {
     background: #000;
+    color: #fff;
 }
-body.app .header a,
-body.app .header a:hover,
-body.app .header a:focus {
+body.app .header a {
     color: #fff;
     box-shadow: none;
+    text-decoration: none;
+}
+body.app .header a:hover,
+body.app .header a:focus {
+    box-shadow: none;
+    text-decoration: underline;
 }
 body.app .header .logo-frog {
     width: 55px;
     margin-top: -4px;
 }
-
 body.app .dashboard-card .fa-question-circle {
     color: #666;
 }

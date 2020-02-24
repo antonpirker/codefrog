@@ -78,28 +78,35 @@ def authorization(request):
             'email': email,
         }
     )
-    user_profile, created = UserProfile.objects.update_or_create(
-        user=user,
-        defaults={
-            'github_app_installation_refid': installation_id,
-            'plan': Plan.objects.get(slug=state),
-        }
-    )
+    try:
+        plan = Plan.objects.get(slug=state)
+    except Plan.DoesNotExist:
+        plan = None
+
+    if plan:
+        user_profile, created = UserProfile.objects.update_or_create(
+            user=user,
+            defaults={
+                'github_app_installation_refid': installation_id,
+                'plan': plan,
+            }
+        )
 
     login(request, user)
 
-    # import projects of the user
-    repositories = gh.get_installation_repositories(installation_id)
-    for repository in repositories['repositories']:
-        project, created = Project.objects.update_or_create(
-            user=user,
-            source='github',
-            slug=slugify(repository['full_name'].replace('/', '-')),
-            name=repository['name'],
-            git_url=repository['clone_url'],
-            defaults={
-                'private': repository['private'],
-            },
-        )
+    # import projects of the new user
+    if created:
+        repositories = gh.get_installation_repositories(installation_id)
+        for repository in repositories['repositories']:
+            project, created = Project.objects.update_or_create(
+                user=user,
+                source='github',
+                slug=slugify(repository['full_name'].replace('/', '-')),
+                name=repository['name'],
+                git_url=repository['clone_url'],
+                defaults={
+                    'private': repository['private'],
+                },
+            )
 
     return HttpResponseRedirect(reverse('index'))
