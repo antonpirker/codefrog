@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from web.models import Usage, Plan, UserProfile
+from web.models import Usage, Plan, UserProfile, Message
 
 
 @admin.register(UserProfile)
@@ -34,3 +34,15 @@ class UsageAdmin(admin.ModelAdmin):
         'project', 'user', 'timestamp', 'action',
     )
     ordering = ['-timestamp', ]
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = (
+        'timestamp', 'user', 'url', 'message',
+    )
+    list_filter = (
+        'timestamp', 'user', 'url',
+    )
+    ordering = ['-timestamp', ]
+    readonly_fields = ['timestamp', 'user', 'url', 'message', ]

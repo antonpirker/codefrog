@@ -63,5 +63,30 @@
     {% csrf_token %}
     <input type="hidden" name="projectid" value="{{ project.id }}">
     <input type="hidden" name="projectslug" value="{{ project.slug }}">
+
+    <div class="feedback">
+        <div class="grid-container">
+            <div class="grid-x grid-margin-x grid-margin-y">
+                <div class="small-12 cell">
+                    <form method="post" action="{% url "feedback" %}">
+                        <div class="grid-container">
+                            <div class="grid-x grid-margin-x">
+                                <div class="small-12 cell">
+                                    <label for="message">You have an idea? Or got some Feedback? Keep it coming!</label>
+                                </div>
+                                {% csrf_token %}
+                                <div class="small-10 cell">
+                                    <textarea id="message" name="message" rows="3"></textarea>
+                                </div>
+                                <div class="small-2 cell">
+                                    <button type="submit" class="button primary">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

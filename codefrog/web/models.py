@@ -79,3 +79,15 @@ class Usage(models.Model):
     )
     timestamp = models.DateTimeField(db_index=True)
     action = models.CharField(max_length=100, blank=False, db_index=True)
+
+
+class Message(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_index=True,
+        null=True,
+    )
+    timestamp = models.DateTimeField(db_index=True)
+    message = models.TextField()
+    url = models.CharField(max_length=255, blank=True, default='')
