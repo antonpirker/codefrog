@@ -281,7 +281,7 @@ class Project(GithubMixin, models.Model):
 
     def get_file_commit_count(self, path, days):
         cmd = (
-            f'git shortlog --summary --since="{days} days" -- "{path}"'
+            f'git shortlog --summary --numbered --since="{days} days" HEAD -- "{path}"'
         )
         output = run_shell_command(cmd, cwd=self.repo_dir)
         lines = [line for line in output.split('\n') if line]

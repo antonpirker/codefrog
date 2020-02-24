@@ -42,11 +42,8 @@ def update_project(project_id):
 def get_source_tree_metrics(project_id):
     """
     Walk the entire source tree of the project and calculate the metrics for every file.
-
-    The repository is pulled before so the current state of the repository is used.
     """
     logger.info('Project(%s): Starting get_source_tree_metrics.', project_id)
-
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:

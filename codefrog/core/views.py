@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -14,6 +15,8 @@ from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
 from core.views_website import landing
 from web.models import Usage
+
+logger = logging.getLogger(__name__)
 
 MONTH = 30
 YEAR = 365
