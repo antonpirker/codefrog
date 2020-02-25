@@ -46,8 +46,10 @@
             </div>
 
             <div class="small-10 cell text-right" style="margin-top:1em;">
-                Hello {{ request.user.username }}!
-                <a href="{% url 'user-settings' user %}">Settings</a> | <a href="{% url 'logout' %}">Sign out</a>
+                {% if request.user.is_authenticated %}
+                    Hello {{ request.user.username }}!
+                    <a href="{% url 'user-settings' user %}">Settings</a> | <a href="{% url 'logout' %}">Sign out</a>
+                {% endif %}
             </div>
         </div>
     </div>

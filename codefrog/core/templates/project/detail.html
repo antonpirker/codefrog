@@ -176,9 +176,11 @@
         <!-- Bread crumbs -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <a href="{% url 'index' %}" id="show-repository-list">Repositories</a>
-                <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
-                {{ project.github_repo_full_name }}
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'index' %}" id="show-repository-list">Repositories</a>
+                    <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
+                    {{ project.github_repo_full_name }}
+                {% endif %}
             </div>
 
             <div class="large-12 cell">
