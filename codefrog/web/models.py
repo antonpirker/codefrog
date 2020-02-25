@@ -31,22 +31,33 @@ class UserProfile(models.Model):
     date_joined = models.DateTimeField(default=timezone.now, null=False)
 
     @property
+    def plan_expiration_date(self):
+        return self.date_joined + timedelta(days=self.plan.free_trial_days)
+
+    @property
+    def plan_has_expired(self):
+        if not self.plan.has_trial_period:
+            return False
+
+        if self.plan_expiration_date >= timezone.now():
+            return False
+
+        return True
+
+    @property
     def plan_name_and_status(self):
         plan_name = f'{ self.plan.name } Plan'
 
-        if self.plan.has_trial_period:
-            expiration_date = self.date_joined + timedelta(days=self.plan.free_trial_days)
-
-            if expiration_date >= timezone.now():
-                plan_name = '%s (Free trial period until: %s)' % (
-                    plan_name,
-                    expiration_date.strftime('%B %d, %Y'),
-                )
-            else:
-                plan_name = '%s (Free trial expired: %s)' % (
-                    plan_name,
-                    expiration_date.strftime('%B %d, %Y'),
-                )
+        if self.plan_has_expired:
+            plan_name = '%s (Free trial expired: %s)' % (
+                plan_name,
+                self.plan_expiration_date.strftime('%B %d, %Y'),
+            )
+        else:
+            plan_name = '%s (Free trial period until: %s)' % (
+                plan_name,
+                self.plan_expiration_date.strftime('%B %d, %Y'),
+            )
 
         return plan_name
 

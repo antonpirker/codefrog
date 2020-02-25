@@ -21,8 +21,12 @@
             </div>
 
             <div class="large-12 cell">
-                <h4>{{ user.profile.plan_name_and_status }}
-                    <a href="{% url "pricing" %}" class="button primary large">Upgrade now!</a>
+                <h4>
+                    {{ user.profile.plan_name_and_status }}
+
+                    {% if user.profile.plan.slug != 'team' %}
+                        <a href="{% url "pricing" %}" class="button primary large">Upgrade now!</a>
+                    {% endif %}
                 </h4>
                 <br/><br/>
             </div>
