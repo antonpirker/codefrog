@@ -1,6 +1,8 @@
 import datetime
+import hashlib
 import secrets
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.http import HttpResponseRedirect
@@ -42,9 +44,13 @@ def connect_github(request):
 
     plan = request.GET.get('plan', 'free')
 
+    bytes = b'%s%s' % (settings.SECRET_KEY.encode('utf8'), plan.encode('utf8'))
+    hash = 'hash_%s' % hashlib.sha224(bytes).hexdigest()
+
     context = {
         'github_state': secrets.token_urlsafe(50),
         'plan': plan,
+        'hash': hash,
     }
     html = render_to_string('connect_github.html', context=context, request=request)
 

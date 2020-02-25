@@ -1,5 +1,7 @@
+import hashlib
 import logging
 
+from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -78,8 +80,14 @@ def authorization(request):
             'email': email,
         }
     )
+
     try:
-        plan = Plan.objects.get(slug=state)
+        hashes_to_plan = {
+            'hash_%s' % hashlib.sha224(b'%sfree' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'free',
+            'hash_%s' % hashlib.sha224(b'%sindividual' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'individual',
+            'hash_%s' % hashlib.sha224(b'%steam' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'team',
+        }
+        plan = Plan.objects.get(slug=hashes_to_plan[state])
     except Plan.DoesNotExist:
         plan = None
 

@@ -15,12 +15,12 @@
             <p>
                 On the next page you will be redirected to Github where you can connect your GitHub account with Codefrog:
             </p>
-             <a href="https://github.com/apps/codefrog-insights{% if not LIVE_SYSTEM %}-dev{% endif %}/installations/new?state={{ plan }}" class="plain">
+             <a href="https://github.com/apps/codefrog-insights{% if not LIVE_SYSTEM %}-dev{% endif %}/installations/new?state={{ hash }}" class="plain">
                 <img class="shadow" style="width: 600px; opacity: 80%;" src="{% static 'images/github-connect-screenshot.png' %}" />
              </a>
         </div>
         <div class="large-12 cell text-center">
-            <a href="https://github.com/apps/codefrog-insights{% if not LIVE_SYSTEM %}-dev{% endif %}/installations/new?state={{ plan }}"
+            <a href="https://github.com/apps/codefrog-insights{% if not LIVE_SYSTEM %}-dev{% endif %}/installations/new?state={{ hash }}"
                class="button primary">
                 {% if plan == 'free' %}
                     Start Free plan.
