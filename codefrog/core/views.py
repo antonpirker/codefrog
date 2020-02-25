@@ -13,7 +13,7 @@ from django.utils.dateparse import parse_datetime
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
-from core.views_website import landing
+from web.views import landing
 from web.models import Usage
 
 logger = logging.getLogger(__name__)
@@ -26,30 +26,6 @@ def index(request):
     if not request.user.is_authenticated:
         return landing(request)
 
-    """
-    projects = Project.objects.none()
-
-    if request.user.is_authenticated and not request.user.is_superuser:
-        # TODO: this refreshing of the projects could be moved to a special refresh
-        #  view that is only triggered with a refresh button on top of the list
-        #  of projects. (flow is similar to toggle of projects)
-        installation_id = request.user.profile.github_app_installation_refid
-        if installation_id:
-            installation_access_token = get_access_token(installation_id)
-            repositories = get_app_installation_repositories(installation_access_token)
-            for repository in repositories['repositories']:
-                project_slug = slugify(repository['full_name'].replace('/', '-'))
-                project, created = Project.objects.get_or_create(
-                    user=request.user,
-                    source='github',
-                    slug=project_slug,
-                    name=repository['name'],
-                    git_url=repository['clone_url'],
-                    defaults={
-                        'private': repository['private'],
-                    },
-                )
-    """
     projects = request.user.projects.all().order_by('-active', 'name')
 
     context = {
@@ -588,46 +564,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         )
 
     html = render_to_string('project/detail.html', context=context, request=request)
-    return HttpResponse(html)
-
-
-@only_matching_authenticated_users
-def user_settings(request, username):
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        raise Http404('User does not exist')
-
-    Usage.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        project=None,
-        timestamp=datetime.datetime.utcnow(),
-        action='user_settings.view',
-    )
-
-    context = {
-        'user': user,
-        'projects': user.projects.all().order_by('name'),
-    }
-    html = render_to_string('settings/user.html', context=context)
-    return HttpResponse(html)
-
-
-@only_matching_authenticated_users
-@add_user_and_project
-def project_settings(request, username, project_slug, user, project):
-    Usage.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        project=None,
-        timestamp=datetime.datetime.utcnow(),
-        action='project_settings.view',
-    )
-
-    context = {
-        'user': request.user,
-        'project': project,
-    }
-    html = render_to_string('settings/project.html', context=context)
     return HttpResponse(html)
 
 

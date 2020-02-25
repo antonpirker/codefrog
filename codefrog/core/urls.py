@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from core import views, views_website
+from core import views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -15,12 +15,6 @@ urlpatterns = [
     path('project/<slug:slug>',
         views.project_detail, name='project-detail'),
 
-    # settings
-    path('settings/<slug:username>',
-        views.user_settings, name='user-settings'),
-    path('settings/<slug:username>/project/<slug:project_slug>',
-        views.project_settings, name='project-settings'),
-
     # settings actions
     path('settings/<slug:username>/project/<slug:project_slug>/toggle',
         views.project_toggle, name='project-toggle'),
@@ -30,7 +24,5 @@ urlpatterns = [
     # usage statistics
     path('count', views.count_usage),
 
-    # website
-    path('connect-github', views_website.connect_github, name='connect-github'),
-    path('pricing', views_website.pricing, name='pricing'),
+    path('', include('web.urls')),
 ]
