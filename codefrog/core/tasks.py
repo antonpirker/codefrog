@@ -4,8 +4,8 @@ import os
 from django.utils import timezone
 
 from celery import shared_task
-from core.models import Project
-from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE
+from core.models import Project, STATUS_READY
+from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE, log
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,8 @@ def get_source_tree_metrics(project_id):
     Walk the entire source tree of the project and calculate the metrics for every file.
     """
     logger.info('Project(%s): Starting get_source_tree_metrics.', project_id)
+    log(project_id, 'Calculation fo source tree metrics started')
+
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
@@ -149,6 +151,7 @@ def get_source_tree_metrics(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree_metrics.', project_id)
+    log(project_id, 'Calculation fo source tree metrics finished')
 
     return project_id
 
@@ -168,8 +171,10 @@ def save_last_update(project_ids):
             return
 
         project.last_update = timezone.now()
-        project.save(update_fields=['last_update'])
+        project.status = STATUS_READY
+        project.save(update_fields=['last_update', 'status'])
 
     logger.info('Project(%s): Finished save_last_update.', project_ids)
+    log(project_id, 'Project import/update finished')
 
     return project_ids

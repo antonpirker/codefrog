@@ -9,11 +9,20 @@ from django.db.models import Count
 from django.utils import timezone
 
 from core.mixins import GithubMixin
-from core.utils import date_range, run_shell_command
+from core.utils import date_range, run_shell_command, log
 from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
 
+STATUS_READY = 1
+STATUS_QUEUED = 2
+STATUS_UPDATING = 3
+
+STATUS_CHOICES = (
+    (STATUS_READY, 'ready'),
+    (STATUS_QUEUED, 'queued'),
+    (STATUS_UPDATING, 'updating'),
+)
 
 class Project(GithubMixin, models.Model):
     user = models.ForeignKey(
@@ -31,6 +40,8 @@ class Project(GithubMixin, models.Model):
 
     external_services = JSONField(null=True)
     source_tree_metrics = JSONField(null=True)
+
+    status = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_READY)
 
     last_update = models.DateTimeField(null=True, blank=True)
 
@@ -50,6 +61,10 @@ class Project(GithubMixin, models.Model):
         from connectors.github.tasks import import_issues, import_releases
         from core.tasks import get_source_tree_metrics, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+
+        log(self.pk, 'Project import started')
+        self.status = STATUS_QUEUED
+        self.save()
 
         ingest_project = chain(
             clone_repo.s(),
@@ -79,6 +94,9 @@ class Project(GithubMixin, models.Model):
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        log(self.pk, 'Project update started')
+        self.status = STATUS_QUEUED
+        self.save()
 
         update_project = chain(
             clone_repo.s(),
@@ -292,6 +310,15 @@ class Project(GithubMixin, models.Model):
             commit_counts[author] = int(commit_count)
 
         return commit_counts
+
+
+class LogEntry(models.Model):
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+    )
+    timestamp = models.DateTimeField()
+    message = models.CharField(max_length=255)
 
 
 class Metric(models.Model):

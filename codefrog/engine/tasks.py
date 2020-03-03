@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Complexity
-from core.utils import date_range
+from core.utils import date_range, log
 from engine.models import CodeChange, Issue
 
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ def calculate_code_complexity(project_id):
 @shared_task
 def calculate_code_metrics(project_id, start_date=None):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
+    log(project_id, 'Calculation fo code metrics started')
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
@@ -154,6 +155,7 @@ def calculate_code_metrics(project_id, start_date=None):
         old_change_frequency = metric_json['change_frequency']
 
     logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
+    log(project_id, 'Calculation fo code metrics finished')
 
     return project_id
 
@@ -161,6 +163,7 @@ def calculate_code_metrics(project_id, start_date=None):
 @shared_task
 def calculate_issue_metrics(project_id):
     logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
+    log(project_id, 'Calculation of Issue metrics started')
 
     issues = Issue.objects.filter(
         project_id=project_id,
@@ -214,5 +217,6 @@ def calculate_issue_metrics(project_id):
         metric.save()
 
     logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
+    log(project_id, 'Calculation of Issue metrics finished')
 
     return project_id

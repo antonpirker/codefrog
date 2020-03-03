@@ -7,8 +7,8 @@ from celery import shared_task
 from dateutil.parser import parse
 
 from connectors.github.utils import get_access_token
-from core.models import Project, Release
-from core.utils import run_shell_command
+from core.models import Project, Release, STATUS_UPDATING
+from core.utils import run_shell_command, log
 from engine.models import CodeChange
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ def clone_repo(project_id):
     :return: None
     """
     logger.info('Project(%s): Starting clone_repo.', project_id)
+    log(project_id, 'Cloning repository started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -34,6 +35,9 @@ def clone_repo(project_id):
         logger.warning('Project with id %s not found. ', project_id)
         logger.info('Project(%s): Finished (aborted) clone_repo.', project_id)
         return
+
+    project.status = STATUS_UPDATING
+    project.save()
 
     git_url = project.git_url
 
@@ -57,6 +61,7 @@ def clone_repo(project_id):
         logger.info('Project(%s): Finished cloning.', project_id)
 
     logger.info('Project(%s): Finished clone_repo.', project_id)
+    log(project_id, 'Cloning repository finished')
 
     return project_id
 
@@ -69,6 +74,7 @@ def import_code_changes(project_id, start_date=None):
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
+    log(project_id, 'Importing code changes started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -132,6 +138,7 @@ def import_code_changes(project_id, start_date=None):
             logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)
 
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
+    log(project_id, 'Importing code changes finished')
 
     return project_id
 
@@ -199,6 +206,7 @@ def import_tags(project_id):
         'Project(%s): Starting import_tags.',
         project_id,
     )
+    log(project_id, 'Importing of Git tags started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -243,5 +251,6 @@ def import_tags(project_id):
         )
 
     logger.info('Project(%s): Finished import_tags.', project_id)
+    log(project_id, 'Importing of Git tags finished')
 
     return project_id

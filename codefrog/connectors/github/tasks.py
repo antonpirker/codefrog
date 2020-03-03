@@ -5,7 +5,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from core.models import Project, Release
-from core.utils import GitHub
+from core.utils import GitHub, log
 from engine.models import Issue, OpenIssue
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ def import_issues(project_id, start_date=None):
         project_id,
         start_date,
     )
+    log(project_id, 'Importing of Github issues started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -72,6 +73,7 @@ def import_issues(project_id, start_date=None):
         project_id,
         start_date,
     )
+    log(project_id, 'Importing of Github issues finished')
 
     return project_id
 
@@ -82,6 +84,7 @@ def import_open_issues(project_id):
         'Project(%s): Starting import_open_issues.',
         project_id,
     )
+    log(project_id, 'Import of currently open GitHub issues started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -123,6 +126,7 @@ def import_open_issues(project_id):
         'Project(%s): Finished import_open_issues.',
         project_id,
     )
+    log(project_id, 'Import of currently open GitHub issues finished')
 
     return project_id
 
@@ -133,6 +137,7 @@ def import_releases(project_id):
         'Project(%s): Starting import_releases.',
         project_id,
     )
+    log(project_id, 'Importing of Github releases started')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -172,5 +177,6 @@ def import_releases(project_id):
         'Project(%s): Finished import_releases.',
         project_id,
     )
+    log(project_id, 'Importing of Github releases finished')
 
     return project_id

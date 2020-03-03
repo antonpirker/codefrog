@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.postgres import fields
 from django_json_widget.widgets import JSONEditorWidget
 
-from core.models import Project, Metric, Release
+from core.models import Project, Metric, Release, LogEntry
 
 
 class ModelAdminWithJSONWidget(admin.ModelAdmin):
@@ -14,7 +14,7 @@ class ModelAdminWithJSONWidget(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'name', 'slug', 'git_url', 'last_update',
+        'name', 'slug', 'git_url', 'status', 'last_update',
     )
     ordering = ['name', ]
 
@@ -30,6 +30,14 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
             project.ingest()
             self.message_user(request, f'Import of {project.name} started.')
     import_project.short_description = 'Import Project'
+
+
+@admin.register(LogEntry)
+class LogEntryAdmin(ModelAdminWithJSONWidget):
+    list_display = (
+        'project', 'timestamp', 'message',
+    )
+    ordering = ['-timestamp', ]
 
 
 @admin.register(Metric)
