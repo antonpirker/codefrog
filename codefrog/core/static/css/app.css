@@ -200,3 +200,20 @@ body.app .dashboard-card h2 i.fas {
 .green {
     color: #1AB34B;
 }
+
+#toggle-log-history {
+    cursor: pointer;
+}
+
+#log-history {
+    display: none;
+    color: #fff;
+    background:  #444;
+    padding: 1em;
+    max-height: 10em;
+    overflow: scroll;
+}
+#log-history ul {
+    list-style-type: none;
+    margin-bottom: 0;
+}

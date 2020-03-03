@@ -11,6 +11,7 @@
     <script src="{% static "js/evolution-diagram.js" %}"></script>
     <script src="{% static "js/problem-areas-chart.js" %}"></script>
     <script src="{% static "js/file-stats-charts.js" %}"></script>
+    <script src="{% static "js/project.js" %}"></script>
 
     <script type="text/javascript">
         const chart_colors = ['#DD0F7E', '#0082A5', '#33CEF1'];
@@ -191,7 +192,21 @@
         <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <h1>{{ project.name }} <small>{% if project.private %}{% endif %}(private)</small></h1>
+                <h1 {% if project.status == 3 %}id="toggle-log-history"{% endif %}>
+                    {% if project.status == 1 %}<i class="fas fa-check-circle green" title="Ready"></i>{% endif %}
+                    {% if project.status == 2 %}<i class="fas fa-dot-circle" title="Queued"></i>{% endif %}
+                    {% if project.status == 3 %}<i class="fas fa-cog fa-spin yellow" title="Importing/Updating"></i>{% endif %}
+
+                    {{ project.name }}
+                    <small>{% if project.private %}{% endif %}(private)</small>
+                </h1>
+                <div id="log-history">
+                    <ul>
+                        {% for log_entry in project.log_history %}
+                            <li>{{ log_entry.timestamp|date:"SHORT_DATETIME_FORMAT" }} {{ log_entry.message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
 

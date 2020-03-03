@@ -52,6 +52,10 @@ class Project(GithubMixin, models.Model):
     def repo_dir(self):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
+    @property
+    def log_history(self):
+        return self.logentry_set.all()[:30]
+
     def ingest(self):
         """
         Import all historical data of the project.
@@ -319,6 +323,9 @@ class LogEntry(models.Model):
     )
     timestamp = models.DateTimeField()
     message = models.CharField(max_length=255)
+
+    class Meta:
+        ordering = ['-timestamp']
 
 
 class Metric(models.Model):
