@@ -192,3 +192,11 @@ body.app .dashboard-card h2 i.fas {
 .feedback label {
     color: #fff;
 }
+
+/* Repository list stati */
+.yellow {
+    color: #ffac33;
+}
+.green {
+    color: #1AB34B;
+}

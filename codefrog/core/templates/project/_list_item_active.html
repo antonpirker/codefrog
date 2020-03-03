@@ -1,6 +1,10 @@
 <div class="grid-x">
     <div class="large-10 cell">
         <h3>
+            {% if project.status == 1 %}<i class="fas fa-check-circle green" title="Ready"></i>{% endif %}
+            {% if project.status == 2 %}<i class="fas fa-dot-circle" title="Queued"></i>{% endif %}
+            {% if project.status == 3 %}<i class="fas fa-cog fa-spin yellow" title="Importing/Updating"></i>{% endif %}
+
             <a href="{% url 'project-detail' slug=project.slug %}">
                 {{ project.github_repo_full_name }}
             </a>
