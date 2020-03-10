@@ -19,7 +19,7 @@ services:
 
     celery_worker:
         image: codefroghq/codefrog:latest
-        command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--pidfile", "/tmp/celery-worker.pid"]
+        command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--pidfile", "/tmp/celery-worker.pid", "-Ofair"]
         restart: unless-stopped
         build:
             context: .
