@@ -119,10 +119,16 @@ def import_code_changes(project_id, start_date=None):
     #  the ordering of this is not important, because we need all CodeChange to be present to run calculations on them.
 
     for code_change in code_changes:
+        # get stats
         timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
         timestamp = parse(timestamp)
         added, removed = _get_complexity_change(project.repo_dir, git_commit_hash)
         file_names = list(set(list(added.keys()) + list(removed.keys())))
+
+        # get commit message
+        cmd = f'git log --format=%B -n 1 {git_commit_hash}'
+        commit_message = run_shell_command(cmd, cwd=project.repo_dir)
+
         try:
             for file_name in file_names:
                 logger.debug('Project(%s): CodeChange %s', project_id, timestamp)
@@ -133,6 +139,7 @@ def import_code_changes(project_id, start_date=None):
                     author=f'{author_name} <{author_email}>',
                     complexity_added=added[file_name],
                     complexity_removed=removed[file_name],
+                    description=commit_message,
                 )
         except ValueError as err:
             logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)

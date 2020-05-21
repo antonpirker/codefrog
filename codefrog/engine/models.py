@@ -12,6 +12,7 @@ class CodeChange(models.Model):
     author = models.CharField(max_length=255)
     complexity_added = models.PositiveIntegerField()
     complexity_removed = models.PositiveIntegerField()
+    description = models.TextField(null=False, default='')
 
 
 class Issue(models.Model):
