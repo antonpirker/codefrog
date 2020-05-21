@@ -182,8 +182,10 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = \
     get_env(env.int, 'CELERY_WORKER_MAX_TASKS_PER_CHILD', default=5)
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = \
     get_env(env.int, 'CELERY_WORKER_MAX_MEMORY_PER_CHILD', default=500*1024)
-CELERY_TASK_ALWAYS_EAGER = get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
-
+CELERY_TASK_ALWAYS_EAGER = \
+    get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
+CELERY_CHUNK_SIZE = \
+    get_env(env.int, 'CELERY_CHUNK_SIZE', default=10)
 
 # Github Setup
 # TODO: can these be removed?

@@ -1,10 +1,12 @@
 import datetime
 import logging
+import operator
 import os
 from collections import defaultdict
 
 from celery import shared_task
 from dateutil.parser import parse
+from django.conf import settings
 
 from connectors.github.utils import get_access_token
 from core.models import Project, Release, STATUS_UPDATING
@@ -107,47 +109,68 @@ def import_code_changes(project_id, start_date=None):
     cmd = (
         f'git log --reverse --date-order'
         f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
-        f' --pretty="%ad;%H;%aN;%aE" --date=iso8601-strict-local'
+        f' --pretty="%ad;~;%H;~;%aN;~;%aE" --date=iso8601-strict-local'
     )
+
     output = run_shell_command(cmd, cwd=project.repo_dir)
-    code_changes = [line for line in output.split('\n') if line]
+    code_changes = [
+        operator.add([project_id, project.repo_dir], line.split(';~;'))
+        for line in output.split('\n') if line
+    ]
 
-    # TODO: here I have then all the code_changes of the whole repository.
-    #  split this up so it is imported by multiple workers.
-    #  for this to work, every worker needs her own copy of the repo on disk.
-    #  celery chunks may be useful for this: http://docs.celeryproject.org/en/latest/userguide/canvas.html#chunks
-    #  the ordering of this is not important, because we need all CodeChange to be present to run calculations on them.
-
-    for code_change in code_changes:
-        # get stats
-        timestamp, git_commit_hash, author_name, author_email = code_change.split(';')
-        timestamp = parse(timestamp)
-        added, removed = _get_complexity_change(project.repo_dir, git_commit_hash)
-        file_names = list(set(list(added.keys()) + list(removed.keys())))
-
-        # get commit message
-        cmd = f'git log --format=%B -n 1 {git_commit_hash}'
-        commit_message = run_shell_command(cmd, cwd=project.repo_dir)
-
-        try:
-            for file_name in file_names:
-                logger.debug('Project(%s): CodeChange %s', project_id, timestamp)
-                CodeChange.objects.update_or_create(
-                    project_id=project_id,
-                    timestamp=timestamp,
-                    file_path=file_name,
-                    author=f'{author_name} <{author_email}>',
-                    complexity_added=added[file_name],
-                    complexity_removed=removed[file_name],
-                    description=commit_message,
-                )
-        except ValueError as err:
-            logger.error('Project(%s): Error saving CodeChange: %s', project_id, err)
+    save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
 
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
     log(project_id, 'Importing code changes finished')
 
     return project_id
+
+
+@shared_task
+def save_code_changes(
+        project_id,
+        repo_dir,
+        timestamp,
+        git_commit_hash,
+        author_name,
+        author_email,
+):
+    logger.info(
+        'Project(%s): Starting save_code_changes(%s).',
+        project_id, git_commit_hash,
+    )
+
+    # get stats
+    timestamp = parse(timestamp)
+    added, removed = _get_complexity_change(repo_dir, git_commit_hash)
+    file_names = list(set(list(added.keys()) + list(removed.keys())))
+
+    # get commit message
+    cmd = f'git log --format=%B -n 1 {git_commit_hash}'
+    commit_message = run_shell_command(cmd, cwd=repo_dir)
+
+    try:
+        for file_name in file_names:
+            logger.debug('Project(%s): CodeChange %s', project_id, timestamp)
+            CodeChange.objects.update_or_create(
+                project_id=project_id,
+                timestamp=timestamp,
+                file_path=file_name,
+                author=f'{author_name} <{author_email}>',
+                complexity_added=added[file_name],
+                complexity_removed=removed[file_name],
+                description=commit_message,
+            )
+    except ValueError as err:
+        logger.error(
+            'Project(%s): Error saving CodeChange %s: %s',
+            project_id, git_commit_hash, err,
+        )
+
+    logger.info(
+        'Project(%s): Finished save_code_changes(%s).',
+        project_id, git_commit_hash,
+    )
 
 
 def _get_complexity_change(source_dir, git_commit_hash):
