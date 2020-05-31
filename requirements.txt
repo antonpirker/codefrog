@@ -19,3 +19,4 @@ redis==3.2.1
 requests==2.20.1
 whitenoise==4.1.4
 flower==0.9.3  # celery monitoring
+sentry-sdk==0.14.4
