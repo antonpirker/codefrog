@@ -16,6 +16,8 @@ services:
           - ./.env
         volumes:
             - project_source_code:/project_source_code
+        labels:
+            com.datadoghq.ad.logs: '[{"source": "gunicorn", "service": "codefrog"}]'
 
     celery_worker:
         image: codefroghq/codefrog:latest
@@ -33,6 +35,8 @@ services:
           - ./.env
         volumes:
             - project_source_code:/project_source_code
+        labels:
+            com.datadoghq.ad.logs: '[{"source": "celery", "service": "codefrog"}]'
 
     celery_beat:
         image: codefroghq/codefrog:latest
@@ -50,6 +54,8 @@ services:
           - ./.env
         volumes:
             - project_source_code:/project_source_code
+        labels:
+            com.datadoghq.ad.logs: '[{"source": "celery-beat", "service": "codefrog"}]'
 
     celery_flower:
         image: codefroghq/codefrog:latest
