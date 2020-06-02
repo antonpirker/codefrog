@@ -289,7 +289,10 @@ class GitHub:
         }
 
         out = self._post(url, headers=headers)
-        token = out['token']
+        token = out.get('token', None)
+
+        if not token:
+            logger.warn(f'Could not get access token: {out}')
 
         return token
 
