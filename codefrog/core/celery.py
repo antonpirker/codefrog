@@ -1,9 +1,10 @@
-import os
 import logging
+import os
 
 import structlog
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import setup_logging
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
 logger = structlog.get_logger(__name__)
