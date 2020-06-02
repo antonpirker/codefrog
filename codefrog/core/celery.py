@@ -34,9 +34,6 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # pr
             'version': 1,
             'disable_existing_loggers': False,
             'formatters': {
-                'verbose': {
-                    'format': '%(asctime)s %(levelname)s %(module)s %(pathname)s:%(lineno)d (%(funcName)s) %(message)s',
-                },
                 'json': {
                     '()': structlog.stdlib.ProcessorFormatter,
                     'processor': structlog.processors.JSONRenderer(),
