@@ -202,19 +202,19 @@ class Project(GithubMixin, models.Model):
 
         try:
             complexity = metric.metrics['complexity']
+            if complexity == 0:
+                complexity = 1
         except (KeyError, AttributeError):
             complexity = 0
 
         try:
             ref_complexity = metric.metrics['complexity']
+            if ref_complexity == 0:
+                ref_complexity = 1
         except (KeyError, AttributeError):
             ref_complexity = 1
 
         change = complexity/ref_complexity*100 - 100
-
-        print('ref_metric: %s' % ref_complexity)
-        print('metric: %s' % complexity)
-        print('change: %s' % change)
 
         return change
 
