@@ -1,7 +1,7 @@
 import datetime
-import logging
 from collections import defaultdict
 
+import structlog
 from celery import shared_task
 from dateutil.parser import parse
 from django.db.models import Q
@@ -11,7 +11,7 @@ from core.models import Metric, Complexity
 from core.utils import date_range, log
 from engine.models import CodeChange, Issue
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 DAYS_PER_CHUNK = 365 * 10
 

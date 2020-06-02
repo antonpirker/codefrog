@@ -1,22 +1,20 @@
-import shutil
 import os
 import secrets
-import logging
+import shutil
 
-
+import structlog
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils.text import slugify
 from git import Repo
 
+from connectors.github.utils import create_check_run, get_access_token
 from core.models import Project
 from core.utils import get_path_complexity, GitHub
-from connectors.github.utils import create_check_run, get_access_token, get_repository
 from web.models import UserProfile
 
-logger = logging.getLogger(__name__)
-
+logger = structlog.get_logger(__name__)
 
 def installation__created(payload, request=None):
     logger.info("### INSTALLATION / CREATED")

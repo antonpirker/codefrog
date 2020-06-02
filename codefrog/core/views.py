@@ -1,9 +1,8 @@
 import datetime
 import json
-import logging
 
+import structlog
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -13,10 +12,10 @@ from django.utils.dateparse import parse_datetime
 from core.decorators import add_user_and_project, only_matching_authenticated_users
 from core.models import Metric, Project, Release
 from core.utils import resample_metrics, resample_releases
-from web.views import landing
 from web.models import Usage
+from web.views import landing
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 MONTH = 30
 YEAR = 365

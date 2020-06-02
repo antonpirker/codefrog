@@ -1,11 +1,10 @@
-import logging
 import os
 
+import structlog
+from celery import Celery
 from celery.schedules import crontab
 
-from celery import Celery
-
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # set the default Django settings module for the 'celery' program.

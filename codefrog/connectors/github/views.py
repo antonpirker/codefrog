@@ -1,6 +1,6 @@
 import hashlib
-import logging
 
+import structlog
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -16,7 +16,7 @@ from core.utils import GitHub
 from web.models import Plan
 from web.models import UserProfile
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @csrf_exempt

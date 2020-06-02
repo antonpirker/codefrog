@@ -1,7 +1,7 @@
-import logging
 import os
 from datetime import timedelta
 
+import structlog
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -12,7 +12,7 @@ from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command, log
 from engine.models import CodeChange
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 STATUS_READY = 1
 STATUS_QUEUED = 2

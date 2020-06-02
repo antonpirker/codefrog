@@ -1,11 +1,11 @@
-import logging
 from datetime import timedelta
 
+import structlog
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class UserProfile(models.Model):

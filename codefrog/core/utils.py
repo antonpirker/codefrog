@@ -1,23 +1,23 @@
 import datetime
 import json
-import logging
 import os
 import subprocess
 import time
 import urllib
 from datetime import timedelta
+from urllib.parse import parse_qs
 
 import jwt
 import pandas as pd
 import requests
+import structlog
 from dateutil.parser import parse
 from django.conf import settings
 from django.utils import timezone
-from urllib.parse import parse_qs
 
 from engine.models import CodeChange
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def run_shell_command(cmd, cwd=None):

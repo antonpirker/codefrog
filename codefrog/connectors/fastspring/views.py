@@ -1,12 +1,12 @@
 import json
-import logging
 
+import structlog
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from core import fastspring
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @csrf_exempt

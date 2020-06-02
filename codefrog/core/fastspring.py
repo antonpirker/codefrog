@@ -1,11 +1,11 @@
-import logging
-
 import secrets
+
+import structlog
 from django.contrib.auth.models import User
 
 from web.models import UserProfile
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def subscription_activated(payload):
