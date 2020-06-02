@@ -1,14 +1,17 @@
 import os
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
+
 import environ
+import sentry_sdk
 import structlog
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 from core.env import get_env
 
 sentry_sdk.init(
     dsn="https://14e094f6e2f74dd79a36457a27ddb5a6@o400782.ingest.sentry.io/5259497",
-    integrations=[DjangoIntegration()],
+    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
 
     # If you wish to associate users to errors (assuming you are using
     # django.contrib.auth) you may enable sending PII data.
