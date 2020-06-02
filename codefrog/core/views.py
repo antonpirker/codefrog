@@ -37,7 +37,7 @@ def index(request):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='repository_list.view',
     )
 
@@ -534,31 +534,31 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     context['metrics'] = metrics
 
     # Usage statistics
-    utcnow = datetime.datetime.utcnow()
+    now = timezone.now()
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project=project,
-        timestamp=utcnow,
+        timestamp=now,
         action='project.load',
     )
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project=project,
-        timestamp=utcnow,
+        timestamp=now,
         action='project.evolution.zoom_%s' % zoom.lower(),
     )
     if release_flag == 'no-releases':
         Usage.objects.create(
             user=request.user if request.user.is_authenticated else None,
             project=project,
-            timestamp=utcnow,
+            timestamp=now,
             action='project.evolution.releases.hide',
         )
     else:
         Usage.objects.create(
             user=request.user if request.user.is_authenticated else None,
             project=project,
-            timestamp=utcnow,
+            timestamp=now,
             action='project.evolution.releases.show',
         )
 
@@ -575,13 +575,13 @@ def project_toggle(request, username, project_slug, user, project):
     project.user.profile.newly_registered = False
     project.user.profile.save()
 
-    utcnow = datetime.datetime.utcnow()
+    now = timezone.now()
 
     if project.active:
         Usage.objects.create(
             user=request.user if request.user.is_authenticated else None,
             project=None,
-            timestamp=utcnow,
+            timestamp=now,
             action='project.activate',
         )
         project.ingest()
@@ -589,7 +589,7 @@ def project_toggle(request, username, project_slug, user, project):
         Usage.objects.create(
             user=request.user if request.user.is_authenticated else None,
             project=None,
-            timestamp=utcnow,
+            timestamp=now,
             action='project.deactivate',
         )
         project.last_update = None

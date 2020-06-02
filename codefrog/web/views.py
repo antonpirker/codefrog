@@ -21,7 +21,7 @@ def landing(request):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='landing_page.view',
     )
 
@@ -38,7 +38,7 @@ def connect_github(request):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='connect_github_page.view',
     )
 
@@ -64,7 +64,7 @@ def pricing(request):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='pricing_page.view',
     )
 
@@ -86,7 +86,7 @@ def user_settings(request, username):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='user_settings.view',
     )
 
@@ -104,7 +104,7 @@ def project_settings(request, username, project_slug, user, project):
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project=None,
-        timestamp=datetime.datetime.utcnow(),
+        timestamp=timezone.now(),
         action='project_settings.view',
     )
 
