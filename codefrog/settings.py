@@ -196,6 +196,11 @@ CELERY_TASK_ALWAYS_EAGER = \
     get_env(env.bool, 'CELERY_TASK_ALWAYS_EAGER', default=DEBUG)
 CELERY_CHUNK_SIZE = \
     get_env(env.int, 'CELERY_CHUNK_SIZE', default=10)
+CELERY_WORKER_LOG_FORMAT = "%(asctime)s %(processName)-16s %(levelname)-8s " \
+                           "%(name)s %(funcName)s:%(lineno)d %(message)s"
+CELERY_WORKER_TASK_LOG_FORMAT = "%(asctime)s %(processName)-16s %(levelname)-8s " \
+                                "%(task_name)s[%(task_id).8s] " \
+                                "%(name)s %(funcName)s:%(lineno)d %(message)s"
 
 # Github Setup
 # TODO: can these be removed?
