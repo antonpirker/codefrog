@@ -292,7 +292,7 @@ class GitHub:
         token = out.get('token', None)
 
         if not token:
-            logger.warn(f'Could not get access token: {out}')
+            logger.warn(f'Could not get access token for installation id {installation_id}: {out}')
 
         return token
 
