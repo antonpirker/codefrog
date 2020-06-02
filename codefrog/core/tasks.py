@@ -1,13 +1,13 @@
 import os
 
-import structlog
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from core.models import Project, STATUS_READY
 from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE, log
 
-logger = structlog.get_logger(__name__)
+logger = get_task_logger(__name__)
 
 
 @shared_task

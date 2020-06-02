@@ -1,14 +1,15 @@
 import datetime
 
-import structlog
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from core.models import Project, Release
 from core.utils import GitHub, log
 from engine.models import Issue, OpenIssue
 
-logger = structlog.get_logger(__name__)
+logger = get_task_logger(__name__)
+
 
 @shared_task
 def import_issues(project_id, start_date=None):
