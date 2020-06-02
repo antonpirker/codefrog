@@ -154,9 +154,13 @@ def import_releases(project_id):
     )
 
     for release in releases:
-        release_name = release['tag_name']
-        release_date = release['published_at']
-        release_url = release['html_url']
+        try:
+            release_name = release['tag_name']
+            release_date = release['published_at']
+            release_url = release['html_url']
+        except TypeError:
+            logger.warn('Could not get tag_name!')
+            logger.warn(release)
 
         logger.debug(
             'Project(%s): Github Release %s %s.',
