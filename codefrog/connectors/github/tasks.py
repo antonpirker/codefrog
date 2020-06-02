@@ -160,7 +160,7 @@ def import_releases(project_id):
             release_url = release['html_url']
         except TypeError:
             logger.warn('Could not get tag_name!')
-            logger.warn(release)
+            logger.warn('release: %s' % release)
 
         logger.debug(
             'Project(%s): Github Release %s %s.',
