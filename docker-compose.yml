@@ -21,7 +21,7 @@ services:
 
     celery_worker:
         image: codefroghq/codefrog:latest
-        command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--pidfile", "/tmp/celery-worker.pid", "-Ofair"]
+        command: ["celery", "worker", "--app", "core", "--queues", "low,medium,high,celery", "--loglevel", "INFO", "--logfile", "/dev/stdout", "--pidfile", "/tmp/celery-worker.pid", "-Ofair"]
         restart: unless-stopped
         build:
             context: .
@@ -40,7 +40,7 @@ services:
 
     celery_beat:
         image: codefroghq/codefrog:latest
-        command: ["celery", "beat", "--app", "core", "--loglevel", "INFO", "--pidfile", "/tmp/celery-beat.pid", "--schedule", "/tmp/celery-beat-schedule.db"]
+        command: ["celery", "beat", "--app", "core", "--loglevel", "INFO", "--logfile", "/dev/stdout", "--pidfile", "/tmp/celery-beat.pid", "--schedule", "/tmp/celery-beat-schedule.db"]
         restart: unless-stopped
         build:
             context: .
