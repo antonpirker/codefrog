@@ -1,9 +1,9 @@
 
 document.addEventListener("DOMContentLoaded", () => {
-    let el = document.querySelector('#toggle-log-history');
     let buttonDown = document.querySelector('#log-history-arrow-button-down');
     buttonDown.style.display = 'inline-block';
 
+    let el = document.querySelector('#toggle-log-history');
     el.addEventListener('click', (e) => {
         let logHistory = document.querySelector('#log-history');
         let buttonDown = document.querySelector('#log-history-arrow-button-down');

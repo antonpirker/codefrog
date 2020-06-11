@@ -44,7 +44,7 @@ def get_source_tree_metrics(project_id):
     Walk the entire source tree of the project and calculate the metrics for every file.
     """
     logger.info('Project(%s): Starting get_source_tree_metrics.', project_id)
-    log(project_id, 'Calculation fo source tree metrics', 'start')
+    log(project_id, 'Calculating metrics of complete source tree', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -107,7 +107,8 @@ def get_source_tree_metrics(project_id):
 
                     if complexity < COMPLEXITY_THRESSHOLD:
                         try:
-                            changes = get_file_changes(full_path, project)
+                            #changes = get_file_changes(full_path, project)
+                            changes = 0
                             # TODO: get_file_changes is the only thing that needs CodeChanges.
                             #  Maybe refactore this, that get_file_changes is not calculated on first run, but in another seperate run.
                             #  So the first run is fast and does not have the number of changes, the second run includes then the number of changes.
@@ -151,7 +152,7 @@ def get_source_tree_metrics(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree_metrics.', project_id)
-    log(project_id, 'Calculation fo source tree metrics', 'stop')
+    log(project_id, 'Calculating metrics of complete source tree', 'stop')
 
     return project_id
 
@@ -175,6 +176,5 @@ def save_last_update(project_ids):
         project.save(update_fields=['last_update', 'status'])
 
     logger.info('Project(%s): Finished save_last_update.', project_ids)
-    log(project_id, 'Project import/update', 'stop')
 
     return project_ids

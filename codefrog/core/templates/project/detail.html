@@ -70,33 +70,34 @@
                 };
 
                 let infoTemplate = `
-                    <div class="grid-x grid-margin-x grid-margin-y">
-                        <div class="large-12 cell">
-                            <h5>File: <a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
+                    <div class="grid-x grid-padding-x grid-padding-y">
+                        <div class="large-12 cell dashboard-card" style="margin-top: 0;">
+                            <h5>File</h5>
+                            <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
                         </div>
 
-                        <div class="large-12 cell">
+                        <div class="large-12 cell dashboard-card">
+                            <h5>Complexity <i class="fas fa-question-circle" title="Change in complexity in the last 30 days."></i></h5>
                             <canvas id="diagram-complexity" style="width:100%; height: 4em;">
                             </canvas>
-                            <h5>Complexity <i class="fas fa-question-circle" title="Change in complexity in the last 30 days."></i></h5>
                         </div>
 
-                        <div class="large-12 cell">
+                        <div class="large-12 cell dashboard-card">
+                            <h5>Changes <i class="fas fa-question-circle" title="The number of changes per day of the last 30 days."></i></h5>
                             <canvas id="diagram-changes" style="width:100%; height: 4em;">
                             </canvas>
-                            <h5>Changes <i class="fas fa-question-circle" title="The number of changes per day of the last 30 days."></i></h5>
                         </div>
 
-                        <div class="large-12 cell">
+                        <div class="large-12 cell dashboard-card">
+                            <h5>Changes by author <i class="fas fa-question-circle" title="Who made the most changes in the last 30 days."></i></h5>
                             <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
                             </canvas>
-                            <h5>Changes by author <i class="fas fa-question-circle" title="Who did the most changes in the last 30 days."></i></h5>
                         </div>
 
-                        <div class="large-12 cell">
+                        <div class="large-12 cell dashboard-card">
+                            <h5>Code Ownership <i class="fas fa-question-circle" title="What percentage of the file was created by whom?"></i></h5>
                             <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
                             </canvas>
-                            <h5>Code Ownership <i class="fas fa-question-circle" title="What percentage of the file was created by whom?"></i></h5>
                         </div>
                     </div>
                 `;
@@ -192,7 +193,7 @@
         <!-- Project Headline -->
         <div class="grid-x grid-margin-x">
             <div class="large-12 cell">
-                <h1 {% if project.status == 3 %}id="toggle-log-history"{% endif %}>
+                <h1 id="toggle-log-history">
                     {% if project.status == 1 %}<i class="fas fa-check-circle green" title="Ready"></i>{% endif %}
                     {% if project.status == 2 %}<i class="fas fa-dot-circle" title="Queued"></i>{% endif %}
                     {% if project.status == 3 %}<i class="fas fa-cog fa-spin yellow" title="Importing/Updating"></i>{% endif %}
@@ -216,9 +217,9 @@
 
                                 <span class="timestamp">
                                 {% if not log_entry.timestamp_end %}
-                                    {{ log_entry.timestamp_start|naturaltime }}
+                                    started {{ log_entry.timestamp_start|naturaltime }}
                                 {% else %}
-                                    {{ log_entry.timestamp_end|naturaltime }}
+                                    finished {{ log_entry.timestamp_end|naturaltime }}
                                 {% endif %}
                                 </span>
                             </li>
@@ -237,7 +238,7 @@
             </div>
         </div>
 
-        <!-- Status -->
+        <!-- Trends -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-chart-line"></i> Trends</h2>
@@ -289,6 +290,38 @@
 
         </div>
 
+        <!-- Problem Areas -->
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <div class="large-12 cell">
+                <h2><i class="fas fa-burn"></i> Problem areas</h2>
+            </div>
+
+            <!-- Graph -->
+            <div class="large-8 cell dashboard-card">
+                <div class="grid-x grid-padding-x grid-padding-y">
+                    <div class="large-12 cell">
+                        <div id="problem-areas-diagram"></div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="large-6 medium-6 small-6 cell">
+                        <span class="change_frequency_gradient"></span> <br/>
+                        Change frequency
+                    </div>
+                    <div class="auto cell">
+                        <span class=circle1></span>
+                        <span class=circle2></span>
+                        <span class=circle3></span>
+                        <span class=circle4></span>
+                        <span class=circle5></span> <br/>
+                        Code complexity
+                    </div>
+                </div>
+            </div>
+            <div class="large-4 small-12 cell">
+                <div id="file-information"></div>
+            </div>
+        </div>
+
         <!-- Evolution -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
@@ -325,37 +358,6 @@
             </div>
         </div>
 
-        <!-- Problem Areas -->
-        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
-            <div class="large-12 cell">
-                <h2><i class="fas fa-burn"></i> Problem areas</h2>
-            </div>
-
-            <!-- Graph -->
-            <div class="large-8 cell">
-                <div class="grid-x grid-margin-x grid-margin-y">
-                    <div class="large-12 cell">
-                        <div id="problem-areas-diagram"></div>
-                    </div>
-                    <!-- Legend -->
-                    <div class="large-6 medium-6 small-6 cell">
-                        <span class="change_frequency_gradient"></span> <br/>
-                        Change frequency
-                    </div>
-                    <div class="auto cell">
-                        <span class=circle1></span>
-                        <span class=circle2></span>
-                        <span class=circle3></span>
-                        <span class=circle4></span>
-                        <span class=circle5></span> <br/>
-                        Code complexity
-                    </div>
-                </div>
-            </div>
-            <div class="large-4 small-12 cell">
-                <div id="file-information"></div>
-            </div>
-        </div>
     </div>
 {% endblock content %}
 

@@ -66,25 +66,32 @@ class Project(GithubMixin, models.Model):
         from core.tasks import get_source_tree_metrics, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
-        log(self.pk, 'Project import', 'start')
         self.status = STATUS_QUEUED
         self.save()
 
         ingest_project = chain(
             clone_repo.s(),
-            import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
-            group(
-                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
-                get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
-                chain(
-                    import_issues.s(),
-                    calculate_issue_metrics.s(),
-                ),
-                import_releases.s(),
-                import_tags.s(),
-            ),
+            get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+            # TODO: Complexity sparkline -  complexity change of file is missing
+            # TODO: Changes sparkline - number of changes of files are missing
+            # TODO: Change by author - missing
+            # STYLING von der sidebar ist scheiße!
+
+
+
+#            import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+#            group(
+#                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+#                chain(
+#                    import_issues.s(),
+#                    calculate_issue_metrics.s(),
+#                ),
+#                import_releases.s(),
+#                import_tags.s(),
+#            ),
             save_last_update.s(),
         )
+
         ingest_project.apply_async((self.pk, ))
 
     def update(self):
@@ -133,8 +140,11 @@ class Project(GithubMixin, models.Model):
         CodeChange.objects.filter(project=self).delete()
         Issue.objects.filter(project=self).delete()
         Complexity.objects.filter(project=self).delete()
+        LogEntry.objects.filter(project=self).delete()
+
         self.source_tree_metrics = {}
         self.last_update = None
+        self.status = STATUS_READY
         self.save()
 
     def clone_repo(self):
