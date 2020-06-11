@@ -160,6 +160,7 @@ def save_code_changes(
                 complexity_added=added[file_name],
                 complexity_removed=removed[file_name],
                 description=commit_message,
+                git_commit_hash=git_commit_hash,
             )
     except ValueError as err:
         logger.error(

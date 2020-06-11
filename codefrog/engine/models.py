@@ -13,6 +13,7 @@ class CodeChange(models.Model):
     complexity_added = models.PositiveIntegerField()
     complexity_removed = models.PositiveIntegerField()
     description = models.TextField(null=False, default='')
+    git_commit_hash = models.CharField(max_length=255, null=False, default='')
 
 
 class Issue(models.Model):

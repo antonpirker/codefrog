@@ -81,7 +81,7 @@ class Project(GithubMixin, models.Model):
             ),
             get_source_tree_changes.s(),
             # TODO: Complexity sparkline -  complexity change of file is missing
-            # TODO: Change by author - missing
+            # TODO: ChangFe by author - missing
 
 #            group(
 #                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
