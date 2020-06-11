@@ -63,7 +63,7 @@ class Project(GithubMixin, models.Model):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from connectors.github.tasks import import_issues, import_releases
-        from core.tasks import get_source_tree_metrics, save_last_update
+        from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
         self.status = STATUS_QUEUED
@@ -71,15 +71,18 @@ class Project(GithubMixin, models.Model):
 
         ingest_project = chain(
             clone_repo.s(),
-            get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+            group(
+                import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+                chain(
+                    get_source_tree.s(),  # TODO: see TODOs in get_source_tree for optimization
+                    get_source_tree_ownership.s(),
+                    get_source_tree_complexity.s(),
+                ),
+            ),
+            get_source_tree_changes.s(),
             # TODO: Complexity sparkline -  complexity change of file is missing
-            # TODO: Changes sparkline - number of changes of files are missing
             # TODO: Change by author - missing
-            # STYLING von der sidebar ist scheiße!
 
-
-
-#            import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
 #            group(
 #                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
 #                chain(
@@ -101,7 +104,7 @@ class Project(GithubMixin, models.Model):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from connectors.github.tasks import import_issues, import_open_issues, import_releases
-        from core.tasks import get_source_tree_metrics, save_last_update
+        from core.tasks import get_source_tree, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -114,7 +117,7 @@ class Project(GithubMixin, models.Model):
             import_code_changes.s(start_date=start_date),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
             group(
                 calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
-                get_source_tree_metrics.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+                get_source_tree.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
                 chain(
                     import_open_issues.s(),
                     import_issues.s(start_date=start_date),
@@ -165,12 +168,6 @@ class Project(GithubMixin, models.Model):
         calculate_code_metrics(
             project_id=self.pk,
             start_date=start_date,
-        )
-
-    def get_source_tree_metrics(self):
-        from core.tasks import get_source_tree_metrics
-        get_source_tree_metrics(
-            project_id=self.pk,
         )
 
     def import_issues(self, start_date=None):

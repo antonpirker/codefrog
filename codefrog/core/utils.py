@@ -196,22 +196,28 @@ def log(project_id, message, event):
     """
     from core.models import LogEntry
 
-    if event == 'start':
-        LogEntry.objects.create(
-            project_id=project_id,
-            timestamp_start=timezone.now(),
-            timestamp_end=None,
-            message=message,
-        )
+    if type(project_id) == list:
+        project_ids = list(set(project_id))
+    else:
+        project_ids = (project_id, )
 
-    if event == 'stop':
-        log_entry = LogEntry.objects.filter(
-            project_id=project_id,
-            message=message,
-            timestamp_end__isnull=True,
-        ).update(
-            timestamp_end=timezone.now(),
-        )
+    for project_id in project_ids:
+        if event == 'start':
+            LogEntry.objects.create(
+                project_id=project_id,
+                timestamp_start=timezone.now(),
+                timestamp_end=None,
+                message=message,
+            )
+
+        if event == 'stop':
+            log_entry = LogEntry.objects.filter(
+                project_id=project_id,
+                message=message,
+                timestamp_end__isnull=True,
+            ).update(
+                timestamp_end=timezone.now(),
+            )
 
 
 class GitHub:
