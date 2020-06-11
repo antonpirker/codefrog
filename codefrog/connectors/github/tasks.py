@@ -18,7 +18,7 @@ def import_issues(project_id, start_date=None):
         project_id,
         start_date,
     )
-    log(project_id, 'Importing of Github issues', 'start')
+    log(project_id, 'Importing Github issues', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -73,7 +73,7 @@ def import_issues(project_id, start_date=None):
         project_id,
         start_date,
     )
-    log(project_id, 'Importing of Github issues', 'stop')
+    log(project_id, 'Importing Github issues', 'stop')
 
     return project_id
 
@@ -137,7 +137,7 @@ def import_releases(project_id):
         'Project(%s): Starting import_releases.',
         project_id,
     )
-    log(project_id, 'Importing of Github releases', 'start')
+    log(project_id, 'Importing Github releases', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -181,6 +181,6 @@ def import_releases(project_id):
         'Project(%s): Finished import_releases.',
         project_id,
     )
-    log(project_id, 'Importing of Github releases', 'stop')
+    log(project_id, 'Importing Github releases', 'stop')
 
     return project_id

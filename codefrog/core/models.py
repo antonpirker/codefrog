@@ -79,8 +79,10 @@ class Project(GithubMixin, models.Model):
         Import all historical data of the project.
         """
         from celery import chain, group
-        from connectors.git.tasks import clone_repo, import_code_changes
+        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+        from connectors.github.tasks import import_issues, import_releases
 
         self.status = STATUS_QUEUED
         self.save()
@@ -96,16 +98,15 @@ class Project(GithubMixin, models.Model):
                 ),
             ),
             get_source_tree_changes.s(),
-
-#            group(
-#                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
-#                chain(
-#                    import_issues.s(),
-#                    calculate_issue_metrics.s(),
-#                ),
-#                import_releases.s(),
-#                import_tags.s(),
-#            ),
+            group(
+                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                chain(
+                    import_issues.s(),
+                    calculate_issue_metrics.s(),
+                ),
+                import_releases.s(),
+                import_tags.s(),
+            ),
             save_last_update.s(),
         )
 
@@ -116,8 +117,10 @@ class Project(GithubMixin, models.Model):
         Import new data from the last 24 hours.
         """
         from celery import chain, group
-        from connectors.git.tasks import clone_repo, import_code_changes
+        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+        from connectors.github.tasks import import_issues, import_releases
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         log(self.pk, 'Project update', 'start')
@@ -129,22 +132,23 @@ class Project(GithubMixin, models.Model):
             group(
                 import_code_changes.s(start_date=start_date),
                 chain(
+                    #get_source_tree.s(),  # TODO:  get_source_tree is not called here, because it writes default values of complexity et al. But we need it to capture new files....
                     get_source_tree_ownership.s(),
                     get_source_tree_complexity.s(),
                 ),
             ),
             get_source_tree_changes.s(),
 
-#            group(
-#                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
-#                chain(
-#                    import_open_issues.s(),
-#                    import_issues.s(start_date=start_date),
-#                    calculate_issue_metrics.s(),
-#                ),
-#                import_releases.s(),
-#                import_tags.s(),
-#            ),
+            group(
+                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                chain(
+                    import_open_issues.s(),
+                    import_issues.s(start_date=start_date),
+                    calculate_issue_metrics.s(),
+                ),
+                import_releases.s(),
+                import_tags.s(),
+            ),
             save_last_update.s(),
         )
         update_project.apply_async((self.pk, ))

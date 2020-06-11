@@ -65,7 +65,7 @@ def calculate_code_complexity(project_id):
 @shared_task
 def calculate_code_metrics(project_id, start_date=None):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
-    log(project_id, 'Calculation fo code metrics', 'start')
+    log(project_id, 'Calculating code evolution', 'start')
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
@@ -155,7 +155,7 @@ def calculate_code_metrics(project_id, start_date=None):
         old_change_frequency = metric_json['change_frequency']
 
     logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
-    log(project_id, 'Calculation fo code metrics', 'stop')
+    log(project_id, 'Calculating code evolution', 'stop')
 
     return project_id
 
@@ -163,7 +163,7 @@ def calculate_code_metrics(project_id, start_date=None):
 @shared_task
 def calculate_issue_metrics(project_id):
     logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
-    log(project_id, 'Calculation of Issue metrics', 'start')
+    log(project_id, 'Calculating issue metrics', 'start')
 
     issues = Issue.objects.filter(
         project_id=project_id,
@@ -217,6 +217,6 @@ def calculate_issue_metrics(project_id):
         metric.save()
 
     logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
-    log(project_id, 'Calculation of Issue metrics', 'stop')
+    log(project_id, 'Calculating issue metrics', 'stop')
 
     return project_id

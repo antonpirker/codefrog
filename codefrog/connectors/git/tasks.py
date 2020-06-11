@@ -237,7 +237,7 @@ def import_tags(project_id):
         'Project(%s): Starting import_tags.',
         project_id,
     )
-    log(project_id, 'Importing of Git tags', 'start')
+    log(project_id, 'Importing Git tags', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -282,6 +282,6 @@ def import_tags(project_id):
         )
 
     logger.info('Project(%s): Finished import_tags.', project_id)
-    log(project_id, 'Importing of Git tags', 'stop')
+    log(project_id, 'Importing Git tags', 'stop')
 
     return project_id
