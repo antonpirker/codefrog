@@ -76,7 +76,7 @@ def import_code_changes(project_id, start_date=None):
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
-    log(project_id, 'Importing code changes', 'start')
+    log(project_id, 'Importing latest code changes', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -121,7 +121,7 @@ def import_code_changes(project_id, start_date=None):
     save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
 
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
-    log(project_id, 'Importing code changes', 'stop')
+    log(project_id, 'Importing latest code changes', 'stop')
 
     return project_id
 

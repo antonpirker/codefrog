@@ -57,7 +57,7 @@ def get_source_tree_ownership(project_id):
     Update the current file ownership in the source tree.
     """
     logger.info('Project(%s): Starting get_source_tree_ownership.', project_id)
-    log(project_id, 'Load file ownership of code base', 'start')
+    log(project_id, 'Loading file ownership of code base', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -71,7 +71,7 @@ def get_source_tree_ownership(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree_ownership.', project_id)
-    log(project_id, 'Load file ownership of code base', 'stop')
+    log(project_id, 'Loading file ownership of code base', 'stop')
 
     return project_id
 
@@ -104,7 +104,7 @@ def get_source_tree_complexity(project_id):
     Update the current file complexity in the source tree.
     """
     logger.info('Project(%s): Starting get_source_tree_complexity.', project_id)
-    log(project_id, 'Load file complexities of code base', 'start')
+    log(project_id, 'Loading file complexities of code base', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -119,7 +119,7 @@ def get_source_tree_complexity(project_id):
     project.source_tree_metrics['max_complexity'] = max_value
     project.save()
     logger.info('Project(%s): Finished get_source_tree_complexity.', project_id)
-    log(project_id, 'Load file complexities of code base', 'stop')
+    log(project_id, 'Loading file complexities of code base', 'stop')
 
     return project_id
 
@@ -152,7 +152,7 @@ def get_source_tree_changes(project_id):
     Update the current file changes in the source tree.
     """
     logger.info('Project(%s): Starting get_source_tree_changes.', project_id)
-    log(project_id, 'Load change frequency of code base', 'start')
+    log(project_id, 'Loading change frequency of code base', 'start')
 
     # this happens when the task is started in a chain after a group of tasks
     if type(project_id) == list:
@@ -171,7 +171,7 @@ def get_source_tree_changes(project_id):
     project.source_tree_metrics['max_changes'] = max_value
     project.save()
     logger.info('Project(%s): Finished get_source_tree_changes.', project_id)
-    log(project_id, 'Load change frequency of code base', 'stop')
+    log(project_id, 'Loading change frequency of code base', 'stop')
 
     return project_id
 
@@ -182,7 +182,7 @@ def get_source_tree(project_id):
     Save entire source tree in database.
     """
     logger.info('Project(%s): Starting get_source_tree.', project_id)
-    log(project_id, 'Load source tree', 'start')
+    log(project_id, 'Loading source tree of code base', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -253,7 +253,7 @@ def get_source_tree(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree.', project_id)
-    log(project_id, 'Load source tree', 'stop')
+    log(project_id, 'Loading source tree of code base', 'stop')
 
     return project_id
 

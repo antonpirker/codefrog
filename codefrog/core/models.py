@@ -24,6 +24,24 @@ STATUS_CHOICES = (
     (STATUS_UPDATING, 'updating'),
 )
 
+# Possibly nice projects to import:
+"""
+Angular	https://github.com/angular/angular
+Bitcoin	https://github.com/bitcoin/bitcoin
+Certbot	https://github.com/certbot/certbot
+codefrog https://github.com/codefroghq/codefrog.git
+Covid-19 App of WHO https://github.com/WorldHealthOrganization/app
+Elasticsearch https://github.com/elastic/elasticsearch
+Hugo https://github.com/gohugoio/hugo.git
+Kubernetes https://github.com/kubernetes/kubernetes.git
+Letsencrypt Boulder	https://github.com/letsencrypt/boulder
+React https://github.com/facebook/react
+Tensorflow https://github.com/tensorflow/tensorflow
+Visual Studio Code https://github.com/Microsoft/vscode.git
+Vue.js https://github.com/vuejs/vue
+ZEIT Now https://github.com/zeit/now
+"""
+
 class Project(GithubMixin, models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -61,10 +79,8 @@ class Project(GithubMixin, models.Model):
         Import all historical data of the project.
         """
         from celery import chain, group
-        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from connectors.github.tasks import import_issues, import_releases
+        from connectors.git.tasks import clone_repo, import_code_changes
         from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
         self.status = STATUS_QUEUED
         self.save()
@@ -72,16 +88,14 @@ class Project(GithubMixin, models.Model):
         ingest_project = chain(
             clone_repo.s(),
             group(
-                import_code_changes.s(),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
+                import_code_changes.s(),
                 chain(
-                    get_source_tree.s(),  # TODO: see TODOs in get_source_tree for optimization
+                    get_source_tree.s(),
                     get_source_tree_ownership.s(),
                     get_source_tree_complexity.s(),
                 ),
             ),
             get_source_tree_changes.s(),
-            # TODO: Complexity sparkline -  complexity change of file is missing
-            # TODO: ChangFe by author - missing
 
 #            group(
 #                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
@@ -102,10 +116,8 @@ class Project(GithubMixin, models.Model):
         Import new data from the last 24 hours.
         """
         from celery import chain, group
-        from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from connectors.github.tasks import import_issues, import_open_issues, import_releases
-        from core.tasks import get_source_tree, save_last_update
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+        from connectors.git.tasks import clone_repo, import_code_changes
+        from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         log(self.pk, 'Project update', 'start')
@@ -114,18 +126,25 @@ class Project(GithubMixin, models.Model):
 
         update_project = chain(
             clone_repo.s(),
-            import_code_changes.s(start_date=start_date),  # TODO: performance: should be called with massive parallelization to be fast (see TODOs in import_code_changes)
             group(
-                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
-                get_source_tree.s(),  # TODO: see TODOs in get_source_tree_metrics for optimization
+                import_code_changes.s(start_date=start_date),
                 chain(
-                    import_open_issues.s(),
-                    import_issues.s(start_date=start_date),
-                    calculate_issue_metrics.s(),
+                    get_source_tree_ownership.s(),
+                    get_source_tree_complexity.s(),
                 ),
-                import_releases.s(),
-                import_tags.s(),
             ),
+            get_source_tree_changes.s(),
+
+#            group(
+#                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+#                chain(
+#                    import_open_issues.s(),
+#                    import_issues.s(start_date=start_date),
+#                    calculate_issue_metrics.s(),
+#                ),
+#                import_releases.s(),
+#                import_tags.s(),
+#            ),
             save_last_update.s(),
         )
         update_project.apply_async((self.pk, ))
