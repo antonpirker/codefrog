@@ -66,7 +66,7 @@ class Project(GithubMixin, models.Model):
         from core.tasks import get_source_tree_metrics, save_last_update
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
-        log(self.pk, 'Project import started')
+        log(self.pk, 'Project import', 'start')
         self.status = STATUS_QUEUED
         self.save()
 
@@ -98,7 +98,7 @@ class Project(GithubMixin, models.Model):
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        log(self.pk, 'Project update started')
+        log(self.pk, 'Project update', 'start')
         self.status = STATUS_QUEUED
         self.save()
 
@@ -321,11 +321,15 @@ class LogEntry(models.Model):
         'Project',
         on_delete=models.CASCADE,
     )
-    timestamp = models.DateTimeField()
+    timestamp_start = models.DateTimeField()
+    timestamp_end = models.DateTimeField(null=True,)
     message = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f'{self.project} {self.message} ({self.timestamp_start} - {self.timestamp_end})'
+
     class Meta:
-        ordering = ['-timestamp']
+        ordering = ['-timestamp_start']
 
 
 class Metric(models.Model):

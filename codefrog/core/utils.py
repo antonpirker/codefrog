@@ -190,16 +190,28 @@ def resample_releases(queryset, frequency):
     return releases
 
 
-def log(project_id, message):
+def log(project_id, message, event):
     """
     Add log entry to project.
     """
     from core.models import LogEntry
-    LogEntry.objects.create(
-        project_id=project_id,
-        timestamp=timezone.now(),
-        message=message,
-    )
+
+    if event == 'start':
+        LogEntry.objects.create(
+            project_id=project_id,
+            timestamp_start=timezone.now(),
+            timestamp_end=None,
+            message=message,
+        )
+
+    if event == 'stop':
+        log_entry = LogEntry.objects.filter(
+            project_id=project_id,
+            message=message,
+            timestamp_end__isnull=True,
+        ).update(
+            timestamp_end=timezone.now(),
+        )
 
 
 class GitHub:

@@ -44,7 +44,7 @@ def get_source_tree_metrics(project_id):
     Walk the entire source tree of the project and calculate the metrics for every file.
     """
     logger.info('Project(%s): Starting get_source_tree_metrics.', project_id)
-    log(project_id, 'Calculation fo source tree metrics started')
+    log(project_id, 'Calculation fo source tree metrics', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -151,7 +151,7 @@ def get_source_tree_metrics(project_id):
     project.save()
 
     logger.info('Project(%s): Finished get_source_tree_metrics.', project_id)
-    log(project_id, 'Calculation fo source tree metrics finished')
+    log(project_id, 'Calculation fo source tree metrics', 'stop')
 
     return project_id
 
@@ -175,6 +175,6 @@ def save_last_update(project_ids):
         project.save(update_fields=['last_update', 'status'])
 
     logger.info('Project(%s): Finished save_last_update.', project_ids)
-    log(project_id, 'Project import/update finished')
+    log(project_id, 'Project import/update', 'stop')
 
     return project_ids

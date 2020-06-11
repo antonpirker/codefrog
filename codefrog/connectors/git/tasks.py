@@ -29,7 +29,7 @@ def clone_repo(project_id):
     :return: None
     """
     logger.info('Project(%s): Starting clone_repo.', project_id)
-    log(project_id, 'Cloning repository started')
+    log(project_id, 'Cloning repository', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -63,7 +63,7 @@ def clone_repo(project_id):
         logger.info('Project(%s): Finished cloning.', project_id)
 
     logger.info('Project(%s): Finished clone_repo.', project_id)
-    log(project_id, 'Cloning repository finished')
+    log(project_id, 'Cloning repository', 'stop')
 
     return project_id
 
@@ -76,7 +76,7 @@ def import_code_changes(project_id, start_date=None):
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
-    log(project_id, 'Importing code changes started')
+    log(project_id, 'Importing code changes', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -121,7 +121,7 @@ def import_code_changes(project_id, start_date=None):
     save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
 
     logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
-    log(project_id, 'Importing code changes finished')
+    log(project_id, 'Importing code changes', 'stop')
 
     return project_id
 
@@ -236,7 +236,7 @@ def import_tags(project_id):
         'Project(%s): Starting import_tags.',
         project_id,
     )
-    log(project_id, 'Importing of Git tags started')
+    log(project_id, 'Importing of Git tags', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -281,6 +281,6 @@ def import_tags(project_id):
         )
 
     logger.info('Project(%s): Finished import_tags.', project_id)
-    log(project_id, 'Importing of Git tags finished')
+    log(project_id, 'Importing of Git tags', 'stop')
 
     return project_id

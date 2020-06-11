@@ -35,9 +35,12 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
 @admin.register(LogEntry)
 class LogEntryAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'project', 'timestamp', 'message',
+        'project', 'timestamp_start', 'timestamp_end', 'message',
     )
-    ordering = ['-timestamp', ]
+    list_filter = (
+        'project', 'message',
+    )
+    ordering = ['-timestamp_start', ]
 
 
 @admin.register(Metric)
