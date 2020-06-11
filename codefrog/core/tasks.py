@@ -138,7 +138,7 @@ def update_changes(project, node, min_value=0, max_value=0):
                 max_value = changes
 
         except FileNotFoundError:
-            node['changes'] = 0
+            node['changes'] = 1
 
     if 'children' in node.keys():
         for child in node['children']:
@@ -196,11 +196,6 @@ def get_source_tree(project_id):
         'children': [],
     }
 
-#    min_complexity = 0
-#    max_complexity = 0
-#    min_changes = 0
-#    max_changes = 0
-
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
             full_path = os.path.join(root_dir, f)
@@ -231,40 +226,6 @@ def get_source_tree(project_id):
                     current_node = child_node
 
                 else:
-                    complexity = 1
-                    #try:
-                    #    complexity = get_file_complexity(full_path)
-                    #except FileNotFoundError:
-                    #    complexity = 0
-
-                    #if complexity < min_complexity:
-                    #    min_complexity = complexity
-                    #if complexity > max_complexity:
-                    #    max_complexity = complexity
-
-                    changes = 0
-                    min_changes = 0
-                    max_changes = 0
-
-                    #try:
-                    #    changes = get_file_changes(full_path, project)
-                    #    # TODO: get_file_changes is the only thing that needs CodeChanges.
-                    #    #  Maybe refactore this, that get_file_changes is not calculated on first run, but in another seperate run.
-                    #    #  So the first run is fast and does not have the number of changes, the second run includes then the number of changes.
-                    #except FileNotFoundError:
-                    #    changes = 0
-
-                    #if changes < min_changes:
-                    #    min_changes = changes
-                    #if changes > max_changes:
-                    #    max_changes = changes
-
-                    ownership = []
-                    #try:
-                    #    ownership = get_file_ownership(full_path, project)
-                    #except FileNotFoundError:
-                    #    ownership = []
-
                     repo_link = '{}/blame/master{}'.format(
                         project.github_repo_url,
                         full_path.replace(project.repo_dir, ''),
@@ -272,9 +233,9 @@ def get_source_tree(project_id):
 
                     child_node = {
                         'name': node_name,
-                        'size': complexity,
-                        'changes': changes,
-                        'ownership': ownership,
+                        'size': 1,
+                        'changes': 0,
+                        'ownership': [],
                         # todo: add the owner_color (the color the bubble should have
                         # todo: add owner_name (name of the owner)
                         'repo_link': repo_link,
@@ -284,10 +245,10 @@ def get_source_tree(project_id):
 
     project.source_tree_metrics = {
         'tree': root,
-#        'min_complexity': min_complexity,
-#        'max_complexity': max_complexity,
-#        'min_changes': min_changes,
-#        'max_changes': max_changes,
+        'min_complexity': 1,
+        'max_complexity': 1,
+        'min_changes': 1,
+        'max_changes': 1,
     }
     project.save()
 
