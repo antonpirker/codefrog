@@ -1,5 +1,5 @@
 {% extends "../base_app.html" %}
-{% load static %}
+{% load static humanize %}
 
 
 {% block head_end %}
@@ -197,13 +197,31 @@
                     {% if project.status == 2 %}<i class="fas fa-dot-circle" title="Queued"></i>{% endif %}
                     {% if project.status == 3 %}<i class="fas fa-cog fa-spin yellow" title="Importing/Updating"></i>{% endif %}
 
+                    <i id="log-history-arrow-button-down" class="fas fa-angle-down" title="Open history"></i>
+                    <i id="log-history-arrow-button-up" class="fas fa-angle-up" title="Close history"></i>
+
                     {{ project.name }}
                     <small>{% if project.private %}{% endif %}(private)</small>
                 </h1>
                 <div id="log-history">
                     <ul>
                         {% for log_entry in project.log_history %}
-                            <li>{{ log_entry.timestamp|date:"SHORT_DATETIME_FORMAT" }} {{ log_entry.message }}</li>
+                            <li>{% if not log_entry.timestamp_end %}
+                                    <i class="fas fa-cog fa-spin yellow" title="Running..."></i>
+                                {% else %}
+                                    <i class="fas fa-check-circle green" title="Finished"></i>
+                                {% endif %}
+
+                                {{ log_entry.message }}
+
+                                <span class="timestamp">
+                                {% if not log_entry.timestamp_end %}
+                                    {{ log_entry.timestamp_start|naturaltime }}
+                                {% else %}
+                                    {{ log_entry.timestamp_end|naturaltime }}
+                                {% endif %}
+                                </span>
+                            </li>
                         {% endfor %}
                     </ul>
                 </div>

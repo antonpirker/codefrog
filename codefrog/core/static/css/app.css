@@ -207,8 +207,8 @@ body.app .dashboard-card h2 i.fas {
 
 #log-history {
     display: none;
-    color: #fff;
-    background:  #444;
+    color: #444;
+    background:  #dfdfdf;
     padding: 1em;
     max-height: 10em;
     overflow: scroll;
@@ -216,4 +216,19 @@ body.app .dashboard-card h2 i.fas {
 #log-history ul {
     list-style-type: none;
     margin-bottom: 0;
+    margin-left: 0;
+}
+#log-history .timestamp {
+    margin-left: 1em;
+    color: #888;
+}
+#log-history-arrow-button-down {
+    font-size: 0.5em;
+    font-variant-position: super;
+    display: none;
+}
+#log-history-arrow-button-up {
+    font-size: 0.5em;
+    font-variant-position: super;
+    display: none;
 }
