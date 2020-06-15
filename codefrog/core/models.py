@@ -384,10 +384,10 @@ class SourceStatus(models.Model):
         on_delete=models.CASCADE,
     )
     timestamp = models.DateTimeField()
-    # min_changes
-    # max_changes
-    # min_complexity
-    # max_complexity
+    min_changes = models.PositiveIntegerField(default=1)
+    max_changes = models.PositiveIntegerField(default=1)
+    min_complexity = models.PositiveIntegerField(default=1)
+    max_complexity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return f'{self.project} on {self.timestamp}'
@@ -402,12 +402,12 @@ class SourceNode(MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
-    path = models.CharField(max_length=255)
-    #repo_link
+    path = models.CharField(max_length=255, null=False, default='')
+    repo_link = models.CharField(max_length=255, null=False, default='')
 
     complexity = models.PositiveIntegerField(null=False, default=1)
     changes = models.PositiveIntegerField(null=False, default=1)
-    #ownership = JSONField(null=False, default=[])
+    ownership = JSONField(null=False, default=[])
 
     def __str__(self):
         return self.name
