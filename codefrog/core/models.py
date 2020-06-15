@@ -323,17 +323,7 @@ class Project(GithubMixin, models.Model):
         return trend
 
     def get_file_metrics(self, path):
-        def get_child(nodes, child_path):
-            for node in nodes:
-                if 'children' in node.keys():
-                    found_node = get_child(node['children'], child_path)
-                    if found_node:
-                        return found_node
-                else:
-                    if 'path' in node.keys() and node['path'] == child_path:
-                        return node
-
-        return get_child(self.source_tree_metrics['tree']['children'], path)
+        return SourceNode.objects.get(source_status=self.current_source_status, path=path).json_representation
 
     def get_file_ownership(self, path):
         file_metrics = self.get_file_metrics(path)
