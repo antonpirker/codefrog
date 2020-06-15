@@ -229,7 +229,7 @@ def get_source_status(project_id):
                     ).replace('//', '/')
 
                     path = full_path.replace(os.path.join(project.repo_dir, ''), '')
-                    child_node = SourceNode.objects.create(
+                    SourceNode.objects.create(
                         source_status=source_status,
                         parent=current_node,
                         name=node_name,
