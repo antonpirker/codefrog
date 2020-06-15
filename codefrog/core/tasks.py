@@ -234,7 +234,7 @@ def get_source_status(project_id):
                         parent=current_node,
                         name=node_name,
                         path=path,
-                        #repo_link=repo_link,  # TODO: add to model and create migration
+                        repo_link=repo_link,
                     )
 
                     # TODO: calculate changes
