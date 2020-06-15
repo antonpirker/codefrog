@@ -174,12 +174,9 @@ def get_source_status(project_id):
                     current_node = child_node
 
                 else:
-                    repo_link = '{}/blame/master{}'.format(
-                        project.github_repo_url,
-                        full_path.replace(project.repo_dir, ''),
-                    ).replace('//', '/')
+                    path = full_path.replace(project.repo_dir, '')
+                    repo_link = project.get_repo_link(path)
 
-                    path = full_path.replace(os.path.join(project.repo_dir, ''), '')
                     logger.info('Project(%s): Creating file node: %s', project_id, path)
                     SourceNode.objects.create(
                         source_status=source_status,

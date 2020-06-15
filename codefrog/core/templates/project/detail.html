@@ -94,31 +94,34 @@
                 let infoTemplate = `
                     <div class="grid-x grid-padding-x grid-padding-y">
                         <div class="large-12 cell dashboard-card" style="margin-top: 0;">
-                            <h5>File</h5>
+                            <h5>File in GitHub:</h5>
                             <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
                         </div>
 
                         <div class="large-12 cell dashboard-card">
-                            <h5>Complexity <i class="fas fa-question-circle" title="Change in complexity in the last 30 days."></i></h5>
-                            <canvas id="diagram-complexity" style="width:100%; height: 4em;">
+                            <h5>Who owns the code in the file:</h5>
+                            <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
                             </canvas>
                         </div>
 
                         <div class="large-12 cell dashboard-card">
-                            <h5>Changes <i class="fas fa-question-circle" title="The number of changes per day of the last 30 days."></i></h5>
-                            <canvas id="diagram-changes" style="width:100%; height: 4em;">
-                            </canvas>
-                        </div>
-
-                        <div class="large-12 cell dashboard-card">
-                            <h5>Changes by author <i class="fas fa-question-circle" title="Who made the most changes in the last 30 days."></i></h5>
+                            <h5>Who made changes:</h5>
+                             <p>(over the last 30 days)</p>
                             <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
                             </canvas>
                         </div>
 
                         <div class="large-12 cell dashboard-card">
-                            <h5>Code Ownership <i class="fas fa-question-circle" title="What percentage of the file was created by whom?"></i></h5>
-                            <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
+                            <h5>File changes:</h5>
+                             <p>(over the last 30 days)</p>
+                            <canvas id="diagram-changes" style="width:100%; height: 4em;">
+                            </canvas>
+                        </div>
+
+                        <div class="large-12 cell dashboard-card">
+                            <h5>Complexity trend:</h5>
+                             <p>(over the last 30 days)</p>
+                            <canvas id="diagram-complexity" style="width:100%; height: 4em;">
                             </canvas>
                         </div>
                     </div>
@@ -260,10 +263,10 @@
             </div>
         </div>
 
-        <!-- Trends -->
+        <!-- Current Situation -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
-                <h2><i class="fas fa-chart-line"></i> Trends</h2>
+                <h2><i class="fas fa-compass"></i> Current situation</h2>
             </div>
 
             <div class="large-4 cell" id="complexity-change">
@@ -277,7 +280,7 @@
 
                     </div>
                     <div class="large-12 cell text-center">
-                        Complexity Change <i class="fas fa-question-circle" title="The change in complexity of the whole system in the last 30 days."></i>
+                        Complexity change over the last 30 days
                     </div>
                 </div>
             </div>
@@ -292,7 +295,7 @@
                         </div>
                     </div>
                     <div class="large-12 cell text-center">
-                        Open Issues
+                        Currently open issues
                     </div>
                 </div>
             </div>
@@ -305,17 +308,18 @@
                         </div>
                     </div>
                     <div class="large-12 cell text-center">
-                        Current Lead Time <i class="fas fa-question-circle" title="The number of days between opening an issue in the issue tracker to closing it."></i>
+                        Current lead time <i class="fas fa-question-circle" title="The number of days between opening an issue in the issue tracker and closing the issue."></i>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Problem Areas -->
+        <!-- Work Areas -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
-                <h2><i class="fas fa-burn"></i> Problem areas</h2>
+                <h2><i class="fas fa-tools"></i> Work areas</h2>
+                <p>A bubble map of the places in your code base where most of the work is done. (Click on the bubbles to see who is doing the work.)</p>
             </div>
 
             <!-- Graph -->
@@ -347,7 +351,8 @@
         <!-- File churn -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
-                <h2><i class="fas fa-file"></i> File Churn</h2>
+                <h2><i class="fas fa-file"></i> File churn</h2>
+                <p>All your files, sorted by how often they where changed. The vast amount of work is done in a tiny portion of your code base.</p>
             </div>
 
             <!-- Graph -->
@@ -356,12 +361,23 @@
                     <canvas id="file-churn-diagram"></canvas>
                 </div>
             </div>
+
+            <!-- Top 5 change files-->
+            <div class="large-12 cell">
+                <h3>Top 5 most changed files over the last 30 days</h3>
+                <ul>
+                    {% for item in file_churn|slice:":5" %}
+                        <li><a href="{{ item.repo_link }}" target="_blank">{{ item.file_path }}</a> - {{ item.changes }} changes</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Evolution -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
-                <h2><i class="fas fa-clock"></i> Evolution</h2>
+                <h2><i class="fas fa-chart-line"></i> Evolution</h2>
+                <p>How is the complexity increasing in your project? Are you becoming faster or slower in closing issues?</p>
             </div>
 
             <div class="large-6 small-6 cell">

@@ -100,10 +100,17 @@ class Project(GithubMixin, models.Model):
 
         out = []
         for file in all_files:
-            out.append({'file_path': file, 'changes': changes_dict.get(file, 0.1)})
+            out.append({
+                'file_path': file,
+                'changes': changes_dict.get(file, 0.1),
+                'repo_link': self.get_repo_link(file),
+            })
 
         out.sort(key=lambda x: x['changes'], reverse=True)
         return out
+
+    def get_repo_link(self, path):
+        return f'{self.github_repo_url}/blame/master/{path}'.replace('//', '/')
 
     def ingest(self):
         """
