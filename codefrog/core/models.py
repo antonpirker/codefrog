@@ -58,7 +58,6 @@ class Project(GithubMixin, models.Model):
     git_url = models.CharField(max_length=255)
 
     external_services = JSONField(null=True)
-    source_tree_metrics = JSONField(null=True)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=STATUS_READY)
 
@@ -85,7 +84,9 @@ class Project(GithubMixin, models.Model):
         """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
+        from core.tasks import save_last_update, get_source_status, \
+            update_source_status_with_complexity, update_source_status_with_ownership, \
+            update_source_status_with_changes
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
         from connectors.github.tasks import import_issues, import_releases
 
@@ -97,12 +98,12 @@ class Project(GithubMixin, models.Model):
             group(
                 import_code_changes.s(),
                 chain(
-                    get_source_tree.s(),
-                    get_source_tree_ownership.s(),
-                    get_source_tree_complexity.s(),
+                    get_source_status.s(),
+                    update_source_status_with_complexity.s(),
+                    update_source_status_with_ownership.s(),
                 ),
             ),
-            get_source_tree_changes.s(),
+            update_source_status_with_changes.s(),
             group(
                 calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
@@ -123,9 +124,12 @@ class Project(GithubMixin, models.Model):
         """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from core.tasks import save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
+        from core.tasks import save_last_update, get_source_status, \
+            update_source_status_with_complexity, update_source_status_with_ownership, \
+            update_source_status_with_changes
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
-        from connectors.github.tasks import import_issues, import_releases
+        from connectors.github.tasks import import_issues, import_open_issues, \
+            import_releases
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         log(self.pk, 'Project update', 'start')
@@ -137,12 +141,12 @@ class Project(GithubMixin, models.Model):
             group(
                 import_code_changes.s(start_date=start_date),
                 chain(
-                    #get_source_tree.s(),  # TODO:  get_source_tree is not called here, because it writes default values of complexity et al. But we need it to capture new files....
-                    get_source_tree_ownership.s(),
-                    get_source_tree_complexity.s(),
+                    get_source_status.s(),
+                    update_source_status_with_complexity.s(),
+                    update_source_status_with_ownership.s(),
                 ),
             ),
-            get_source_tree_changes.s(),
+            update_source_status_with_changes.s(),
 
             group(
                 calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
@@ -173,7 +177,6 @@ class Project(GithubMixin, models.Model):
         Complexity.objects.filter(project=self).delete()
         LogEntry.objects.filter(project=self).delete()
 
-        self.source_tree_metrics = {}
         self.last_update = None
         self.status = STATUS_READY
         self.save()

@@ -124,7 +124,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         if releases.count() > 0:
             releases = resample_releases(releases, frequency)
 
-    source_tree_metrics = project.source_tree_metrics if project.source_tree_metrics else {}
     # Render the HTML and send to client.
     context = {
         'user': request.user,
