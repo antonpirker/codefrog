@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from core.models import Project, STATUS_READY, SourceStatus, SourceNode
-from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE, log
+from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE, log, make_one
 
 logger = get_task_logger(__name__)
 
@@ -45,6 +45,8 @@ def update_source_status_with_complexity(project_id):
     logger.info('Project(%s): Starting update_source_status_with_complexity.', project_id)
     log(project_id, 'Updating complexity of code base', 'start')
 
+    project_id = make_one(project_id)
+
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
@@ -70,6 +72,8 @@ def update_source_status_with_complexity(project_id):
 def update_source_status_with_changes(project_id):
     logger.info('Project(%s): Starting update_source_status_with_changes.', project_id)
     log(project_id, 'Updating file changes of code base', 'start')
+
+    project_id = make_one(project_id)
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -97,6 +101,8 @@ def update_source_status_with_ownership(project_id):
     logger.info('Project(%s): Starting update_source_status_with_ownership.', project_id)
     log(project_id, 'Updating file ownership of code base', 'start')
 
+    project_id = make_one(project_id)
+
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
@@ -122,6 +128,8 @@ def update_source_status_with_ownership(project_id):
 def get_source_status(project_id):
     logger.info('Project(%s): Starting get_source_status.', project_id)
     log(project_id, 'Loading source status of code base', 'start')
+
+    project_id = make_one(project_id)
 
     try:
         project = Project.objects.get(pk=project_id)
