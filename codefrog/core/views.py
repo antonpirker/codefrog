@@ -137,11 +137,11 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,
-        'data_tree': project.current_source_status.tree,
-        'min_complexity': project.current_source_status.min_complexity,
-        'max_complexity': project.current_source_status.min_complexity,
-        'min_changes': project.current_source_status.min_changes,
-        'max_changes': project.current_source_status.max_changes,
+        'data_tree': project.current_source_status.tree if project.current_source_status else {},
+        'min_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,
+        'max_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,
+        'min_changes': project.current_source_status.min_changes if project.current_source_status else 1,
+        'max_changes': project.current_source_status.max_changes if project.current_source_status else 1,
     }
 
     """

@@ -24,15 +24,20 @@ class ProjectAdmin(ModelAdminWithJSONWidget):
 
     actions = [
         'import_project',
-        'import_releases',
+        'update_project',
     ]
 
     def import_project(self, request, queryset):
         for project in queryset:
             project.ingest()
             self.message_user(request, f'Import of {project.name} started.')
-    import_project.short_description = 'Import Project'
+    import_project.short_description = 'Initial import of project'
 
+    def update_project(self, request, queryset):
+        for project in queryset:
+            project.update()
+            self.message_user(request, f'Update of {project.name} started.')
+    update_project.short_description = 'Update project'
 
 @admin.register(LogEntry)
 class LogEntryAdmin(ModelAdminWithJSONWidget):
