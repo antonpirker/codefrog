@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.db import IntegrityError
 from django.utils import timezone
 
-from core.models import Project, STATUS_READY
+from core.models import Project, STATUS_READY, SourceStatus, SourceNode
 from core.utils import get_file_changes, get_file_ownership, get_file_complexity, SOURCE_TREE_EXCLUDE, log
 
 logger = get_task_logger(__name__)
@@ -186,10 +186,16 @@ def update_source_status_with_complexity(project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished (aborted) update_source_status_with_complexity.', project_id)
+        logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
         return
 
-    # xxx
+    source_status = SourceStatus.objects.filter(project=project).order_by('timestamp').last()
+
+    for node in SourceNode.objects.filter(source_status=source_status):
+        logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
+        full_path = os.path.join(project.repo_dir, node.path)
+        node.complexity = get_file_complexity(full_path)
+        node.save()
 
     logger.info('Project(%s): Finished update_source_status_with_complexity.', project_id)
     log(project_id, 'Updating complexity of code base', 'stop')
@@ -264,10 +270,12 @@ def get_source_status(project_id):
 
                 is_not_leaf_level = idx + 1 < len(directories)
                 if is_not_leaf_level:
+                    path = '/'.join(directories[1:idx + 1])
+                    logger.info('Project(%s): Creating directory node: %s', project_id, path)
                     child_node, created = SourceNode.objects.get_or_create(
                         source_status=source_status,
                         name=node_name,
-                        path='/'.join(directories[0:idx+1]),
+                        path=path,
                         parent=current_node,
                     )
                     current_node = child_node
@@ -279,6 +287,7 @@ def get_source_status(project_id):
                     ).replace('//', '/')
 
                     path = full_path.replace(os.path.join(project.repo_dir, ''), '')
+                    logger.info('Project(%s): Creating file node: %s', project_id, path)
                     SourceNode.objects.create(
                         source_status=source_status,
                         parent=current_node,

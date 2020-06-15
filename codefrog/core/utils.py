@@ -93,15 +93,18 @@ def get_file_ownership(filename, project):
 
 def get_file_complexity(filename):
     complexity = 0
-    with open(filename) as file:
-        try:
-            for line in file:
-                complexity += len(line) - len(line.lstrip())
-        except UnicodeDecodeError:
-            # TODO: This should only happen for binary files like jpg,
-            #  but could be potential a real hard to find bug
-            #  if the complexity is always wrong.
-            pass
+    try:
+        with open(filename) as file:
+            try:
+                for line in file:
+                    complexity += len(line) - len(line.lstrip())
+            except UnicodeDecodeError:
+                # TODO: This should only happen for binary files like jpg,
+                #  but could be potential a real hard to find bug
+                #  if the complexity is always wrong.
+                pass
+    except IsADirectoryError:
+        pass
 
     return complexity
 
