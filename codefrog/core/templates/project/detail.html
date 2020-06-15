@@ -9,6 +9,7 @@
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
     <script src="{% static "js/evolution-diagram.js" %}"></script>
+    <script src="{% static "js/file-churn-diagram.js" %}"></script>
     <script src="{% static "js/problem-areas-chart.js" %}"></script>
     <script src="{% static "js/file-stats-charts.js" %}"></script>
     <script src="{% static "js/project.js" %}"></script>
@@ -62,6 +63,27 @@
                 releases,
                 evolutionDiagramFrequency
             );
+
+            const fileChurnFilenames = [
+                {% for item in file_churn %}
+                    '{{ item.file_path }}'
+                    {% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const fileChurnChanges = [
+                {% for item in file_churn %}
+                    {{ item.changes }}
+                    {% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const fileChurnDiagram = createFileChurnDiagram(
+                "file-churn-diagram",
+                fileChurnFilenames,
+                fileChurnChanges
+            );
+
 
             let updateFileStats = function(data) {
                 const ctx = {
@@ -319,6 +341,20 @@
             </div>
             <div class="large-4 small-12 cell">
                 <div id="file-information"></div>
+            </div>
+        </div>
+
+        <!-- File churn -->
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <div class="large-12 cell">
+                <h2><i class="fas fa-file"></i> File Churn</h2>
+            </div>
+
+            <!-- Graph -->
+            <div class="large-12 cell">
+                <div class="file-churn-container">
+                    <canvas id="file-churn-diagram"></canvas>
+                </div>
             </div>
         </div>
 
