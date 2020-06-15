@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.postgres import fields
 from django_json_widget.widgets import JSONEditorWidget
+from mptt.admin import MPTTModelAdmin
 
 from core.models import Project, Metric, Release, LogEntry
+from core.models import SourceNode
 
 
 class ModelAdminWithJSONWidget(admin.ModelAdmin):
@@ -73,3 +75,8 @@ class ReleaseAdmin(ModelAdminWithJSONWidget):
     ordering = ['project__name', '-timestamp', ]
 
 
+@admin.register(SourceNode)
+class SourceNodeAdmin(MPTTModelAdmin):
+    list_filter = (
+        'source_status__project', 'source_status',
+    )

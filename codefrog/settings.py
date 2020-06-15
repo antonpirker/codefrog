@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'connectors.apps.ConnectorsConfig',
     'engine.apps.EngineConfig',
     'web.apps.WebConfig',
+    'mptt',
 ]
 
 MIDDLEWARE = [

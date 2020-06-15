@@ -7,6 +7,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Count
 from django.utils import timezone
+from mptt.models import MPTTModel, TreeForeignKey
 
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command, log
@@ -118,7 +119,7 @@ class Project(GithubMixin, models.Model):
         """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from core.tasks import get_source_tree, save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
+        from core.tasks import save_last_update, get_source_tree_ownership, get_source_tree_complexity, get_source_tree_changes
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
         from connectors.github.tasks import import_issues, import_releases
 
@@ -375,6 +376,47 @@ class Metric(models.Model):
         unique_together = (
             ('project', 'date'),
         )
+
+
+class SourceStatus(models.Model):
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+    )
+    timestamp = models.DateTimeField()
+    # min_changes
+    # max_changes
+    # min_complexity
+    # max_complexity
+
+    def __str__(self):
+        return f'{self.project} on {self.timestamp}'
+
+
+class SourceNode(MPTTModel):
+    source_status = models.ForeignKey(
+        'SourceStatus',
+        on_delete=models.CASCADE,
+    )
+
+    name = models.CharField(max_length=255)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+
+    path = models.CharField(max_length=255)
+    #repo_link
+
+    complexity = models.PositiveIntegerField(null=False, default=1)
+    changes = models.PositiveIntegerField(null=False, default=1)
+    #ownership = JSONField(null=False, default=[])
+
+    def __str__(self):
+        return self.name
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
+    class Meta:
+        unique_together = [['parent', 'name']]
 
 
 class Release(models.Model):
