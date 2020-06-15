@@ -5,7 +5,7 @@ import structlog
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Max, Min
 from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -76,18 +76,8 @@ class Project(GithubMixin, models.Model):
         return self.logentry_set.all()[:30]
 
     @property
-    def source_status(self):
-        def render_tree(node):
-            current_node = node.json_representation
-            for child in node.get_children():
-                current_node['children'].append(render_tree(child))
-
-            return current_node
-
-        source_status = self.source_stati.order_by('timestamp').last()
-        root = SourceNode.objects.get(source_status=source_status, parent__isnull=True)
-
-        return render_tree(root)
+    def current_source_status(self):
+        return self.source_stati.order_by('timestamp').last()
 
     def ingest(self):
         """
@@ -399,10 +389,37 @@ class SourceStatus(models.Model):
         related_name='source_stati',
     )
     timestamp = models.DateTimeField()
-    min_changes = models.PositiveIntegerField(default=1)
-    max_changes = models.PositiveIntegerField(default=1)
-    min_complexity = models.PositiveIntegerField(default=1)
-    max_complexity = models.PositiveIntegerField(default=1)
+    @property
+    def tree(self):
+        def render_tree(node):
+            current_node = node.json_representation
+            for child in node.get_children():
+                current_node['children'].append(render_tree(child))
+
+            return current_node
+
+        root = SourceNode.objects.get(source_status=self, parent__isnull=True)
+        return render_tree(root)
+
+    @property
+    def min_changes(self):
+        return SourceNode.objects.filter(source_status=self)\
+            .aggregate(Min('changes')).get('changes__min', 1)
+
+    @property
+    def max_changes(self):
+        return SourceNode.objects.filter(source_status=self)\
+            .aggregate(Max('changes')).get('changes__max', 1)
+
+    @property
+    def min_complexity(self):
+        return SourceNode.objects.filter(source_status=self)\
+            .aggregate(Min('complexity')).get('complexity__min', 1)
+
+    @property
+    def max_complexity(self):
+        return SourceNode.objects.filter(source_status=self)\
+            .aggregate(Max('complexity')).get('complexity__max', 1)
 
     def __str__(self):
         return f'{self.project} on {self.timestamp}'
