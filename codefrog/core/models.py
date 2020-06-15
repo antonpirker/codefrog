@@ -78,6 +78,22 @@ class Project(GithubMixin, models.Model):
     def current_source_status(self):
         return self.source_stati.order_by('timestamp').last()
 
+    def get_file_churn(self):
+        DAYS = 30
+
+        today = timezone.now()
+        begin = today - timedelta(days=DAYS)
+
+        changes = CodeChange.objects.filter(
+                project=self,
+                timestamp__date__gte=begin,
+            )\
+            .values('file_path')\
+            .annotate(changes=Count('file_path'))\
+            .order_by('-changes', 'file_path')
+
+        return changes
+
     def ingest(self):
         """
         Import all historical data of the project.
