@@ -467,7 +467,7 @@ class SourceNode(MPTTModel):
 
     complexity = models.PositiveIntegerField(null=False, default=1)
     changes = models.PositiveIntegerField(null=False, default=1)
-    ownership = JSONField(null=False, default=[])
+    ownership = JSONField(null=False, default=list)
 
     def __str__(self):
         return self.name
