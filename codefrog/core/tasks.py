@@ -178,6 +178,55 @@ def get_source_tree_changes(project_id):
 
 
 @shared_task
+def update_source_status_with_complexity(project_id):
+    logger.info('Project(%s): Starting update_source_status_with_complexity.', project_id)
+    log(project_id, 'Updating complexity of code base', 'start')
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) update_source_status_with_complexity.', project_id)
+        return
+
+
+    logger.info('Project(%s): Finished update_source_status_with_complexity.', project_id)
+    log(project_id, 'Updating complexity of code base', 'stop')
+
+
+@shared_task
+def update_source_status_with_changes(project_id):
+    logger.info('Project(%s): Starting update_source_status_with_changes.', project_id)
+    log(project_id, 'Updating file changes of code base', 'start')
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
+        return
+
+    logger.info('Project(%s): Finished update_source_status_with_changes.', project_id)
+    log(project_id, 'Updating file changes of code base', 'stop')
+
+
+@shared_task
+def update_source_status_with_ownership(project_id)
+    logger.info('Project(%s): Starting update_source_status_with_ownership.', project_id)
+    log(project_id, 'Updating file ownership of code base', 'start')
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) update_source_status_with_ownership.', project_id)
+        return
+
+    logger.info('Project(%s): Finished update_source_status_with_ownership.', project_id)
+    log(project_id, 'Updating file ownership of code base', 'stop')
+
+
+@shared_task
 def get_source_status(project_id):
     logger.info('Project(%s): Starting get_source_status.', project_id)
     log(project_id, 'Loading source status of code base', 'start')
