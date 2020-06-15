@@ -211,7 +211,7 @@ def update_source_status_with_changes(project_id):
 
 
 @shared_task
-def update_source_status_with_ownership(project_id)
+def update_source_status_with_ownership(project_id):
     logger.info('Project(%s): Starting update_source_status_with_ownership.', project_id)
     log(project_id, 'Updating file ownership of code base', 'start')
 
