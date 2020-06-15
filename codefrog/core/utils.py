@@ -103,7 +103,7 @@ def get_file_complexity(filename):
                 #  but could be potential a real hard to find bug
                 #  if the complexity is always wrong.
                 pass
-    except IsADirectoryError:
+    except (IsADirectoryError, FileNotFoundError):
         pass
 
     return complexity

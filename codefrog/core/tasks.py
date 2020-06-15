@@ -2,7 +2,6 @@ import os
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.db import IntegrityError
 from django.utils import timezone
 
 from core.models import Project, STATUS_READY, SourceStatus, SourceNode
@@ -38,6 +37,8 @@ def update_project(project_id):
 
     logger.info('Project(%s): Finished update_project.', project_id)
 
+    return project_id
+
 
 @shared_task
 def update_source_status_with_complexity(project_id):
@@ -61,6 +62,8 @@ def update_source_status_with_complexity(project_id):
 
     logger.info('Project(%s): Finished update_source_status_with_complexity.', project_id)
     log(project_id, 'Updating complexity of code base', 'stop')
+
+    return project_id
 
 
 @shared_task
@@ -86,6 +89,8 @@ def update_source_status_with_changes(project_id):
     logger.info('Project(%s): Finished update_source_status_with_changes.', project_id)
     log(project_id, 'Updating file changes of code base', 'stop')
 
+    return project_id
+
 
 @shared_task
 def update_source_status_with_ownership(project_id):
@@ -109,6 +114,8 @@ def update_source_status_with_ownership(project_id):
 
     logger.info('Project(%s): Finished update_source_status_with_ownership.', project_id)
     log(project_id, 'Updating file ownership of code base', 'stop')
+
+    return project_id
 
 
 @shared_task
