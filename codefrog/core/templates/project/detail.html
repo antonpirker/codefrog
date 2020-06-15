@@ -319,7 +319,7 @@
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-tools"></i> Work areas</h2>
-                <p>A bubble map of the places in your code base where most of the work is done. (Click on the bubbles to see who is doing the work.)</p>
+                <p>A bubble map of the places in your code base where most of the work was done over the last 30 days. Click on the bubbles to see who is doing the work.</p>
             </div>
 
             <!-- Graph -->
@@ -352,7 +352,7 @@
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-file"></i> File churn</h2>
-                <p>All your files, sorted by how often they where changed. The vast amount of work is done in a tiny portion of your code base.</p>
+                <p>All your files, sorted by how often they where changed over the last 30 days. The vast amount of work is done in a tiny portion of your code base.</p>
             </div>
 
             <!-- Graph -->
@@ -364,7 +364,7 @@
 
             <!-- Top 5 change files-->
             <div class="large-12 cell">
-                <h3>Top 5 most changed files over the last 30 days</h3>
+                <h3>Top 5 "most changed files" over the last 30 days</h3>
                 <ul>
                     {% for item in file_churn|slice:":5" %}
                         <li><a href="{{ item.repo_link }}" target="_blank">{{ item.file_path }}</a> - {{ item.changes }} changes</li>
