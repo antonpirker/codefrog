@@ -220,7 +220,6 @@ def get_source_status(project_id):
                         path='/'.join(directories[0:idx+1]),
                         parent=current_node,
                     )
-                    print(f'Parent: {current_node} ({current_node.path}) | creating({created}) (directory): {node_name}')
                     current_node = child_node
 
                 else:
@@ -230,7 +229,6 @@ def get_source_status(project_id):
                     ).replace('//', '/')
 
                     path = full_path.replace(os.path.join(project.repo_dir, ''), '')
-                    print(f'Parent: {current_node} ({current_node.path}) | creating (file): {path}')
                     child_node = SourceNode.objects.create(
                         source_status=source_status,
                         parent=current_node,
