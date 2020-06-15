@@ -189,6 +189,7 @@ def update_source_status_with_complexity(project_id):
         logger.info('Project(%s): Finished (aborted) update_source_status_with_complexity.', project_id)
         return
 
+    # xxx
 
     logger.info('Project(%s): Finished update_source_status_with_complexity.', project_id)
     log(project_id, 'Updating complexity of code base', 'stop')
@@ -285,9 +286,6 @@ def get_source_status(project_id):
                         path=path,
                         repo_link=repo_link,
                     )
-
-                    # TODO: calculate changes
-                    # TODO: calculate complexity
 
     logger.info('Project(%s): Finished get_source_status.', project_id)
     log(project_id, 'Loading source status of code base', 'stop')
