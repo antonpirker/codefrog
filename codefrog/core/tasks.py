@@ -213,6 +213,16 @@ def update_source_status_with_changes(project_id):
         logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
         return
 
+    source_status = SourceStatus.objects.filter(project=project).order_by('timestamp').last()
+
+    for node in SourceNode.objects.filter(source_status=source_status):
+        logger.debug('Project(%s): calculating file changes for %s', project_id, node.path)
+        full_path = os.path.join(project.repo_dir, node.path)
+        node.changes = get_file_changes(full_path, project)
+        if node.changes > 1:
+            import ipdb; ipdb.set_trace()
+        node.save()
+
     logger.info('Project(%s): Finished update_source_status_with_changes.', project_id)
     log(project_id, 'Updating file changes of code base', 'stop')
 

@@ -55,7 +55,7 @@ def get_file_changes(filename, project, days=30):
         project=project,
         file_path=filename,
         timestamp__gte=ref_date,
-    ).count()
+    ).count() or 1
 
 
 def get_file_ownership(filename, project):
@@ -110,7 +110,7 @@ def get_file_complexity(filename):
 
 
 def get_path_complexity(path):
-    complexity = 0
+    complexity = 1
     for root_dir, dirs, files in os.walk(path):
         for f in files:
             full_path = os.path.join(root_dir, f)
