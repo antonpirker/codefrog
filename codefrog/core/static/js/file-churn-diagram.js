@@ -27,7 +27,7 @@ function createFileChurnDiagram(elementId, labels, values) {
             scales: {
                 xAxes: [{
                     "id": "x-axis",
-                    display: false,
+                    display: false
                 }],
                 yAxes: [{
                     "id": "y-axis",

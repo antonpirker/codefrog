@@ -92,7 +92,18 @@ class Project(GithubMixin, models.Model):
             .annotate(changes=Count('file_path'))\
             .order_by('-changes', 'file_path')
 
-        return changes
+        changes_dict = {
+            x['file_path']: x['changes'] for x in changes
+        }
+        all_nodes = SourceNode.objects.filter(source_status=self.current_source_status)
+        all_files = list(filter(None, list(set(all_nodes.values_list('path', flat=True)))))
+
+        out = []
+        for file in all_files:
+            out.append({'file_path': file, 'changes': changes_dict.get(file, 0.1)})
+
+        out.sort(key=lambda x: x['changes'], reverse=True)
+        return out
 
     def ingest(self):
         """
