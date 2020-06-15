@@ -176,6 +176,7 @@ class Project(GithubMixin, models.Model):
         Issue.objects.filter(project=self).delete()
         Complexity.objects.filter(project=self).delete()
         LogEntry.objects.filter(project=self).delete()
+        SourceStatus.objects.filter(project=self).delete()
 
         self.last_update = None
         self.status = STATUS_READY
