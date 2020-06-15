@@ -75,6 +75,20 @@ class Project(GithubMixin, models.Model):
     def log_history(self):
         return self.logentry_set.all()[:30]
 
+    @property
+    def source_status(self):
+        def render_tree(node):
+            current_node = node.json_representation
+            for child in node.get_children():
+                current_node['children'].append(render_tree(child))
+
+            return current_node
+
+        source_status = self.source_stati.order_by('timestamp').last()
+        root = SourceNode.objects.get(source_status=source_status, parent__isnull=True)
+
+        return render_tree(root)
+
     def ingest(self):
         """
         Import all historical data of the project.
@@ -382,6 +396,7 @@ class SourceStatus(models.Model):
     project = models.ForeignKey(
         'Project',
         on_delete=models.CASCADE,
+        related_name='source_stati',
     )
     timestamp = models.DateTimeField()
     min_changes = models.PositiveIntegerField(default=1)
@@ -411,6 +426,23 @@ class SourceNode(MPTTModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def json_representation(self):
+        represenatation = {
+            "name": self.name,
+
+            "path": self.path,
+            "repo_link": self.repo_link,
+
+            "size": self.complexity,
+            "changes": self.changes,
+            "ownership": self.ownership,
+
+            "children": [],
+        }
+
+        return represenatation
 
     class MPTTMeta:
         order_insertion_by = ['name']
