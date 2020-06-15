@@ -429,7 +429,7 @@ class SourceNode(MPTTModel):
 
     @property
     def json_representation(self):
-        represenatation = {
+        representation = {
             "name": self.name,
 
             "path": self.path,
@@ -442,7 +442,7 @@ class SourceNode(MPTTModel):
             "children": [],
         }
 
-        return represenatation
+        return representation
 
     class MPTTMeta:
         order_insertion_by = ['name']
