@@ -110,6 +110,7 @@ class Project(GithubMixin, models.Model):
         return out
 
     def get_repo_link(self, path):
+        path = os.sep.join(path.split(os.sep)[1:])  # remove first directory
         return f'{self.github_repo_url}/blame/master/{path}'
 
     def ingest(self):
@@ -356,6 +357,7 @@ class Project(GithubMixin, models.Model):
         return trend
 
     def get_file_metrics(self, path):
+        path = os.path.join(self.github_repo_name, path)
         return SourceNode.objects.get(source_status=self.current_source_status, path=path).json_representation
 
     def get_file_ownership(self, path):
@@ -473,11 +475,15 @@ class SourceNode(MPTTModel):
         return self.name
 
     @property
+    def project_path(self):
+        return os.sep.join(self.path.split(os.sep)[1:])  # remove first directory
+
+    @property
     def json_representation(self):
         representation = {
             "name": self.name,
 
-            "path": self.path,
+            "path": self.project_path,
             "repo_link": self.repo_link,
 
             "size": self.complexity,

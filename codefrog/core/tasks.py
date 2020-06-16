@@ -61,7 +61,7 @@ def update_source_status_with_metrics(project_id, *args, **kwargs):
 
     for node in SourceNode.objects.filter(source_status=source_status):
         logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
-        full_path = os.path.join(project.repo_dir, node.path)
+        full_path = os.path.join(project.repo_dir, node.project_path)
         node.complexity = get_file_complexity(full_path)
         node.ownership = get_file_ownership(full_path, project)
         node.changes = get_file_changes(full_path, project)
@@ -102,10 +102,17 @@ def get_source_status(project_id, *args, **kwargs):
 
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
-            path = os.path.join(root_dir.replace(project.repo_dir, ''), f)
+            path = os.path.join(
+                project.github_repo_name,
+                os.path.join(
+                    os.path.join(root_dir, '').replace(os.path.join(project.repo_dir, ''), ''),
+                    f
+                )
+            )
 
             if any(x in path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
                 continue
+
             path_parts = [part for part in path.split(os.sep) if part]
 
             current_node = root
