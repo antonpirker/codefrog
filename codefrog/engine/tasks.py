@@ -17,7 +17,7 @@ DAYS_PER_CHUNK = 365 * 10
 
 
 @shared_task
-def calculate_code_complexity(project_id):
+def calculate_code_complexity(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting calculate_code_complexity.', project_id)
 
     Complexity.objects.filter(project_id=project_id).delete()  # TODO: maybe do this in a better way?
@@ -63,7 +63,7 @@ def calculate_code_complexity(project_id):
 
 
 @shared_task
-def calculate_code_metrics(project_id, start_date=None):
+def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
     project_id = make_one(project_id)
     log(project_id, 'Calculating code evolution', 'start')
@@ -163,7 +163,7 @@ def calculate_code_metrics(project_id, start_date=None):
 
 
 @shared_task
-def calculate_issue_metrics(project_id):
+def calculate_issue_metrics(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Calculating issue metrics', 'start')

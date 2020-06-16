@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task
-def import_issues(project_id, start_date=None):
+def import_issues(project_id, start_date=None, *args, **kwargs):
     logger.info('Project(%s): Starting import_issues. (%s)', project_id, start_date)
     project_id = make_one(project_id)
     log(project_id, 'Importing Github issues', 'start')
@@ -76,7 +76,7 @@ def import_issues(project_id, start_date=None):
 
 
 @shared_task
-def import_open_issues(project_id):
+def import_open_issues(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting import_open_issues.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Import of currently open GitHub issues', 'start')
@@ -127,7 +127,7 @@ def import_open_issues(project_id):
 
 
 @shared_task
-def import_releases(project_id):
+def import_releases(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting import_releases.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Importing Github releases', 'start')

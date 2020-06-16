@@ -11,7 +11,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task
-def update_all_projects():
+def update_all_projects(*args, **kwargs):
     logger.info('Starting update_all_projects.')
 
     projects = Project.objects.filter(active=True).order_by('pk')
@@ -23,7 +23,7 @@ def update_all_projects():
 
 
 @shared_task
-def update_project(project_id):
+def update_project(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting update_project.', project_id)
 
     try:
@@ -41,7 +41,7 @@ def update_project(project_id):
 
 
 @shared_task
-def update_source_status_with_metrics(project_id):
+def update_source_status_with_metrics(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting update_source_status_with_metrics.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Updating complexity of code base', 'start')
@@ -77,7 +77,7 @@ def update_source_status_with_metrics(project_id):
 
 
 @shared_task
-def get_source_status(project_id):
+def get_source_status(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting get_source_status.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Loading source status of code base', 'start')
@@ -142,7 +142,7 @@ def get_source_status(project_id):
 
 
 @shared_task
-def save_last_update(project_id):
+def save_last_update(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting save_last_update.', project_id)
     project_id = make_one(project_id)
 

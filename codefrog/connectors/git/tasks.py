@@ -20,7 +20,7 @@ DAYS_PER_CHUNK = 3650
 
 
 @shared_task
-def clone_repo(project_id):
+def clone_repo(project_id, *args, **kwargs):
     """
     Clone the remote git repository to local directory.
 
@@ -69,13 +69,15 @@ def clone_repo(project_id):
 
 
 @shared_task
-def import_code_changes(project_id, start_date=None):
+def import_code_changes(project_id, start_date=None, *args, **kwargs):
     """
     :param project_id:
     :param start_date:
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
+    logger.warning('args: %s', args)
+    logger.warning('kwargs: %s', kwargs)
     project_id = make_one(project_id)
     log(project_id, 'Importing latest code changes', 'start')
 
@@ -135,6 +137,8 @@ def save_code_changes(
         git_commit_hash,
         author_name,
         author_email,
+        *args,
+        **kwargs,
 ):
     logger.info(
         'Project(%s): Starting save_code_changes(%s).',
@@ -233,7 +237,7 @@ def _get_complexity_change(source_dir, git_commit_hash):
 
 
 @shared_task
-def import_tags(project_id):
+def import_tags(project_id, *args, **kwargs):
     logger.info('Project(%s): Starting import_tags.', project_id)
     project_id = make_one(project_id)
     log(project_id, 'Importing Git tags', 'start')
