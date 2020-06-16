@@ -142,23 +142,20 @@ def get_source_status(project_id):
 
 
 @shared_task
-def save_last_update(project_ids):
-    logger.info('Project(%s): Starting save_last_update.', project_ids)
+def save_last_update(project_id):
+    logger.info('Project(%s): Starting save_last_update.', project_id)
+    project_id = make_one(project_id)
 
-    if isinstance(project_ids, int):
-        project_ids = [project_ids, ]
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        return
 
-    for project_id in project_ids:
-        try:
-            project = Project.objects.get(pk=project_id)
-        except Project.DoesNotExist:
-            logger.warning('Project with id %s not found. ', project_id)
-            return
+    project.last_update = timezone.now()
+    project.status = STATUS_READY
+    project.save(update_fields=['last_update', 'status'])
 
-        project.last_update = timezone.now()
-        project.status = STATUS_READY
-        project.save(update_fields=['last_update', 'status'])
+    logger.info('Project(%s): Finished save_last_update.', project_id)
 
-    logger.info('Project(%s): Finished save_last_update.', project_ids)
-
-    return project_ids
+    return project_id

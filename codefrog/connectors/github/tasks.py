@@ -128,10 +128,8 @@ def import_open_issues(project_id):
 
 @shared_task
 def import_releases(project_id):
-    logger.info(
-        'Project(%s): Starting import_releases.',
-        project_id,
-    )
+    logger.info('Project(%s): Starting import_releases.', project_id)
+    project_id = make_one(project_id)
     log(project_id, 'Importing Github releases', 'start')
 
     try:

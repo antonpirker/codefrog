@@ -234,10 +234,8 @@ def _get_complexity_change(source_dir, git_commit_hash):
 
 @shared_task
 def import_tags(project_id):
-    logger.info(
-        'Project(%s): Starting import_tags.',
-        project_id,
-    )
+    logger.info('Project(%s): Starting import_tags.', project_id)
+    project_id = make_one(project_id)
     log(project_id, 'Importing Git tags', 'start')
 
     try:
