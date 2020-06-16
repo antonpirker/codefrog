@@ -96,21 +96,20 @@ class Project(GithubMixin, models.Model):
             x['file_path']: x['changes'] for x in changes
         }
         all_nodes = SourceNode.objects.filter(source_status=self.current_source_status)
-        all_files = list(filter(None, list(set(all_nodes.values_list('path', flat=True)))))
+        all_paths = list(filter(None, list(set(x.project_path for x in all_nodes))))
 
         out = []
-        for file in all_files:
+        for path in all_paths:
             out.append({
-                'file_path': file,
-                'changes': changes_dict.get(file, 0.1),
-                'repo_link': self.get_repo_link(file),
+                'file_path': path,
+                'changes': changes_dict.get(path, 0.1),
+                'repo_link': self.get_repo_link(path),
             })
 
         out.sort(key=lambda x: x['changes'], reverse=True)
         return out
 
     def get_repo_link(self, path):
-        path = os.sep.join(path.split(os.sep)[1:])  # remove first directory
         return f'{self.github_repo_url}/blame/master/{path}'
 
     def ingest(self):

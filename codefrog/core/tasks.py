@@ -132,7 +132,7 @@ def get_source_status(project_id, *args, **kwargs):
                     current_node = child_node
                 else:
                     file_path = '/'.join(path_parts)
-                    repo_link = project.get_repo_link(file_path)
+                    repo_link = project.get_repo_link(os.sep.join(file_path.split(os.sep)[1:])) # remove first directory)
                     logger.info('Project(%s): Creating file node: %s', project_id, file_path)
                     SourceNode.objects.create(
                         source_status=source_status,
