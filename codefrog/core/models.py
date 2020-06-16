@@ -76,7 +76,7 @@ class Project(GithubMixin, models.Model):
 
     @property
     def current_source_status(self):
-        return self.source_stati.order_by('timestamp').last()
+        return self.source_stati.filter(active=True).order_by('timestamp').last()
 
     def get_file_churn(self):
         DAYS = 30

@@ -54,7 +54,7 @@ def update_source_status_with_complexity(project_id):
         logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
         return
 
-    source_status = SourceStatus.objects.filter(project=project).order_by('timestamp').last()
+    source_status = project.current_source_status
 
     for node in SourceNode.objects.filter(source_status=source_status):
         logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
@@ -82,7 +82,7 @@ def update_source_status_with_changes(project_id):
         logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
         return
 
-    source_status = SourceStatus.objects.filter(project=project).order_by('timestamp').last()
+    source_status = project.current_source_status
 
     for node in SourceNode.objects.filter(source_status=source_status):
         logger.debug('Project(%s): calculating file changes for %s', project_id, node.path)
@@ -110,7 +110,7 @@ def update_source_status_with_ownership(project_id):
         logger.info('Project(%s): Finished (aborted) update_source_status_with_ownership.', project_id)
         return
 
-    source_status = SourceStatus.objects.filter(project=project).order_by('timestamp').last()
+    source_status = project.current_source_status
 
     for node in SourceNode.objects.filter(source_status=source_status):
         logger.debug('Project(%s): calculating file ownership for %s', project_id, node.path)
