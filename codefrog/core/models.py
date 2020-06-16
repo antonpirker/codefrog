@@ -417,6 +417,8 @@ class SourceStatus(models.Model):
         related_name='source_stati',
     )
     timestamp = models.DateTimeField()
+    active = models.BooleanField(default=False)
+
     @property
     def tree(self):
         def render_tree(node):
