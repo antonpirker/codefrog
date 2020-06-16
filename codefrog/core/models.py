@@ -110,7 +110,7 @@ class Project(GithubMixin, models.Model):
         return out
 
     def get_repo_link(self, path):
-        return f'{self.github_repo_url}/blame/master/{path}'.replace('//', '/')
+        return f'{self.github_repo_url}/blame/master/{path}'
 
     def ingest(self):
         """

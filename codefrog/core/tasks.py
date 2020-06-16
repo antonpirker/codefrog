@@ -104,39 +104,36 @@ def get_source_status(project_id):
 
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
-            full_path = os.path.join(root_dir, f)
-            # xxx
-            if any(x in full_path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
+            path = os.path.join(root_dir.replace(project.repo_dir, ''), f)
+
+            if any(x in path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
                 continue
-            directories = [part for part in full_path.split(os.sep) if part]
-            directories = directories[len(project.repo_dir.split(os.sep)) - 2:]
+            path_parts = [part for part in path.split(os.sep) if part]
 
             current_node = root
-            for idx, directory in enumerate(directories):
-                node_name = directory
+            for idx, path_part in enumerate(path_parts):
+                node_name = path_part
 
-                is_not_leaf_level = idx + 1 < len(directories)
-                if is_not_leaf_level:
-                    path = '/'.join(directories[1:idx + 1])
-                    logger.info('Project(%s): Creating directory node: %s', project_id, path)
+                is_leaf_level = idx + 1 >= len(path_parts)
+                if not is_leaf_level:
+                    directory_path = '/'.join(path_parts[:idx+1])
+                    logger.info('Project(%s): Get or create directory node: %s', project_id, directory_path)
                     child_node, created = SourceNode.objects.get_or_create(
                         source_status=source_status,
                         name=node_name,
-                        path=path,
+                        path=directory_path,
                         parent=current_node,
                     )
                     current_node = child_node
-
                 else:
-                    path = full_path.replace(project.repo_dir, '')
-                    repo_link = project.get_repo_link(path)
-
-                    logger.info('Project(%s): Creating file node: %s', project_id, path)
+                    file_path = '/'.join(path_parts)
+                    repo_link = project.get_repo_link(file_path)
+                    logger.info('Project(%s): Creating file node: %s', project_id, file_path)
                     SourceNode.objects.create(
                         source_status=source_status,
                         parent=current_node,
                         name=node_name,
-                        path=path,
+                        path=file_path,
                         repo_link=repo_link,
                     )
 

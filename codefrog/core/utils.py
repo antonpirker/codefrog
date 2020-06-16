@@ -93,7 +93,6 @@ def get_file_ownership(filename, project):
 
 def get_file_complexity(filename):
     complexity = 1
-    print("xxxxxxxxxxxxxxxxxxx: %s" % filename)
     try:
         with open(filename) as file:
             try:
