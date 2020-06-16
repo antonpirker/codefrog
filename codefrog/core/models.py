@@ -128,18 +128,11 @@ class Project(GithubMixin, models.Model):
         self.save()
 
         ingest_project = chain(
+            # Clone Repo
             clone_repo.s(),
+            # Import git commits and at the same time all the data from GitHub.
             group(
                 import_code_changes.s(),
-                chain(
-                    get_source_status.s(),
-                    update_source_status_with_complexity.s(),
-                    update_source_status_with_ownership.s(),
-                ),
-            ),
-            update_source_status_with_changes.s(),
-            group(
-                calculate_code_metrics.s(),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
                     import_issues.s(),
                     calculate_issue_metrics.s(),
@@ -147,6 +140,17 @@ class Project(GithubMixin, models.Model):
                 import_releases.s(),
                 import_tags.s(),
             ),
+            # Calculate code metrics and at the same time the source status
+            group(
+                calculate_code_metrics.s(), # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                chain(
+                    get_source_status.s(),
+                    update_source_status_with_complexity.s(),
+                    update_source_status_with_ownership.s(),
+                    update_source_status_with_changes.s(),
+                ),
+            ),
+            # Save last update date
             save_last_update.s(),
         )
 

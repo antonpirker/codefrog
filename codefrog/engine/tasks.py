@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import Metric, Complexity
-from core.utils import date_range, log
+from core.utils import date_range, log, make_one
 from engine.models import CodeChange, Issue
 
 logger = get_task_logger(__name__)
@@ -66,6 +66,8 @@ def calculate_code_complexity(project_id):
 def calculate_code_metrics(project_id, start_date=None):
     logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
     log(project_id, 'Calculating code evolution', 'start')
+
+    project_id = make_one(project_id)
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
