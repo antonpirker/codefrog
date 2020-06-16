@@ -10,7 +10,7 @@ from django.conf import settings
 
 from connectors.github.utils import get_access_token
 from core.models import Project, Release, STATUS_UPDATING
-from core.utils import run_shell_command, log
+from core.utils import run_shell_command, log, make_one
 from engine.models import CodeChange
 
 logger = get_task_logger(__name__)
@@ -76,6 +76,7 @@ def import_code_changes(project_id, start_date=None):
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
+    project_id = make_one(project_id)
     log(project_id, 'Importing latest code changes', 'start')
 
     try:

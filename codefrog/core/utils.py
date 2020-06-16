@@ -214,7 +214,7 @@ def log(project_id, message, event):
             )
 
         if event == 'stop':
-            log_entry = LogEntry.objects.filter(
+            LogEntry.objects.filter(
                 project_id=project_id,
                 message=message,
                 timestamp_end__isnull=True,

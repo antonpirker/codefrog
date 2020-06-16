@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from core.models import Project, Release
-from core.utils import GitHub, log
+from core.utils import GitHub, log, make_one
 from engine.models import Issue, OpenIssue
 
 logger = get_task_logger(__name__)
@@ -13,11 +13,8 @@ logger = get_task_logger(__name__)
 
 @shared_task
 def import_issues(project_id, start_date=None):
-    logger.info(
-        'Project(%s): Starting import_issues. (%s)',
-        project_id,
-        start_date,
-    )
+    logger.info('Project(%s): Starting import_issues. (%s)', project_id, start_date)
+    project_id = make_one(project_id)
     log(project_id, 'Importing Github issues', 'start')
 
     try:
@@ -80,10 +77,8 @@ def import_issues(project_id, start_date=None):
 
 @shared_task
 def import_open_issues(project_id):
-    logger.info(
-        'Project(%s): Starting import_open_issues.',
-        project_id,
-    )
+    logger.info('Project(%s): Starting import_open_issues.', project_id)
+    project_id = make_one(project_id)
     log(project_id, 'Import of currently open GitHub issues', 'start')
 
     try:

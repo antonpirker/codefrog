@@ -43,9 +43,8 @@ def update_project(project_id):
 @shared_task
 def update_source_status_with_metrics(project_id):
     logger.info('Project(%s): Starting update_source_status_with_metrics.', project_id)
-    log(project_id, 'Updating complexity of code base', 'start')
-
     project_id = make_one(project_id)
+    log(project_id, 'Updating complexity of code base', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
@@ -80,9 +79,8 @@ def update_source_status_with_metrics(project_id):
 @shared_task
 def get_source_status(project_id):
     logger.info('Project(%s): Starting get_source_status.', project_id)
-    log(project_id, 'Loading source status of code base', 'start')
-
     project_id = make_one(project_id)
+    log(project_id, 'Loading source status of code base', 'start')
 
     try:
         project = Project.objects.get(pk=project_id)
