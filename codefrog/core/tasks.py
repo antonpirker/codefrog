@@ -41,8 +41,8 @@ def update_project(project_id):
 
 
 @shared_task
-def update_source_status_with_complexity(project_id):
-    logger.info('Project(%s): Starting update_source_status_with_complexity.', project_id)
+def update_source_status_with_metrics(project_id):
+    logger.info('Project(%s): Starting update_source_status_with_metrics.', project_id)
     log(project_id, 'Updating complexity of code base', 'start')
 
     project_id = make_one(project_id)
@@ -51,75 +51,28 @@ def update_source_status_with_complexity(project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
+        logger.info('Project(%s): Finished (aborted) update_source_status_with_metrics.', project_id)
         return
 
-    source_status = project.current_source_status
+    source_status = project.source_stati.filter(active=False).order_by('timestamp').last()
+
+    if not source_status:
+        logger.warning('No inactive SourceStatus found. Aborting.')
+        return
 
     for node in SourceNode.objects.filter(source_status=source_status):
         logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
         full_path = os.path.join(project.repo_dir, node.path)
         node.complexity = get_file_complexity(full_path)
-        node.save()
-
-    logger.info('Project(%s): Finished update_source_status_with_complexity.', project_id)
-    log(project_id, 'Updating complexity of code base', 'stop')
-
-    return project_id
-
-
-@shared_task
-def update_source_status_with_changes(project_id):
-    logger.info('Project(%s): Starting update_source_status_with_changes.', project_id)
-    log(project_id, 'Updating file changes of code base', 'start')
-
-    project_id = make_one(project_id)
-
-    try:
-        project = Project.objects.get(pk=project_id)
-    except Project.DoesNotExist:
-        logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished (aborted) update_source_status_with_changes.', project_id)
-        return
-
-    source_status = project.current_source_status
-
-    for node in SourceNode.objects.filter(source_status=source_status):
-        logger.debug('Project(%s): calculating file changes for %s', project_id, node.path)
-        full_path = os.path.join(project.repo_dir, node.path)
+        node.ownership = get_file_ownership(full_path, project)
         node.changes = get_file_changes(full_path, project)
         node.save()
 
-    logger.info('Project(%s): Finished update_source_status_with_changes.', project_id)
-    log(project_id, 'Updating file changes of code base', 'stop')
+    source_status.active = True
+    source_status.save()
 
-    return project_id
-
-
-@shared_task
-def update_source_status_with_ownership(project_id):
-    logger.info('Project(%s): Starting update_source_status_with_ownership.', project_id)
-    log(project_id, 'Updating file ownership of code base', 'start')
-
-    project_id = make_one(project_id)
-
-    try:
-        project = Project.objects.get(pk=project_id)
-    except Project.DoesNotExist:
-        logger.warning('Project with id %s not found. ', project_id)
-        logger.info('Project(%s): Finished (aborted) update_source_status_with_ownership.', project_id)
-        return
-
-    source_status = project.current_source_status
-
-    for node in SourceNode.objects.filter(source_status=source_status):
-        logger.debug('Project(%s): calculating file ownership for %s', project_id, node.path)
-        full_path = os.path.join(project.repo_dir, node.path)
-        node.ownership = get_file_ownership(full_path, project)
-        node.save()
-
-    logger.info('Project(%s): Finished update_source_status_with_ownership.', project_id)
-    log(project_id, 'Updating file ownership of code base', 'stop')
+    logger.info('Project(%s): Finished update_source_status_with_metrics.', project_id)
+    log(project_id, 'Updating complexity of code base', 'stop')
 
     return project_id
 
@@ -152,6 +105,7 @@ def get_source_status(project_id):
     for root_dir, dirs, files in os.walk(project.repo_dir):
         for f in files:
             full_path = os.path.join(root_dir, f)
+            # xxx
             if any(x in full_path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
                 continue
             directories = [part for part in full_path.split(os.sep) if part]

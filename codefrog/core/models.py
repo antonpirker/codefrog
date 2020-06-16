@@ -119,8 +119,7 @@ class Project(GithubMixin, models.Model):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import save_last_update, get_source_status, \
-            update_source_status_with_complexity, update_source_status_with_ownership, \
-            update_source_status_with_changes
+            update_source_status_with_metrics
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
         from connectors.github.tasks import import_issues, import_releases
 
@@ -145,9 +144,7 @@ class Project(GithubMixin, models.Model):
                 calculate_code_metrics.s(), # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
                     get_source_status.s(),
-                    update_source_status_with_complexity.s(),
-                    update_source_status_with_ownership.s(),
-                    update_source_status_with_changes.s(),
+                    update_source_status_with_metrics.s(),
                 ),
             ),
             # Save last update date
@@ -163,8 +160,7 @@ class Project(GithubMixin, models.Model):
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import save_last_update, get_source_status, \
-            update_source_status_with_complexity, update_source_status_with_ownership, \
-            update_source_status_with_changes
+            update_source_status_with_metrics
         from engine.tasks import calculate_code_metrics, calculate_issue_metrics
         from connectors.github.tasks import import_issues, import_open_issues, \
             import_releases
@@ -180,11 +176,9 @@ class Project(GithubMixin, models.Model):
                 import_code_changes.s(start_date=start_date),
                 chain(
                     get_source_status.s(),
-                    update_source_status_with_complexity.s(),
-                    update_source_status_with_ownership.s(),
+                    update_source_status_with_metrics.s(),
                 ),
             ),
-            update_source_status_with_changes.s(),
 
             group(
                 calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
