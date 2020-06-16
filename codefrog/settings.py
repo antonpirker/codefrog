@@ -9,14 +9,6 @@ from sentry_sdk.integrations.redis import RedisIntegration
 
 from core.env import get_env
 
-sentry_sdk.init(
-    dsn="https://14e094f6e2f74dd79a36457a27ddb5a6@o400782.ingest.sentry.io/5259497",
-    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
-
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True
-)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -255,3 +247,15 @@ except Exception:
 PROJECT_SOURCE_CODE_DIR = get_env(env.str, 'PROJECT_SOURCE_CODE_DIR', default='/tmp/git_repos')
 if not os.path.exists(PROJECT_SOURCE_CODE_DIR):
     os.makedirs(PROJECT_SOURCE_CODE_DIR)
+
+
+# Sentry error catching service
+if not DEBUG:
+    sentry_sdk.init(
+        dsn="https://14e094f6e2f74dd79a36457a27ddb5a6@o400782.ingest.sentry.io/5259497",
+        integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True
+    )
