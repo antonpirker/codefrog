@@ -62,6 +62,13 @@ def clone_repo(project_id, *args, **kwargs):
         run_shell_command(cmd)
         logger.info('Project(%s): Finished cloning.', project_id)
 
+    logger.info('Project(%s): Getting branch name.', project_id)
+    cmd = f'git rev-parse --abbrev-ref HEAD'
+    branch_name = run_shell_command(cmd, cwd=project.repo_dir).strip()
+    project.git_branch = branch_name
+    project.save()
+    logger.info('Project(%s): Finished getting branch name.', project_id)
+
     logger.info('Project(%s): Finished clone_repo.', project_id)
     log(project_id, 'Cloning repository', 'stop')
 

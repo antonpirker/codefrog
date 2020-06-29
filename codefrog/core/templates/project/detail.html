@@ -229,7 +229,14 @@
                     <i id="log-history-arrow-button-up" class="fas fa-angle-up" title="Close history"></i>
 
                     {{ project.name }}
-                    <small>{% if project.private %}{% endif %}(private)</small>
+                    <small>
+                        {% if project.private %}
+                            / Private Repo
+                        {% endif %}
+                        {% if project.git_branch %}
+                            / Branch: {{ project.git_branch }}
+                        {% endif %}
+                    </small>
                 </h1>
                 <div id="log-history">
                     <ul>
