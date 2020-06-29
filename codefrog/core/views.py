@@ -54,8 +54,9 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     except Project.DoesNotExist:
         raise Http404('Project does not exist')
 
-    if project.private:
-        if project.user != request.user:
+    if project.private \
+        and request.user != project.user  \
+        and not request.user.is_superuser:
             raise Http404('Project does not exist')
 
     today = timezone.now()
