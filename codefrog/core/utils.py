@@ -123,6 +123,7 @@ def get_path_complexity(path):
 
 SOURCE_TREE_EXCLUDE = [
     '/.git/',
+    'package-lock.json',
 ]
 
 def resample_metrics(queryset, frequency):
