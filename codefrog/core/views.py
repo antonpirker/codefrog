@@ -621,8 +621,9 @@ def project_file_stats(request, slug):
     except Project.DoesNotExist:
         raise Http404('Project does not exist')
 
-    if project.private:
-        if project.user != request.user:
+    if project.private \
+        and request.user != project.user  \
+        and not request.user.is_superuser:
             raise Http404('Project does not exist')
 
     path = request.GET.get('path')
