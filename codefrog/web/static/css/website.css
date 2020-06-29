@@ -120,8 +120,7 @@ a.plain:hover, a.plain:focus {
 }
 /* section: footer */
 .section.footer {
-    margin-top: 20em;
-    margin-bottom: 5em;
+    margin: 5em 0;
 }
 
 /* PRICING PAGE */
