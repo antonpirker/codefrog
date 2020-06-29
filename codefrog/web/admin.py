@@ -39,7 +39,7 @@ class UsageAdmin(admin.ModelAdmin):
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = (
-        'timestamp', 'user', 'url', 'message',
+        'timestamp', 'user', 'url', 'message', 'handled',
     )
     list_filter = (
         'timestamp', 'user', 'url',

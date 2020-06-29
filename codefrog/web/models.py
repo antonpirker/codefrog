@@ -102,3 +102,4 @@ class Message(models.Model):
     timestamp = models.DateTimeField(db_index=True)
     message = models.TextField()
     url = models.CharField(max_length=255, blank=True, default='')
+    handled = models.BooleanField(default=False)
