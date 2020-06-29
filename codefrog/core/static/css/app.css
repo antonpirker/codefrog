@@ -117,7 +117,7 @@ body.app .dashboard-card h2 i.fas {
     }
 }
 
-
+/* Work Areas */
 .change_frequency_gradient {
     width: 10em;
     height: 1em;
@@ -180,6 +180,10 @@ body.app .dashboard-card h2 i.fas {
     overflow: hidden;
 }
 
+/* File Churn */
+#file-churn-diagram-reset-zoom {
+    display: none;
+}
 
 /* Feedback form */
 .feedback {

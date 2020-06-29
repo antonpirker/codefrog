@@ -4,8 +4,10 @@
 
 {% block head_end %}
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
     <script src="{% static "js/evolution-diagram.js" %}"></script>
@@ -361,7 +363,10 @@
                     <canvas id="file-churn-diagram"></canvas>
                 </div>
             </div>
-
+            <div class="large-12 cell">
+                <p id="file-churn-diagram-description">You made X changes to Y files of a total of Z files in your code base over the last 30 days.</p>
+                <button type="button" id="file-churn-diagram-reset-zoom" class="button primary">reset zoom</button>
+            </div>
             <!-- Top 5 change files-->
             <div class="large-12 cell">
                 <h3>Top 5 "most changed files" over the last 30 days</h3>
