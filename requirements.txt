@@ -22,3 +22,4 @@ flower==0.9.3  # celery monitoring
 sentry-sdk==0.14.4
 django-structlog==1.5.2
 django-mptt==0.11.0
+django-anymail~=7.1.0

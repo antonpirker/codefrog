@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import structlog
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 
@@ -103,3 +104,24 @@ class Message(models.Model):
     message = models.TextField()
     url = models.CharField(max_length=255, blank=True, default='')
     handled = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        url = f'https://codefrog.io/admin/web/message/{self.pk}/change/'
+        message = f'''
+        A customer send a new feedback message:
+
+        <blockquote>
+            {self.message}
+        </blockquote>
+
+        Check it out here:
+            {url}
+        '''
+        send_mail(
+            '[CODEFROG] New feedback from customer!',
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_EMAIL],
+        )

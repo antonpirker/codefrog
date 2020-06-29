@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'engine.apps.EngineConfig',
     'web.apps.WebConfig',
     'mptt',
+    'anymail',
 ]
 
 MIDDLEWARE = [
@@ -232,7 +233,7 @@ GITHUB_CLIENT_SECRET = get_env(env.str, 'GITHUB_CLIENT_SECRET', default=None)
 
 
 # Github App Setup
-GITHUB_APP_IDENTIFIER = get_env(env.int, 'GITHUB_APP_IDENTIFIER',default= None)
+GITHUB_APP_IDENTIFIER = get_env(env.int, 'GITHUB_APP_IDENTIFIER', default=None)
 GITHUB_APP_CLIENT_ID = get_env(env.str, 'GITHUB_APP_CLIENT_ID', default=None)
 GITHUB_APP_CLIENT_SECRET = get_env(env.str, 'GITHUB_APP_CLIENT_SECRET', default=None)
 GITHUB_AUTH_REDIRECT_URI = get_env(env.str, 'GITHUB_AUTH_REDIRECT_URI', default=None)
@@ -259,3 +260,11 @@ if not DEBUG:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True
     )
+
+# Anymail setup
+EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
+DEFAULT_FROM_EMAIL = get_env(env.str, 'DEFAULT_FROM_EMAIL', default='noreply@codefrog.io')
+ADMIN_EMAIL = get_env(env.str, 'ADMIN_EMAIL', default='anton@ignaz.at')
+ANYMAIL = {
+    'SENDINBLUE_API_KEY': get_env(env.str, 'SENDINBLUE_API_KEY', default=None),
+}
