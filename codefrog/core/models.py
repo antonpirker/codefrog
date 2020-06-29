@@ -56,6 +56,7 @@ class Project(GithubMixin, models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     name = models.CharField(max_length=100)
     git_url = models.CharField(max_length=255)
+    git_branch = models.CharField(max_length=255, default='')
 
     external_services = JSONField(null=True)
 
