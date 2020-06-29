@@ -25,7 +25,10 @@ def index(request):
     if not request.user.is_authenticated:
         return landing(request)
 
-    projects = request.user.projects.all().order_by('-active', 'name')
+    if request.user.is_superuser:
+        projects = Project.objects.all().order_by('-active', 'name')
+    else:
+        projects = request.user.projects.all().order_by('-active', 'name')
 
     context = {
         'user': request.user,
