@@ -2,7 +2,7 @@
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
  */
-function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
+function createEvolutionDiagram(elementId, labels, complexityValues, issuesClosed,
                                 leadTimes, releases, evolutionChartFrequency) {
     let releaseAnnotations = [];
     for (const release of releases) {
@@ -23,7 +23,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
     const data = {
         labels: labels,
         datasets: [{
-            label: 'Complexity of the whole System',
+            label: 'Complexity of the whole code base',
             type: 'line',
             data: complexityValues,
             fill: false,
@@ -35,15 +35,15 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
             cubicInterpolationMode: 'monotone',
             yAxisID: "y-axis-0",
         }, {
-            label: 'Open Issues in Issue Tracker',
-            data: openIssues,
+            label: 'Issues closed in issue tracker',
+            data: issuesClosed,
             fill: false,
             borderColor: chart_colors[1],
             backgroundColor: chart_colors[1],
             lineTension: 0,
             yAxisID: "y-axis-1",
         }, {
-            label: 'Lead Time (Days to Close Issues)',
+            label: 'Lead Time (Days to close issues)',
             data: leadTimes,
             fill: false,
             borderColor: chart_colors[2],
@@ -140,7 +140,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
                     },
                     label: function (tooltipItem, data) {
                         const COMPLEXITY = 0;
-                        const OPEN_ISSUES = 1;
+                        const ISSUES_CLOSED = 1;
                         const LEAD_TIME = 2;
 
                         let out = '';
@@ -148,8 +148,8 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
                         if (tooltipItem.datasetIndex === LEAD_TIME) {
                             out += 'Lead Time (in Days): ' + tooltipItem.yLabel.toFixed(1);
 
-                        } else if (tooltipItem.datasetIndex === OPEN_ISSUES) {
-                            out += 'Open Issues: ' + tooltipItem.yLabel.toFixed(0);
+                        } else if (tooltipItem.datasetIndex === ISSUES_CLOSED) {
+                            out += 'Issues Closed: ' + tooltipItem.yLabel.toFixed(0);
 
                         } else if (tooltipItem.datasetIndex === COMPLEXITY) {
                             out += 'Complexity';
