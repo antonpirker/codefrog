@@ -35,6 +35,15 @@ function createEvolutionDiagram(elementId, labels, values1, values2, values3, va
             cubicInterpolationMode: 'monotone',
             yAxisID: "y-axis-0",
         }, {
+            label: 'Avg age of PRs (in hours)',
+            type: 'line',
+            data: values4,
+            fill: false,
+            borderColor: chart_colors[3],
+            backgroundColor: chart_colors[3],
+            lineTension: 0,
+            yAxisID: "y-axis-3",
+        }, {
             label: 'Number of issues closed',
             data: values2,
             fill: false,
@@ -50,15 +59,6 @@ function createEvolutionDiagram(elementId, labels, values1, values2, values3, va
             backgroundColor: chart_colors[2],
             lineTension: 0,
             yAxisID: "y-axis-2",
-        }, {
-            label: 'Avg age of PRs (in hours)',
-            type: 'line',
-            data: values4,
-            fill: false,
-            borderColor: chart_colors[3],
-            backgroundColor: chart_colors[3],
-            lineTension: 0,
-            yAxisID: "y-axis-3",
         }]
     };
 
