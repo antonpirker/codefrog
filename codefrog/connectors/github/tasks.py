@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from core.models import Project, Release
 from core.utils import GitHub, log, make_one
-from engine.models import Issue, OpenIssue
+from engine.models import Issue, OpenIssue, PullRequest
 
 logger = get_task_logger(__name__)
 
@@ -175,5 +175,59 @@ def import_releases(project_id, *args, **kwargs):
         project_id,
     )
     log(project_id, 'Importing Github releases', 'stop')
+
+    return project_id
+
+
+@shared_task
+def import_pull_requests(project_id, *args, **kwargs):
+    logger.info('Project(%s): Starting import_pull_requests.', project_id)
+    project_id = make_one(project_id)
+    log(project_id, 'Importing Github pull requests', 'start')
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        logger.warning('Project with id %s not found. ', project_id)
+        logger.info('Project(%s): Finished (aborted) import_pull_requests.', project_id)
+        return
+
+    installation_id = project.user.profile.github_app_installation_refid
+    gh = GitHub(installation_id=installation_id)
+
+    pull_requests = gh.get_pull_requests(
+        repo_owner=project.github_repo_owner,
+        repo_name=project.github_repo_name,
+    )
+
+    for pull_request in pull_requests:
+        opened_at = datetime.datetime.strptime(
+            pull_request['created_at'],
+            '%Y-%m-%dT%H:%M:%SZ',
+        ).replace(tzinfo=timezone.utc)
+
+        if pull_request['merged_at']:
+            merged_at = datetime.datetime.strptime(
+                pull_request['merged_at'],
+                '%Y-%m-%dT%H:%M:%SZ',
+            ).replace(tzinfo=timezone.utc)
+        else:
+            merged_at = None
+
+        raw_pull_request, created = PullRequest.objects.update_or_create(
+            project_id=project_id,
+            pull_request_refid=pull_request['number'],
+            opened_at=opened_at,
+            defaults={
+                'merged_at': merged_at,
+            }
+        )
+        logger.debug(f'{raw_pull_request}: created: {created}')
+
+    logger.info(
+        'Project(%s): Finished import_pull_requests.',
+        project_id,
+    )
+    log(project_id, 'Importing Github pull requests', 'stop')
 
     return project_id

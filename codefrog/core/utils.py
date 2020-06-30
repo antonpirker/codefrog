@@ -232,7 +232,7 @@ class GitHub:
     """
     api_base_url = 'https://api.github.com'
 
-    GITHUB_ISSUES_PER_PAGE = 100
+    GITHUB_ITEMS_PER_PAGE = 100
 
     user_access_token = None
     installation_access_token = None
@@ -354,7 +354,7 @@ class GitHub:
             'state': 'all',
             'sort': 'created',
             'direction': 'asc',
-            'per_page': str(self.GITHUB_ISSUES_PER_PAGE),
+            'per_page': str(self.GITHUB_ITEMS_PER_PAGE),
         }
 
         if start_date:
@@ -370,7 +370,7 @@ class GitHub:
             'state': 'open',
             'sort': 'created',
             'direction': 'asc',
-            'per_page': str(self.GITHUB_ISSUES_PER_PAGE),
+            'per_page': str(self.GITHUB_ITEMS_PER_PAGE),
         }
 
         if start_date:
@@ -440,6 +440,54 @@ class GitHub:
             releases = json.loads(r.content)
             for release in releases:
                 yield release
+
+            # get url of next page (if any)
+            url = None
+            try:
+                links = requests.utils.parse_header_links(r.headers['Link'])
+                for link in links:
+                    if link['rel'] == 'next':
+                        url = link['url']
+                        retries = 0
+                        break
+            except KeyError:
+                pass
+
+    def get_pull_requests(self, repo_owner, repo_name):
+        params = {
+            'state': 'closed',
+            'sort': 'updated',
+            'direction': 'desc',
+            'per_page': str(self.GITHUB_ITEMS_PER_PAGE),
+        }
+
+        return self._get_pull_requests(repo_owner, repo_name, params)
+
+    def _get_pull_requests(self, repo_owner, repo_name, params):
+        headers = {
+            'Accept': 'application/vnd.github.machine-man-preview+json',
+            'Authorization': 'token %s' % self.installation_access_token,
+        }
+
+        list_pull_requests_url = f'/repos/{repo_owner}/{repo_name}/pulls'
+        url = f'{self.api_base_url}{list_pull_requests_url}?%s' % urllib.parse.urlencode(params)
+
+        retries = 0
+
+        while url:
+            r = requests.get(url, headers=headers)
+            if r.status_code != 200:
+                if retries < 5:
+                    time.sleep(1)
+                    retries += 1
+                    continue
+
+            if retries == 5:
+                return
+
+            items = json.loads(r.content)
+            for item in items:
+                yield item
 
             # get url of next page (if any)
             url = None

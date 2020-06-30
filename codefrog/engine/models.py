@@ -60,3 +60,29 @@ class OpenIssue(models.Model):
         models.CharField(max_length=255),
         default=list,
     )
+
+
+class PullRequest(models.Model):
+    project = models.ForeignKey(
+        'core.Project',
+        on_delete=models.CASCADE,
+    )
+    pull_request_refid = models.CharField(max_length=100)
+    opened_at = models.DateTimeField()
+    merged_at = models.DateTimeField(null=True)
+
+    def get_age(self, at_date=None):
+        if self.merged_at and at_date:
+            closed = min(self.merged_at, at_date)
+        else:
+            closed = self.merged_at or at_date
+
+        closed = closed.replace(hour=0, minute=0, second=0, microsecond=0)
+        opened = self.opened_at.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        return (closed-opened).days
+
+    class Meta:
+        unique_together = (
+            ('project', 'pull_request_refid', ),
+        )
