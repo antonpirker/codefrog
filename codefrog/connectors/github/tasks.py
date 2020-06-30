@@ -201,6 +201,10 @@ def import_pull_requests(project_id, *args, **kwargs):
     )
 
     for pull_request in pull_requests:
+        is_merge_into_default_branch = project.git_branch == pull_request['base']['ref']
+        if not is_merge_into_default_branch:
+            continue
+
         opened_at = datetime.datetime.strptime(
             pull_request['created_at'],
             '%Y-%m-%dT%H:%M:%SZ',
