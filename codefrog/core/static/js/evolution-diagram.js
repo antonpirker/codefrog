@@ -23,7 +23,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, issuesClose
     const data = {
         labels: labels,
         datasets: [{
-            label: 'Complexity of the whole code base',
+            label: 'Complexity of the code base',
             type: 'line',
             data: complexityValues,
             fill: false,
@@ -35,7 +35,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, issuesClose
             cubicInterpolationMode: 'monotone',
             yAxisID: "y-axis-0",
         }, {
-            label: 'Issues closed in issue tracker',
+            label: 'Number of issues closed',
             data: issuesClosed,
             fill: false,
             borderColor: chart_colors[1],
