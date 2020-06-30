@@ -218,12 +218,18 @@ def import_pull_requests(project_id, *args, **kwargs):
         else:
             merged_at = None
 
+        if merged_at:
+            age = (merged_at - opened_at).seconds
+        else:
+            age = None
+
         raw_pull_request, created = PullRequest.objects.update_or_create(
             project_id=project_id,
             pull_request_refid=pull_request['number'],
             opened_at=opened_at,
             defaults={
                 'merged_at': merged_at,
+                'age': age,
             }
         )
         logger.debug(f'{raw_pull_request}: created: {created}')

@@ -4,7 +4,7 @@ from collections import defaultdict
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from dateutil.parser import parse
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from core.models import Metric, Complexity
@@ -249,6 +249,7 @@ def calculate_pull_request_metrics(project_id, *args, **kwargs):
 
     for day in date_range(start_date, end_date):
         count_pull_requests_merged_today = pull_requests.filter(merged_at__date=day).count()
+        cumulative_pull_requests_age = pull_requests.filter(merged_at__date=day).aggregate(Sum('age'))['age__sum']
 
         logger.debug(
             f'{day}: '
@@ -265,6 +266,7 @@ def calculate_pull_request_metrics(project_id, *args, **kwargs):
             metric_json = {}
 
         metric_json['github_pull_requests_merged'] = count_pull_requests_merged_today
+        metric_json['github_pull_requests_cumulative_age'] = cumulative_pull_requests_age
         metric.metrics = metric_json
         metric.save()
 
