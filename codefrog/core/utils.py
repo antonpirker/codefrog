@@ -8,6 +8,7 @@ from datetime import timedelta
 from urllib.parse import parse_qs
 
 import jwt
+import numpy as np
 import pandas as pd
 import requests
 import structlog
@@ -151,6 +152,7 @@ def resample_metrics(queryset, frequency):
         'complexity': 'last',  # take the last complexity in the week
         'github_issue_age': 'last',
         'github_issues_open': 'last',
+        'github_issues_closed': np.sum,
 
         #'loc': 'last',  # take the number of lines of code at the end of the week
         #'complexity_per_loc': 'last',

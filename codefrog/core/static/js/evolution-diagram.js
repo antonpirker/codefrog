@@ -53,6 +53,14 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
         }]
     };
 
+    const timeUnits = {
+        'D': 'day',
+        'W': 'week',
+        'M': 'month',
+        'Q': 'quarter'
+    };
+    let timeUnit = timeUnits[evolutionChartFrequency] || 'day';
+
     const options = {
         type: 'bar',
         data: data,
@@ -73,8 +81,12 @@ function createEvolutionDiagram(elementId, labels, complexityValues, openIssues,
                     type: 'time',
                     offset: true,
                     distribution: 'linear',
+                    ticks: {
+                        source: evolutionChartFrequency === 'Q' ? 'labels' : 'auto',
+                    },
                     time: {
                         parser: 'YYYY-MM-DD HH:mm:ss',
+                        unit: timeUnit,
                         displayFormats: {
                             day: 'LL',
                             week: '[Week] WW - YYYY',

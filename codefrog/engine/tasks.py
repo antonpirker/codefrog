@@ -200,6 +200,8 @@ def calculate_issue_metrics(project_id, *args, **kwargs):
         except ZeroDivisionError:
             age = 0
 
+        count_issues_closed_today = issues.filter(closed_at__date=day).count()
+
         logger.debug(
             f'{day}: '
             f'open/age_opened/closed/age_closed/age: '
@@ -215,6 +217,7 @@ def calculate_issue_metrics(project_id, *args, **kwargs):
         if not metric_json:
             metric_json = {}
         metric_json['github_issues_open'] = count_open_issues
+        metric_json['github_issues_closed'] = count_issues_closed_today
         metric_json['github_issue_age'] = age
         metric.metrics = metric_json
         metric.save()
