@@ -395,10 +395,13 @@ class GitHub:
         while url:
             r = requests.get(url, headers=headers)
             if r.status_code != 200:
-                if retries >= 5:
+                if retries < 5:
                     time.sleep(1)
                     retries += 1
                     continue
+
+            if retries == 5:
+                return
 
             issues = json.loads(r.content)
             for issue in issues:
@@ -432,10 +435,13 @@ class GitHub:
         while url:
             r = requests.get(url, headers=headers)
             if r.status_code != 200:
-                if retries >= 5:
+                if retries < 5:
                     time.sleep(1)
                     retries += 1
                     continue
+
+            if retries == 5:
+                return
 
             releases = json.loads(r.content)
             for release in releases:
