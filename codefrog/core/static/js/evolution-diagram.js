@@ -2,7 +2,7 @@
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
  */
-function createEvolutionDiagram(elementId, labels, values1, values2, values3,
+function createEvolutionDiagram(elementId, labels, values1, values2, values3, values4,
                                 releases, evolutionChartFrequency) {
     let releaseAnnotations = [];
     for (const release of releases) {
@@ -50,13 +50,23 @@ function createEvolutionDiagram(elementId, labels, values1, values2, values3,
             backgroundColor: chart_colors[2],
             lineTension: 0,
             yAxisID: "y-axis-2",
+        }, {
+            label: 'Avg age of PRs (in hours)',
+            type: 'line',
+            data: values4,
+            fill: false,
+            borderColor: chart_colors[3],
+            backgroundColor: chart_colors[3],
+            lineTension: 0,
+            yAxisID: "y-axis-3",
         }]
     };
 
     const toolTipLabels = {
         0: 'Complexity',
         1: 'Issues Closed: ',
-        2: 'PRs Merged: '
+        2: 'PRs Merged: ',
+        3: 'Avg PR Age [h]: '
     };
 
     const timeUnits = {
@@ -117,6 +127,12 @@ function createEvolutionDiagram(elementId, labels, values1, values2, values3,
                     }
                 }, {
                     "id": "y-axis-2",
+                    display: false,
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }, {
+                    "id": "y-axis-3",
                     display: false,
                     ticks: {
                         beginAtZero: true

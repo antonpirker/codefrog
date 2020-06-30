@@ -112,9 +112,18 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'metrics__github_issues_open',
         'metrics__github_issues_closed',
         'metrics__github_pull_requests_merged',
+        'metrics__github_pull_requests_cumulative_age',
     )
     if metrics.count() > 0:
         metrics = resample_metrics(metrics, frequency)
+
+    # Calculate metrics that are based on mulitple simple metrics.
+    for metric in metrics:
+        metric['github_avg_pull_request_age'] = \
+            metric['github_pull_requests_cumulative_age'] / metric['github_pull_requests_merged'] \
+                if metric['github_pull_requests_merged'] != 0 else 0
+
+        metric['github_avg_pull_request_age'] = metric['github_avg_pull_request_age'] / 60 / 60
 
     # Get releases in desired frequency
     if release_flag == 'no-releases':

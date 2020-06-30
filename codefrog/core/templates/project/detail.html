@@ -17,7 +17,7 @@
     <script src="{% static "js/project.js" %}"></script>
 
     <script type="text/javascript">
-        const chart_colors = ['#DD0F7E', '#0082A5', '#33CEF1'];
+        const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
 
         window.onload = function () {
             const labels = [  // Labels should be Date objects
@@ -50,6 +50,12 @@
                 {% endfor %}
             ];
 
+            const avgPRAge = [
+                {% for metric in metrics %}
+                    {{ metric.github_avg_pull_request_age|default:0 }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+
             const leadTimes = [
                 {% for metric in metrics %}
                     {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
@@ -74,6 +80,7 @@
                 complexityValues,
                 issuesClosed,
                 prsMerged,
+                avgPRAge,
                 releases,
                 evolutionDiagramFrequency
             );
