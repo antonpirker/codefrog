@@ -121,8 +121,8 @@ class Project(GithubMixin, models.Model):
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import save_last_update, get_source_status, \
             update_source_status_with_metrics
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
-        from connectors.github.tasks import import_issues, import_releases
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics, calculate_pull_request_metrics
+        from connectors.github.tasks import import_issues, import_releases, import_pull_requests
 
         self.status = STATUS_QUEUED
         self.save()
@@ -136,6 +136,10 @@ class Project(GithubMixin, models.Model):
                 chain(
                     import_issues.s(),
                     calculate_issue_metrics.s(),
+                ),
+                chain(
+                    import_pull_requests.s(),
+                    calculate_pull_request_metrics.s(),
                 ),
                 import_releases.s(),
                 import_tags.s(),
@@ -162,9 +166,9 @@ class Project(GithubMixin, models.Model):
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
         from core.tasks import save_last_update, get_source_status, \
             update_source_status_with_metrics
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics
+        from engine.tasks import calculate_code_metrics, calculate_issue_metrics, calculate_pull_request_metrics
         from connectors.github.tasks import import_issues, import_open_issues, \
-            import_releases
+            import_releases, import_pull_requests
 
         start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         log(self.pk, 'Project update', 'start')
@@ -187,6 +191,10 @@ class Project(GithubMixin, models.Model):
                     import_open_issues.s(),
                     import_issues.s(start_date=start_date),
                     calculate_issue_metrics.s(),
+                ),
+                chain(
+                    import_pull_requests.s(),
+                    calculate_pull_request_metrics.s(),
                 ),
                 import_releases.s(),
                 import_tags.s(),

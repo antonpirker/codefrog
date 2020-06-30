@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from core.models import Metric, Complexity
 from core.utils import date_range, log, make_one
-from engine.models import CodeChange, Issue
+from engine.models import CodeChange, Issue, PullRequest
 
 logger = get_task_logger(__name__)
 
@@ -224,5 +224,51 @@ def calculate_issue_metrics(project_id, *args, **kwargs):
 
     logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
     log(project_id, 'Calculating issue metrics', 'stop')
+
+    return project_id
+
+
+@shared_task
+def calculate_pull_request_metrics(project_id, *args, **kwargs):
+    logger.info('Project(%s): Starting calculate_pull_request_metrics.', project_id)
+    project_id = make_one(project_id)
+    log(project_id, 'Calculating pull request metrics', 'start')
+
+    pull_requests = PullRequest.objects.filter(
+        project_id=project_id,
+        merged_at__isnull=False,
+    ).order_by('opened_at', 'merged_at')
+
+    if pull_requests.count() == 0:
+        logger.info('Project(%s): No pull requests found. Aborting.', project_id)
+        logger.info('Project(%s): Finished calculate_pull_request_metrics.', project_id)
+        return
+
+    start_date = pull_requests.first().opened_at
+    end_date = timezone.now()
+
+    for day in date_range(start_date, end_date):
+        count_pull_requests_merged_today = pull_requests.filter(merged_at__date=day).count()
+
+        logger.debug(
+            f'{day}: '
+            f'merged: '
+            f'{count_pull_requests_merged_today}'
+        )
+        metric, _ = Metric.objects.get_or_create(
+            project_id=project_id,
+            date=day,
+        )
+
+        metric_json = metric.metrics
+        if not metric_json:
+            metric_json = {}
+
+        metric_json['github_pull_requests_merged'] = count_pull_requests_merged_today
+        metric.metrics = metric_json
+        metric.save()
+
+    logger.info('Project(%s): Finished calculate_pull_request_metrics.', project_id)
+    log(project_id, 'Calculating pull request metrics', 'stop')
 
     return project_id
