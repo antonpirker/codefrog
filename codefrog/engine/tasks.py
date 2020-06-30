@@ -253,8 +253,9 @@ def calculate_pull_request_metrics(project_id, *args, **kwargs):
 
         logger.debug(
             f'{day}: '
-            f'merged: '
-            f'{count_pull_requests_merged_today}'
+            f'merged/cumulative_age: '
+            f'{count_pull_requests_merged_today}/'
+            f'{cumulative_pull_requests_age}'
         )
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
