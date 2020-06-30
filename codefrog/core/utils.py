@@ -153,6 +153,7 @@ def resample_metrics(queryset, frequency):
         'github_issue_age': 'last',
         'github_issues_open': 'last',
         'github_issues_closed': np.sum,
+        'github_pull_requests_merged': np.sum,
 
         #'loc': 'last',  # take the number of lines of code at the end of the week
         #'complexity_per_loc': 'last',

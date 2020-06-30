@@ -111,6 +111,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'metrics__github_issue_age',
         'metrics__github_issues_open',
         'metrics__github_issues_closed',
+        'metrics__github_pull_requests_merged',
     )
     if metrics.count() > 0:
         metrics = resample_metrics(metrics, frequency)

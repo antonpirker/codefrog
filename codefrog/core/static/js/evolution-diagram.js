@@ -2,8 +2,8 @@
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
  */
-function createEvolutionDiagram(elementId, labels, complexityValues, issuesClosed,
-                                leadTimes, releases, evolutionChartFrequency) {
+function createEvolutionDiagram(elementId, labels, values1, values2, values3,
+                                releases, evolutionChartFrequency) {
     let releaseAnnotations = [];
     for (const release of releases) {
         releaseAnnotations.push({
@@ -25,7 +25,7 @@ function createEvolutionDiagram(elementId, labels, complexityValues, issuesClose
         datasets: [{
             label: 'Complexity of the code base',
             type: 'line',
-            data: complexityValues,
+            data: values1,
             fill: false,
             borderColor: chart_colors[0],
             borderDash: [10, 5],
@@ -36,21 +36,27 @@ function createEvolutionDiagram(elementId, labels, complexityValues, issuesClose
             yAxisID: "y-axis-0",
         }, {
             label: 'Number of issues closed',
-            data: issuesClosed,
+            data: values2,
             fill: false,
             borderColor: chart_colors[1],
             backgroundColor: chart_colors[1],
             lineTension: 0,
             yAxisID: "y-axis-1",
         }, {
-            label: 'Lead Time (Days to close issues)',
-            data: leadTimes,
+            label: 'Number of PRs merged',
+            data: values3,
             fill: false,
             borderColor: chart_colors[2],
             backgroundColor: chart_colors[2],
             lineTension: 0,
             yAxisID: "y-axis-2",
         }]
+    };
+
+    const toolTipLabels = {
+        0: 'Complexity',
+        1: 'Issues Closed: ',
+        2: 'PRs Merged: '
     };
 
     const timeUnits = {
@@ -139,22 +145,10 @@ function createEvolutionDiagram(elementId, labels, complexityValues, issuesClose
                         return title;
                     },
                     label: function (tooltipItem, data) {
-                        const COMPLEXITY = 0;
-                        const ISSUES_CLOSED = 1;
-                        const LEAD_TIME = 2;
-
-                        let out = '';
-
-                        if (tooltipItem.datasetIndex === LEAD_TIME) {
-                            out += 'Lead Time (in Days): ' + tooltipItem.yLabel.toFixed(1);
-
-                        } else if (tooltipItem.datasetIndex === ISSUES_CLOSED) {
-                            out += 'Issues Closed: ' + tooltipItem.yLabel.toFixed(0);
-
-                        } else if (tooltipItem.datasetIndex === COMPLEXITY) {
-                            out += 'Complexity';
+                        let out = toolTipLabels[tooltipItem.datasetIndex];
+                        if(tooltipItem.datasetIndex>0) {
+                            out += tooltipItem.yLabel.toFixed(0);
                         }
-
                         return out;
                     }
                 }
