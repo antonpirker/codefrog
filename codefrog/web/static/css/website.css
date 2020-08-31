@@ -81,8 +81,8 @@ a.plain:hover, a.plain:focus {
 .section.show-cases {
 }
 /* section: show cases */
-.lang-typescript {
-    background: #294E80;
+.lang-cplusplus {
+    background: #f34b7d;
     color: #fff;
     padding: 5px 15px;
     border-radius: 10px;
@@ -95,9 +95,9 @@ a.plain:hover, a.plain:focus {
     text-shadow: none;
     font-weight: bold;
 }
-.lang-java {
-    background: #f9001d;
-    color: #fff;
+.lang-javascript {
+    background: #f1e05a;
+    color: #000;
     padding: 5px 15px;
     border-radius: 10px;
     text-shadow: none;
