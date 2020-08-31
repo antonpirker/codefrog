@@ -285,7 +285,7 @@ class Project(GithubMixin, models.Model):
             if complexity == 0:
                 complexity = 1
         except (KeyError, AttributeError):
-            complexity = 0
+            complexity = 1
 
         try:
             ref_complexity = ref_metric.metrics['complexity']
