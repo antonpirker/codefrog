@@ -63,11 +63,6 @@ def installation__created(payload, request=None):
     logger.info("### FINISHED INSTALLATION / CREATED")
 
 
-def integration_installation__created(payload, request=None):
-    # deprecated event. is succeeded by installation_created
-    logger.info('Deprecated event integration_installation__created. Is succeeded by installation__created.')
-
-
 def installation__deleted(payload, request=None):
     print("### INSTALLATION / DELETED")
 
