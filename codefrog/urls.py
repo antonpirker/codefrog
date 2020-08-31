@@ -11,6 +11,8 @@ urlpatterns = [
     path('connectors/github/', include('connectors.github.urls')),
     path('connectors/fastspring/', include('connectors.fastspring.urls')),
 
+    path('api-internal/', include('api_internal.urls')),
+
     # feedback
     path('feedback', views.feedback, name='feedback'),
 

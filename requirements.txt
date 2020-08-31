@@ -23,3 +23,5 @@ sentry-sdk==0.14.4
 django-structlog==1.5.2
 django-mptt==0.11.0
 django-anymail~=7.1.0
+djangorestframework==3.11.1
+drf-nested-routers==0.91

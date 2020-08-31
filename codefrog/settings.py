@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'web.apps.WebConfig',
     'mptt',
     'anymail',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -267,4 +268,11 @@ DEFAULT_FROM_EMAIL = get_env(env.str, 'DEFAULT_FROM_EMAIL', default='noreply@cod
 ADMIN_EMAIL = get_env(env.str, 'ADMIN_EMAIL', default='anton@ignaz.at')
 ANYMAIL = {
     'SENDINBLUE_API_KEY': get_env(env.str, 'SENDINBLUE_API_KEY', default=None),
+}
+
+
+# Django Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }

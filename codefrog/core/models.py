@@ -407,6 +407,7 @@ class Metric(models.Model):
     project = models.ForeignKey(
         'Project',
         on_delete=models.CASCADE,
+        related_name='metrics',
     )
     date = models.DateField()
     file_path = models.CharField(max_length=255, blank=True)
