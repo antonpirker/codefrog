@@ -149,6 +149,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'show_releases': release_flag != 'no-releases',
         'metrics': metrics,
         'current_lead_time': round(metrics[-1]['github_issue_age'], 1) if len(metrics) > 0 else 0,
+        'current_avg_pull_request_age': round(metrics[-1]['github_avg_pull_request_age'], 1) if len(metrics) > 0 else 0,
         'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': round(project.get_complexity_change(), 1),
         'releases': releases,

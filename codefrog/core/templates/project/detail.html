@@ -302,6 +302,8 @@
                     <div class="large-12 cell text-center">
                         {% if current_complexity_change > 0 %}
                             <div class="stat">+{{ current_complexity_change }} %</div>
+                        {% elif current_complexity_change == 0 %}
+                            <div class="stat">±{{ current_complexity_change }} %</div>
                         {% else %}
                             <div class="stat">{{ current_complexity_change }} %</div>
                         {% endif %}
@@ -332,11 +334,11 @@
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
                         <div class="stat">
-                            {{ current_lead_time }} days
+                            {{ current_avg_pull_request_age }} days
                         </div>
                     </div>
                     <div class="large-12 cell text-center">
-                        Current lead time <i class="fas fa-question-circle" title="The number of days between opening an issue in the issue tracker and closing the issue."></i>
+                        Current PR age <i class="fas fa-question-circle" title="Number of days it currently takes to review and close pull requests."></i>
                     </div>
                 </div>
             </div>
