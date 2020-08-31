@@ -16,9 +16,11 @@ class ModelAdminWithJSONWidget(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(ModelAdminWithJSONWidget):
     list_display = (
-        'name', 'slug', 'git_url', 'status', 'last_update',
+        'id', 'name', 'user', 'active', 'status', 'last_update',
     )
-    ordering = ['name', ]
+    list_filter = ('user', 'active', 'status')
+
+    ordering = ('-id', )
 
     prepopulated_fields = {'slug': ('name',)}
 
