@@ -7,6 +7,11 @@ from api_internal.serializers import SimpleMetricSerializer, MetricSerializer, P
 from core.models import Metric, Project
 
 
+
+# TODO: add filtering date_from
+# TODO: add filtering date_to
+# TODO: calculate frequency from date_from and date_to
+# TODO: private projects can only be requested by owner
 class MetricViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleMetricSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -41,6 +46,11 @@ class MetricViewSet(viewsets.ModelViewSet):
 
         return metrics
 
+# TODO: create ReleaseViewSet similar to MetricViewSet (but for releases)
+
+# TODO: create similar viewset for file churn. see: get_file_churn()
+
+# TODO: create similar viewset for state of affairs
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
