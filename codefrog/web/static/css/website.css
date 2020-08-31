@@ -134,8 +134,7 @@ a.plain:hover, a.plain:focus {
 .pricing .plan ul li {
     list-style: none;
 }
-.pricing .plan ul li:before
-{
+.pricing .plan ul li:before {
     content: '✔';
     margin-left: -1em;
     margin-right: .1em;
@@ -147,6 +146,7 @@ a.plain:hover, a.plain:focus {
 }
 .pricing .plan ul li.not-available {
     color: #afafaf;
+    text-decoration: line-through;
 }
 
 .pricing .plan h3 {
