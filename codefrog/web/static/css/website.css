@@ -138,9 +138,14 @@ a.plain:hover, a.plain:focus {
 {
     content: '✔';
     margin-left: -1em;
-    margin-right: .100em;
+    margin-right: .1em;
 }
-.pricing .plan ul li del {
+.pricing .plan ul li.not-available:before {
+    content: '–';
+    margin-left: -1em;
+    margin-right: .4em;
+}
+.pricing .plan ul li.not-available {
     color: #afafaf;
 }
 
