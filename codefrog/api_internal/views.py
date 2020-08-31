@@ -1,13 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 from rest_framework import viewsets
+from core.utils import resample_metrics, resample_releases
 
-from api_internal.serializers import MetricSerializer, ProjectSerializer
+from api_internal.serializers import SimpleMetricSerializer, MetricSerializer, ProjectSerializer
 from core.models import Metric, Project
 
 
 class MetricViewSet(viewsets.ModelViewSet):
-    serializer_class = MetricSerializer
+    serializer_class = SimpleMetricSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -20,9 +21,23 @@ class MetricViewSet(viewsets.ModelViewSet):
             active=True,
         )
 
+        frequency = 'D' #TODO: make dynamic
+
+        # Get metrics in the desired frequency
         metrics = Metric.objects.filter(
             project=project,
+        ).order_by('date').values(
+            'date',
+            'metrics__complexity',
+            'metrics__github_issue_age',
+            'metrics__github_issues_open',
+            'metrics__github_issues_closed',
+            'metrics__github_pull_requests_merged',
+            'metrics__github_pull_requests_cumulative_age',
         )
+
+        if metrics.count() > 0:
+            metrics = resample_metrics(metrics, frequency)
 
         return metrics
 
