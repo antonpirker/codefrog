@@ -20,9 +20,11 @@
 
     <script type="text/javascript">
         const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
-        window.projectId = {{ project.pk }};
 
         window.onload = function () {
+            window.projectId = {{ project.pk }};
+            loadProject(window.projectId);
+
             const labels = [  // Labels should be Date objects
                 {% for metric in metrics %}
                     moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
@@ -87,8 +89,6 @@
                 releases,
                 evolutionDiagramFrequency
             );
-
-            createEvolutionOfIssuesDiagram(window.projectMetrics);
 
             const fileChurnFilenames = [
                 {% for item in file_churn %}

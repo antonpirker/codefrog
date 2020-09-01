@@ -2,8 +2,6 @@
  * Create diagram for evolution of issues
  */
 function createEvolutionOfIssuesDiagram(metrics) {
-    metrics = window.projectMetrics // TODO: make loading of data more stable
-
     let htmlElement = document.getElementById('evolution-issues-diagram');
 
     let layout = {
