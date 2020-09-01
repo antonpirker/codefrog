@@ -9,6 +9,7 @@ router.register(r'projects', views.ProjectViewSet, basename='projects')
 
 projects_router = routers.NestedSimpleRouter(router, r'projects', lookup='project')
 projects_router.register(r'metrics', views.MetricViewSet, basename='metrics')
+projects_router.register(r'releases', views.ReleaseViewSet, basename='releases')
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

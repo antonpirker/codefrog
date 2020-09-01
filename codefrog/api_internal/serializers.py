@@ -38,3 +38,8 @@ class MetricSerializer(serializers.ModelSerializer):
     class Meta:
         model = Metric
         fields = ['date', 'file_path', 'metrics']
+
+
+class ReleaseSerializer(serializers.Serializer):
+    date = serializers.DateTimeField(source='timestamp')
+    name = serializers.CharField()

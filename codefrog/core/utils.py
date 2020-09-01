@@ -181,6 +181,9 @@ def resample_metrics(queryset, frequency):
 
 
 def resample_releases(queryset, frequency):
+    if queryset.count() == 0:
+        return queryset
+
     df = pd.DataFrame.from_records(queryset)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df = df.set_index('timestamp')
