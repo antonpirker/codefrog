@@ -11,7 +11,6 @@ from core.models import Metric, Project
 from core.utils import resample_metrics, resample_releases
 
 
-# TODO: private projects can only be requested by owner
 class MetricViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleMetricSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -25,6 +24,12 @@ class MetricViewSet(viewsets.ModelViewSet):
             user=user,
             active=True,
         )
+
+        # Private projects can only be requested by owner or superuser
+        if project.private \
+                and project.user != user \
+                and not user.is_superuser:
+            raise Http404('Project does not exist')
 
         # because we will resample the queryset (
         # and then we return something that is not a queryset)
