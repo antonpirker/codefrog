@@ -18,6 +18,7 @@
 
     <script type="text/javascript">
         const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
+        window.projectId = {{ project.pk }};
 
         window.onload = function () {
             const labels = [  // Labels should be Date objects
@@ -295,50 +296,50 @@
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-compass"></i> State of affairs</h2>
+                <p>This weeks metrics compared to one week ago.</p>
             </div>
 
-            <div class="large-4 cell" id="complexity-change">
-                <div class="grid-x">
-                    <div class="large-12 cell text-center">
-                        {% if current_complexity_change > 0 %}
-                            <div class="stat">+{{ current_complexity_change }} %</div>
-                        {% elif current_complexity_change == 0 %}
-                            <div class="stat">±{{ current_complexity_change }} %</div>
-                        {% else %}
-                            <div class="stat">{{ current_complexity_change }} %</div>
-                        {% endif %}
-
-                    </div>
-                    <div class="large-12 cell text-center">
-                        Complexity change over the last 30 days
-                    </div>
-                </div>
-            </div>
-
+            <!-- Complexity -->
             <div class="large-4 cell">
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
-                        <div class="stat">
-                            <a href="{{ project.github_repo_url }}/issues" target="_blank" id="link-open-issues">
-                                {{ current_open_tickets }}
-                            </a>
+                        <div id="complexity-trend" class="stat">
+                            <i class="fas fa-caret-down"></i><span>0</span>%
                         </div>
                     </div>
-                    <div class="large-12 cell text-center">
-                        Currently open issues
+                    <div id="complexity" class="large-12 cell text-center">
+                        <div class="trend"><span style="display: none;"></span>&nbsp;</div>
+                        Complexity
                     </div>
                 </div>
             </div>
 
-            <div class="large-4 cell" id="current-lead-time">
+            <!-- Issue Age -->
+            <div class="large-4 cell">
                 <div class="grid-x">
                     <div class="large-12 cell text-center">
-                        <div class="stat">
-                            {{ current_avg_pull_request_age }} days
+                        <div class="stat" id="issue-age">
+                            <span>0</span> days
                         </div>
                     </div>
                     <div class="large-12 cell text-center">
-                        Average PR age <i class="fas fa-question-circle" title="Number of days it currently takes to review and close pull requests."></i>
+                        <div id="issue-age-trend" class="trend">(<i class="fas fa-caret-down"></i><span>0</span>%)</div>
+                        Issue Age
+                    </div>
+                </div>
+            </div>
+
+            <!-- PR age -->
+            <div class="large-4 cell" id="current-lead-time">
+                <div class="grid-x">
+                    <div class="large-12 cell text-center">
+                        <div class="stat" id="pr-age">
+                            <span>0</span> days
+                        </div>
+                    </div>
+                    <div class="large-12 cell text-center">
+                        <div id="pr-age-trend" class="trend">(<i class="fas fa-caret-down"></i><span>0</span>%)</div>
+                        Pull Request Age
                     </div>
                 </div>
             </div>

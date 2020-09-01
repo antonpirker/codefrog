@@ -204,6 +204,9 @@ body.app .dashboard-card h2 i.fas {
 .green {
     color: #1AB34B;
 }
+.red {
+    color: #b40a0a;
+}
 
 #toggle-log-history {
     cursor: pointer;

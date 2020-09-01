@@ -21,4 +21,47 @@ document.addEventListener("DOMContentLoaded", () => {
             logHistory.style.display = 'block';
         }
     })
+
+    let updateStateOfAffairs = function(data) {
+        let ids = ['complexity', 'issue-age', 'pr-age']
+        let trendValues = [
+            data['state_of_affairs']['complexity_change'].toFixed(1),
+            data['state_of_affairs']['issue_age_change'].toFixed(1),
+            data['state_of_affairs']['pr_age_change'].toFixed(1)
+        ]
+        let values = [
+            0,
+            data['state_of_affairs']['issue_age'].toFixed(1),
+            data['state_of_affairs']['pr_age'].toFixed(1)
+        ]
+
+        for(let i in ids) {
+            let valueElement = document.querySelector('#' + ids[i] + ' span')
+            let trendElement = document.querySelector('#' + ids[i] + '-trend')
+            let caretElement = document.querySelector('#' + ids[i] + '-trend i')
+            let trendValueElement = document.querySelector('#' + ids[i] + '-trend span')
+
+            valueElement.innerHTML = values[i]
+
+            trendElement.classList.remove('red')
+            trendElement.classList.remove('green')
+
+            caretElement.classList.remove('fa-caret-up')
+            caretElement.classList.remove('fa-caret-down')
+
+            trendValueElement.innerHTML = trendValues[i]
+            if (trendValues[i] <= 0.01) {
+                trendElement.classList.add('green')
+                caretElement.classList.add('fa-caret-down')
+            } else {
+                trendElement.classList.add('red')
+                caretElement.classList.add('fa-caret-up')
+            }
+        }
+    };
+
+    let url = 'http://localhost:8000/api-internal/projects/' + window.projectId + '/';
+    fetch(url)
+        .then(response => response.json())
+        .then(updateStateOfAffairs);
 });
