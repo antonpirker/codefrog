@@ -1,4 +1,103 @@
 /**
+ * Create diagram for evolution of issues
+ */
+function createEvolutionOfIssuesDiagram(metrics) {
+    metrics = window.projectMetrics // TODO: make loading of data more stable
+
+    let htmlElement = document.getElementById('evolution-issues-diagram');
+
+    let layout = {
+        showlegend: true,
+        legend: {
+            orientation: "h"
+        },
+        yaxis: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false
+        },
+        yaxis2: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            anchor: 'free',
+            overlaying: 'y'
+        },
+        yaxis3: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            anchor: 'free',
+            overlaying: 'y'
+        },
+        margin: {
+            l: 0,
+            r: 0,
+            t: 0,
+            b: 0
+        },
+    }
+
+    let xData = [];
+    let complexityData = [];
+    let issuesClosedData = [];
+    let issueAgeData = [];
+
+    for(let i in metrics) {
+        xData.push(metrics[i]['date'])
+        complexityData.push(metrics[i]['complexity'])
+        issuesClosedData.push(metrics[i]['github_issues_closed'])
+        issueAgeData.push(metrics[i]['github_issue_age'])
+    }
+
+    let complexity = {
+	    x: xData,
+	    y: complexityData,
+        name: 'Complexity',
+        type: 'scatter',
+        mode: 'lines',
+        line: {
+	        width: 0
+        },
+        fill: 'tozeroy',
+        fillcolor: '#ddd'
+    }
+
+    let issues_closed = {
+	    x: xData,
+	    y: issuesClosedData,
+        name: 'Issue Closed',
+        type: 'bar',
+        yaxis: 'y2',
+        marker: {
+	        color: chart_colors[1]
+        },
+    }
+
+    let issue_age = {
+	    x: xData,
+	    y: issueAgeData,
+        name: 'Issue Age',
+        mode: 'lines+markers',
+        yaxis: 'y3',
+        marker: {
+	        color: chart_colors[0],
+	        size: 10
+        },
+        line: {
+	        color: chart_colors[0]
+        }
+    }
+
+    let data = [complexity, issues_closed, issue_age]
+
+	Plotly.newPlot(htmlElement, data, layout);
+}
+
+/**
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
  */

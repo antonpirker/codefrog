@@ -1,6 +1,6 @@
 
 const link_color = '#FFAC33';
-const color_palette = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
+    const color_palette = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
 
 window.chartColors = [
     'rgb(255, 99, 132)',

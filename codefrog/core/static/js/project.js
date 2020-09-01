@@ -23,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     let updateStateOfAffairs = function(data) {
+        window.project = data;
+
         let ids = ['complexity', 'issue-age', 'pr-age']
         let trendValues = [
             data['state_of_affairs']['complexity_change'].toFixed(1),
@@ -60,8 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    let url = 'http://localhost:8000/api-internal/projects/' + window.projectId + '/';
-    fetch(url)
+    let projectUrl = 'http://localhost:8000/api-internal/projects/' + window.projectId + '/';
+    fetch(projectUrl)
         .then(response => response.json())
         .then(updateStateOfAffairs);
+
+    let updateProjectMetrics = function(data) {
+        window.projectMetrics = data['results']; // TODO: fetch all pages of metrics!!!!
+    }
+
+    let projectMetricsUrl = 'http://localhost:8000/api-internal/projects/' + window.projectId + '/metrics/';
+    fetch(projectMetricsUrl)
+        .then(response => response.json())
+        .then(updateProjectMetrics);
+
 });

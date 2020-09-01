@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
     <script src="{% static "js/evolution-diagram.js" %}"></script>
     <script src="{% static "js/file-churn-diagram.js" %}"></script>
     <script src="{% static "js/problem-areas-chart.js" %}"></script>
@@ -85,6 +87,8 @@
                 releases,
                 evolutionDiagramFrequency
             );
+
+            createEvolutionOfIssuesDiagram(window.projectMetrics);
 
             const fileChurnFilenames = [
                 {% for item in file_churn %}
@@ -345,6 +349,19 @@
             </div>
 
         </div>
+
+        <!-- Evolution of issues-->
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <div class="large-12 cell">
+                <h2><i class="fas fa-chart-line"></i> Evolution of Issues</h2>
+                <p>How many issues are you closing? Are you becoming faster or slower in closing issues? Is this affected by the complexity of the system?</p>
+            </div>
+
+            <div class="large-12 cell" style="padding: 0 1em;">
+                <div id="evolution-issues-diagram"></div>
+            </div>
+        </div>
+
 
         <!-- Work Areas -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
