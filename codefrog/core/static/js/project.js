@@ -8,14 +8,22 @@ let loadProject = function(projectId) {
         .then(response => response.json())
         .then(data => {
             window.project = data;
+
             let projectMetricsUrl = location.origin + '/api-internal/projects/' + projectId + '/metrics/';
             fetch(projectMetricsUrl)
                 .then(response => response.json())
                 .then(data => {
                     window.projectMetrics = data['results'];
 
-                    const event = new Event('projectLoaded');
-                    document.dispatchEvent(event);
+                    let projectReleasesUrl = location.origin + '/api-internal/projects/' + projectId + '/releases/';
+                    fetch(projectReleasesUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            window.projectReleases = data['results'];
+
+                            const event = new Event('projectLoaded');
+                            document.dispatchEvent(event);
+                        });
                 });
         });
 }
@@ -26,8 +34,6 @@ let loadProject = function(projectId) {
  * @param data
  */
 let updateStateOfAffairs = function(data) {
-    window.project = data;
-
     let ids = ['complexity', 'issue-age', 'pr-age']
     let trendValues = [
         data['state_of_affairs']['complexity_change'].toFixed(1),
@@ -71,12 +77,12 @@ let updateStateOfAffairs = function(data) {
  */
 document.addEventListener('projectLoaded', function (e) {
     updateStateOfAffairs(window.project);
-    createEvolutionOfIssuesDiagram(window.projectMetrics);
+    createEvolutionOfIssuesDiagram(window.projectMetrics, window.projectReleases);
 }, false);
 
 
 /**
- * When page is loaded, setup UI buttons.
+     * When page is loaded, setup UI buttons.
  */
 document.addEventListener("DOMContentLoaded", () => {
     let buttonDown = document.querySelector('#log-history-arrow-button-down');

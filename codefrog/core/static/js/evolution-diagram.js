@@ -1,7 +1,7 @@
 /**
  * Create diagram for evolution of issues
  */
-function createEvolutionOfIssuesDiagram(metrics) {
+function createEvolutionOfIssuesDiagram(metrics, releases) {
     // Data to display on the chart
     let xData = [];
     let complexityData = [];
@@ -59,28 +59,33 @@ function createEvolutionOfIssuesDiagram(metrics) {
     let data = [complexity, issues_closed, issue_age]
 
     // Paint releases to the chart
-    let shapes = [{ // TODO: replace with real data
-        type: 'line',
-        x0: '2020-07-12',
-        y0: 0,
-        x1: '2020-07-12',
-        yref: 'paper',
-        y1: 1,
-        line: {
-            color: 'grey',
-            width: 1.5,
-            dash: 'dot'
-        }
-    }];
+    let shapes = [];
+    let annotations = [];
 
-    let annotations = [{ // TODO: replace with real data
-        text: 'v1.1.2',
-        showarrow: false,
-        x: '2020-07-12',
-        yref: 'paper',
-        y: 1,
-        bgcolor: '#fff',
-    }];
+    for(let i in releases) {
+        let releaseDate = releases[i]['date'].split('T')[0]
+        shapes.push({
+            type: 'line',
+            x0: releaseDate,
+            y0: 0,
+            x1: releaseDate,
+            yref: 'paper',
+            y1: 1,
+            line: {
+                color: 'grey',
+                width: 1.5,
+                dash: 'dot'
+            }
+        })
+        annotations.push({
+            text: releases[i]['name'],
+            showarrow: false,
+            x: releaseDate,
+            yref: 'paper',
+            y: 1,
+            bgcolor: '#fff',
+        })
+    }
 
     // Layout of the chart
     let layout = {
