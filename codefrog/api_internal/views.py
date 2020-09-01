@@ -1,16 +1,16 @@
 import datetime
-
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions
 from rest_framework import viewsets
+from dateutil.parser import parse
 
 from api_internal.serializers import SimpleMetricSerializer, MetricSerializer, ProjectSerializer
+from api_internal.utils import get_best_frequency
 from core.models import Metric, Project
 from core.utils import resample_metrics, resample_releases
 
 
-# TODO: calculate frequency from date_from and date_to
 # TODO: private projects can only be requested by owner
 class MetricViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleMetricSerializer
@@ -32,16 +32,15 @@ class MetricViewSet(viewsets.ModelViewSet):
         kwargs = {
             'project': project,
         }
-        date_from = self.request.GET.get('date_from', None)
-        if date_from:
-            kwargs['date__gte'] = date_from
+        try:
+            kwargs['date__gte'] = parse(self.request.GET.get('date_from'))
+        except (TypeError, ValueError):
+            pass
 
-        date_to = self.request.GET.get('date_to', None)
-        if date_to:
-            kwargs['date__lte'] = date_to
-
-        # Calculate the best frequency for the given time span
-        frequency = 'D' #TODO: make dynamic
+        try:
+            kwargs['date__lte'] = parse(self.request.GET.get('date_to'))
+        except (TypeError, ValueError):
+            pass
 
         # Get metrics in the desired frequency
         metrics = Metric.objects.filter(**kwargs).order_by('date').values(
@@ -53,7 +52,7 @@ class MetricViewSet(viewsets.ModelViewSet):
             'metrics__github_pull_requests_merged',
             'metrics__github_pull_requests_cumulative_age',
         )
-
+        frequency = get_best_frequency(metrics[0]['date'], metrics[len(metrics)-1]['date'])
         metrics = resample_metrics(metrics, frequency)
 
         return metrics
