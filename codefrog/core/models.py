@@ -79,6 +79,19 @@ class Project(GithubMixin, models.Model):
     def current_source_status(self):
         return self.source_stati.filter(active=True).order_by('timestamp').last()
 
+    def get_state_of_affairs(self):
+        DAYS = 7
+
+        state_of_affairs = {
+            'complexity_change': self.get_complexity_change(days=DAYS),
+            'issue_age': self.get_issue_age(),
+            'issue_age_change': self.get_issue_age_change(days=DAYS),
+            'pr_age': self.get_pr_age(),
+            'pr_age_change': self.get_pr_age_change(days=DAYS),
+        }
+
+        return state_of_affairs
+
     def get_file_churn(self):
         DAYS = 30
 
@@ -295,6 +308,54 @@ class Project(GithubMixin, models.Model):
             ref_complexity = 1
 
         change = complexity/ref_complexity*100 - 100
+
+        return change
+
+    def get_issue_age(self, date=None):
+        kwargs = {
+            'project': self
+        }
+        if date:
+            kwargs['date__lte'] = date
+
+        metric = Metric.objects.filter(**kwargs).order_by('date').last()
+        age = metric.metrics['github_issue_age']
+
+        return age
+
+    def get_issue_age_change(self, days=30):
+        today = timezone.now()
+        ref_date = today - timedelta(days=days)
+
+        age = self.get_issue_age(today)
+        ref_age = self.get_issue_age(ref_date)
+
+        change = age/ref_age*100 - 100
+
+        return change
+
+    def get_pr_age(self, date=None):
+        kwargs = {
+            'project': self
+        }
+        if date:
+            kwargs['date__lte'] = date
+
+        metric = Metric.objects.filter(**kwargs).order_by('date').last()
+        age = metric.metrics['github_pull_requests_cumulative_age'] / metric.metrics['github_pull_requests_merged'] \
+            if metric.metrics['github_pull_requests_merged'] != 0 else 0
+        age = age / 60 / 60
+
+        return age
+
+    def get_pr_age_change(self, days=30):
+        today = timezone.now()
+        ref_date = today - timedelta(days=days)
+
+        age = self.get_pr_age(today)
+        ref_age = self.get_pr_age(ref_date)
+
+        change = age/ref_age*100 - 100
 
         return change
 

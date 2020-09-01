@@ -5,14 +5,15 @@ from core.models import Metric, Project
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    state_of_affairs = serializers.DictField(source='get_state_of_affairs')
+
     class Meta:
         model = Project
         fields = [
             'id',
             'name', 'slug', 'private', 'active', 'status', 'last_update',
-            'user',
+            'user', 'state_of_affairs',
         ]
-        depth = 1
 
 
 class SimpleMetricSerializer(serializers.Serializer):

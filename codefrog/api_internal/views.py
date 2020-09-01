@@ -1,14 +1,13 @@
-import datetime
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
+from dateutil.parser import parse
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 from rest_framework import viewsets
-from dateutil.parser import parse
 
-from api_internal.serializers import SimpleMetricSerializer, MetricSerializer, ProjectSerializer
+from api_internal.serializers import SimpleMetricSerializer, ProjectSerializer
 from api_internal.utils import get_best_frequency
 from core.models import Metric, Project
-from core.utils import resample_metrics, resample_releases
+from core.utils import resample_metrics
 
 
 class MetricViewSet(viewsets.ModelViewSet):
@@ -67,6 +66,7 @@ class MetricViewSet(viewsets.ModelViewSet):
 # TODO: create similar viewset for file churn. see: get_file_churn()
 
 # TODO: create similar viewset for state of affairs
+
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
