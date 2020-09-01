@@ -138,8 +138,8 @@ def resample_metrics(queryset, frequency):
     def rename_column(val):
         return val.replace('metrics__', '')
 
-    if len(queryset) == 0:
-        return []
+    if queryset.count() == 0:
+        return queryset
 
     df = pd.DataFrame.from_records(queryset)
     df['date'] = pd.to_datetime(df['date'])

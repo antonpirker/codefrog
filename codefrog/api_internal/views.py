@@ -1,15 +1,15 @@
+import datetime
+
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import permissions
 from rest_framework import viewsets
-from core.utils import resample_metrics, resample_releases
 
 from api_internal.serializers import SimpleMetricSerializer, MetricSerializer, ProjectSerializer
 from core.models import Metric, Project
+from core.utils import resample_metrics, resample_releases
 
 
-
-# TODO: add filtering date_from
-# TODO: add filtering date_to
 # TODO: calculate frequency from date_from and date_to
 # TODO: private projects can only be requested by owner
 class MetricViewSet(viewsets.ModelViewSet):
@@ -26,12 +26,25 @@ class MetricViewSet(viewsets.ModelViewSet):
             active=True,
         )
 
+        # because we will resample the queryset (
+        # and then we return something that is not a queryset)
+        # we need to filter by hand.
+        kwargs = {
+            'project': project,
+        }
+        date_from = self.request.GET.get('date_from', None)
+        if date_from:
+            kwargs['date__gte'] = date_from
+
+        date_to = self.request.GET.get('date_to', None)
+        if date_to:
+            kwargs['date__lte'] = date_to
+
+        # Calculate the best frequency for the given time span
         frequency = 'D' #TODO: make dynamic
 
         # Get metrics in the desired frequency
-        metrics = Metric.objects.filter(
-            project=project,
-        ).order_by('date').values(
+        metrics = Metric.objects.filter(**kwargs).order_by('date').values(
             'date',
             'metrics__complexity',
             'metrics__github_issue_age',
@@ -41,8 +54,7 @@ class MetricViewSet(viewsets.ModelViewSet):
             'metrics__github_pull_requests_cumulative_age',
         )
 
-        if metrics.count() > 0:
-            metrics = resample_metrics(metrics, frequency)
+        metrics = resample_metrics(metrics, frequency)
 
         return metrics
 
