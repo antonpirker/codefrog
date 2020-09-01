@@ -2,43 +2,7 @@
  * Create diagram for evolution of issues
  */
 function createEvolutionOfIssuesDiagram(metrics) {
-    let htmlElement = document.getElementById('evolution-issues-diagram');
-
-    let layout = {
-        showlegend: true,
-        legend: {
-            orientation: "h"
-        },
-        yaxis: {
-            showgrid: false,
-            zeroline: false,
-            showline: false,
-            showticklabels: false
-        },
-        yaxis2: {
-            showgrid: false,
-            zeroline: false,
-            showline: false,
-            showticklabels: false,
-            anchor: 'free',
-            overlaying: 'y'
-        },
-        yaxis3: {
-            showgrid: false,
-            zeroline: false,
-            showline: false,
-            showticklabels: false,
-            anchor: 'free',
-            overlaying: 'y'
-        },
-        margin: {
-            l: 0,
-            r: 0,
-            t: 0,
-            b: 0
-        },
-    }
-
+    // Data to display on the chart
     let xData = [];
     let complexityData = [];
     let issuesClosedData = [];
@@ -94,7 +58,76 @@ function createEvolutionOfIssuesDiagram(metrics) {
 
     let data = [complexity, issues_closed, issue_age]
 
-	Plotly.newPlot(htmlElement, data, layout);
+    // Paint releases to the chart
+    let shapes = [{ // TODO: replace with real data
+        type: 'line',
+        x0: '2020-07-12',
+        y0: 0,
+        x1: '2020-07-12',
+        yref: 'paper',
+        y1: 1,
+        line: {
+            color: 'grey',
+            width: 1.5,
+            dash: 'dot'
+        }
+    }];
+
+    let annotations = [{ // TODO: replace with real data
+        text: 'v1.1.2',
+        showarrow: false,
+        x: '2020-07-12',
+        yref: 'paper',
+        y: 1,
+        bgcolor: '#fff',
+    }];
+
+    // Layout of the chart
+    let layout = {
+        showlegend: true,
+        legend: {
+            orientation: "h"
+        },
+        shapes: shapes,
+        annotations: annotations,
+        yaxis: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false
+        },
+        yaxis2: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            anchor: 'free',
+            overlaying: 'y'
+        },
+        yaxis3: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            anchor: 'free',
+            overlaying: 'y'
+        },
+        margin: {
+            l: 0,
+            r: 0,
+            t: 0,
+            b: 0
+        },
+    }
+
+    // General chart configuration
+    let config = {
+        displayModeBar: false,
+        responsive: true
+    }
+
+    let htmlElement = document.getElementById('evolution-issues-diagram');
+    Plotly.newPlot(htmlElement, data, layout, config);
 }
 
 /**
