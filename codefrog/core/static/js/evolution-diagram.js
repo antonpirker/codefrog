@@ -63,7 +63,8 @@ function createEvolutionOfIssuesDiagram(metrics) {
 	        width: 0
         },
         fill: 'tozeroy',
-        fillcolor: '#ddd'
+        fillcolor: '#ddd',
+        hoverinfo: 'skip'
     }
 
     let issues_closed = {
@@ -89,7 +90,8 @@ function createEvolutionOfIssuesDiagram(metrics) {
         },
         line: {
 	        color: chart_colors[0]
-        }
+        },
+        hovertemplate: '%{y:.1f} days',
     }
 
     let data = [complexity, issues_closed, issue_age]
