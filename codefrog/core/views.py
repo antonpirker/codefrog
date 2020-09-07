@@ -158,7 +158,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'max_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,
         'min_changes': project.current_source_status.min_changes if project.current_source_status else 1,
         'max_changes': project.current_source_status.max_changes if project.current_source_status else 1,
-        'file_churn': project.get_file_churn(),
+        'file_churn': [],
     }
 
     """

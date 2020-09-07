@@ -92,15 +92,11 @@ class Project(GithubMixin, models.Model):
 
         return state_of_affairs
 
-    def get_file_churn(self):
-        DAYS = 30
-
-        today = timezone.now()
-        begin = today - timedelta(days=DAYS)
-
+    def get_file_changes(self, date_from, date_to):
         changes = CodeChange.objects.filter(
                 project=self,
-                timestamp__date__gte=begin,
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
             )\
             .values('file_path')\
             .annotate(changes=Count('file_path'))\

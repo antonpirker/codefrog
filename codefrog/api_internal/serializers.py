@@ -43,3 +43,9 @@ class MetricSerializer(serializers.ModelSerializer):
 class ReleaseSerializer(serializers.Serializer):
     date = serializers.DateTimeField(source='timestamp')
     name = serializers.CharField()
+
+
+class FileChangesSerializer(serializers.Serializer):
+    file_path = serializers.CharField()
+    changes = serializers.FloatField()
+    repo_link = serializers.CharField()
