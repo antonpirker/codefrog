@@ -81,6 +81,7 @@ function createFileChurnDiagram(fileChanges) {
 
     // Update list of Top 5 most changed files
     let list = document.getElementById('file-churn-top5-list');
+    list.innerHTML = '';
     let top5 = fileChanges.slice(0, 5);
     for(let i in top5) {
         let ctx = top5[i];
