@@ -178,7 +178,6 @@ class SourceStatusViewSet(viewsets.ModelViewSet):
         if not source_status:
             return []
 
-        import ipdb; ipdb.set_trace()
         return [source_status, ]
 
 
