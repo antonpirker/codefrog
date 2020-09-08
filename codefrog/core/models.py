@@ -77,7 +77,16 @@ class Project(GithubMixin, models.Model):
 
     @property
     def current_source_status(self):
-        return self.source_stati.filter(active=True).order_by('timestamp').last()
+        return self.get_source_status()
+
+    def get_source_status(self, date=None):
+        kwargs = {
+            'active': True,
+        }
+        if date:
+            kwargs['timestamp__date__lte'] = date
+
+        return self.source_stati.filter(**kwargs).order_by('timestamp').last()
 
     def get_file_changes(self, date_from, date_to):
         changes = CodeChange.objects.filter(

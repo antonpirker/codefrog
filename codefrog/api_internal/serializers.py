@@ -65,3 +65,9 @@ class FileChangesSerializer(serializers.Serializer):
     file_path = serializers.CharField()
     changes = serializers.FloatField()
     repo_link = serializers.CharField()
+
+
+class SourceStatusSerializer(serializers.Serializer):
+    tree = serializers.DictField()
+    min_changes = serializers.IntegerField()
+    max_changes = serializers.IntegerField()
