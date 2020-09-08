@@ -1,24 +1,130 @@
 /**
+ *
+ * @param path
+ * @param link
+ */
+let fileClickCallback = function (path, link) {
+    let elem = document.getElementById('file-information');
+    elem.innerHTML = '';
+
+    let projectSlug = document.querySelector('[name=projectslug]').value;
+    fetch('/project/' + projectSlug + '/file-stats?path=' + path)
+        .then(response => response.json())
+        .then(updateFileStats);
+};
+
+
+/**
+ *
+ * @param data
+ */
+let updateFileStats = function (data) {
+    const ctx = {
+        path: data.path,
+        link: data.link  // TODO: this is complete garbage....
+    };
+
+    let infoTemplate = `
+        <div class="grid-x grid-padding-x grid-padding-y">
+            <div class="large-12 cell dashboard-card" style="margin-top: 0;">
+                <h5>Source file (on GitHub)</h5>
+                <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
+            </div>
+
+            <div class="large-12 cell dashboard-card">
+                <h5>Who owns the code in the file</h5>
+                <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
+                </canvas>
+            </div>
+
+            <div class="large-12 cell dashboard-card">
+                <h5>Who made changes</h5>
+                 <p>(over the last 30 days)</p>
+                <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
+                </canvas>
+            </div>
+
+            <div class="large-12 cell dashboard-card">
+                <h5>Number of file changes</h5>
+                 <p>(over the last 30 days)</p>
+                <canvas id="diagram-changes" style="width:100%; height: 4em;">
+                </canvas>
+            </div>
+
+            <div class="large-12 cell dashboard-card">
+                <h5>Complexity trend</h5>
+                 <p>(over the last 30 days)</p>
+                <canvas id="diagram-complexity" style="width:100%; height: 4em;">
+                </canvas>
+            </div>
+        </div>
+    `;
+
+    let elem = document.getElementById('file-information');
+    elem.innerHTML = infoTemplate;
+
+    let el = document.querySelector('#file-details');
+    el && el.addEventListener('click', (element) => {
+        count('project.problem_areas.file_details.clicked');
+    });
+
+    console.log('complexity trend');
+    console.log(data.complexity_trend);
+    const complexityDiagram = createSparkline(
+        "diagram-complexity",
+        data.complexity_trend_labels,
+        data.complexity_trend,
+    );
+
+    console.log('changes trend');
+    console.log(data.changes_trend);
+    const changesDiagram = createSparkline(
+        "diagram-changes",
+        data.changes_trend_labels,
+        data.changes_trend,
+    );
+
+    const commitCountDiagram = createPieChart(
+        "diagram-commit-count",
+        data.commit_counts_labels,
+        data.commit_counts,
+    );
+
+    const codeOwnershipDiagram = createPieChart(
+        "diagram-code-ownership",
+        data.code_ownership_labels,
+        data.code_ownership,
+    );
+};
+
+
+/**
  * Create a bubble diagram displaying the complexity and change frequency of
  * all the files in the source tree
+ *
+ * @param data
  */
-function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, fileClickCallback) {
+let createProblemAreasDiagram = function (data) {
+    let dataTree = data['tree'];
+    let minChanges = data['min_changes'];
+    let maxChanges = data['max_chnages'];
+
     let heatmapColour = d3.scaleLinear()
         .domain([0, 1])
         .range(["#fcebec", "#df2935"])
         .interpolate(d3.interpolateHcl);
 
-    let c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0,1]);
+    let c = d3.scaleLinear().domain([minChanges, maxChanges / 2]).range([0, 1]);
 
-    color = d3.scaleLinear()
+    let color = d3.scaleLinear()
         .domain([0, 10])
         .range(["#ffffff", "#a9a9a9"])
         .interpolate(d3.interpolateHcl);
-    format = d3.format(",d");
-    width = 932;
-    height = width;
+    let format = d3.format(",d");
+    let width = 932;
+    let height = width;
 
-    pack = data_tree => d3.pack()
+    let pack = data_tree => d3.pack()
         .size([width, height])
         .padding(3)
     (d3.hierarchy(data_tree)
@@ -29,40 +135,40 @@ function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, 
     let focus = root;
     let view;
 
-    const svg = d3.select("#"+elementId).append("svg")
+    const svg = d3.select("#problem-areas-diagram").append("svg")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")
         .style("background", color(0))
         .style("cursor", "pointer");
-        //.on("click", () => zoom(root));
+    //.on("click", () => zoom(root));
 
     const node = svg.append("g")
         .selectAll("circle")
         .data(root.descendants().slice(1))
         .join("circle")
-            .attr("fill", d => d.children ? color(d.depth) : heatmapColour(c(d.data.changes)))
-            .attr("pointer-events", d => !d.children ? null : null)
-            .on("mouseover", function(d) {
-              d3.select(this).attr("stroke", "#000");
-            })
-            .on("mouseout", function() {
-              d3.select(this).attr("stroke", null);
-            })
-            .on("click", function(d) {
-              if(focus !== d) {
-                  if(d.children) {
-                      zoom(d);
-                      d3.event.stopPropagation();
-                  }
+        .attr("fill", d => d.children ? color(d.depth) : heatmapColour(c(d.data.changes)))
+        .attr("pointer-events", d => !d.children ? null : null)
+        .on("mouseover", function (d) {
+            d3.select(this).attr("stroke", "#000");
+        })
+        .on("mouseout", function () {
+            d3.select(this).attr("stroke", null);
+        })
+        .on("click", function (d) {
+            if (focus !== d) {
+                if (d.children) {
+                    zoom(d);
+                    d3.event.stopPropagation();
+                }
 
-                  if(d.data.path && d.data.repo_link) {
-                      count('project.problem_areas.file.clicked');
-                      fileClickCallback(d.data.path, d.data.repo_link);
-                  } else {
-                      count('project.problem_areas.directory.clicked');
-                  }
-              }
-            });
+                if (d.data.path && d.data.repo_link) {
+                    count('project.problem_areas.file.clicked');
+                    fileClickCallback(d.data.path, d.data.repo_link);
+                } else {
+                    count('project.problem_areas.directory.clicked');
+                }
+            }
+        });
 
     const label = svg.append("g")
         .style("font", "10px sans-serif")
@@ -71,9 +177,9 @@ function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, 
         .selectAll("text")
         .data(root.descendants())
         .join("text")
-            .style("fill-opacity", d => d.parent === root ? 1 : 0)
-            .style("display", d => d.parent === root ? "inline" : "none")
-            .text(d => d.data.name);
+        .style("fill-opacity", d => d.parent === root ? 1 : 0)
+        .style("display", d => d.parent === root ? "inline" : "none")
+        .text(d => d.data.name);
 
     zoomTo([root.x, root.y, root.r * 2]);
 
@@ -99,11 +205,17 @@ function createProblemAreasDiagram(elementId, dataTree, minChanges, maxChanges, 
             });
 
         label
-            .filter(function(d) { return d.parent === focus || this.style.display === "inline"; })
+            .filter(function (d) {
+                return d.parent === focus || this.style.display === "inline";
+            })
             .transition(transition)
             .style("fill-opacity", d => d.parent === focus ? 1 : 0)
-            .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
-            .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
+            .on("start", function (d) {
+                if (d.parent === focus) this.style.display = "inline";
+            })
+            .on("end", function (d) {
+                if (d.parent !== focus) this.style.display = "none";
+            });
     }
 }
 

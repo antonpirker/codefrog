@@ -127,6 +127,7 @@ document.addEventListener('projectLoaded', function (e) {
     createEvolutionOfIssuesDiagram(window.projectMetrics, window.projectReleases);
     createEvolutionOfPullRequestsDiagram(window.projectMetrics, window.projectReleases);
     createFileChurnDiagram(window.projectFileChanges);
+    createProblemAreasDiagram(window.projectSourceStatus);
 }, false);
 
 

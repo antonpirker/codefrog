@@ -64,10 +64,6 @@ def project_detail(request, slug):
         'user': request.user,
         'projects': Project.objects.all().order_by('name'),
         'project': project,
-        'current_complexity_change': 111,
-        'data_tree': project.current_source_status.tree if project.current_source_status else {},
-        'min_changes': project.current_source_status.min_changes if project.current_source_status else 1,
-        'max_changes': project.current_source_status.max_changes if project.current_source_status else 1,
     }
 
     """
