@@ -48,7 +48,7 @@ def index(request):
     return HttpResponse(html)
 
 
-def project_detail(request, slug, zoom=None, release_flag=None):
+def project_detail(request, slug):
     try:
         project = Project.objects.get(slug=slug)
     except Project.DoesNotExist:
@@ -59,106 +59,15 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         and not request.user.is_superuser:
             raise Http404('Project does not exist')
 
-    today = timezone.now()
-
-    # Zoom to desired date range
-    if not zoom:
-        if release_flag:
-            return HttpResponseRedirect(reverse('project-detail-zoomed-release', kwargs={
-                'slug': project.slug,
-                'zoom': '1M',
-                'release_flag': release_flag,
-            }))
-        else:
-            return HttpResponseRedirect(reverse('project-detail-zoomed', kwargs={
-                'slug': project.slug,
-                'zoom': '1M',
-            }))
-
-    zoom = zoom or '1M'
-    time_deltas = {
-        '1M': datetime.timedelta(days=30 * 1),
-        '3M': datetime.timedelta(days=30 * 3),
-        '6M': datetime.timedelta(days=30 * 6),
-        '1Y': datetime.timedelta(days=365),
-        'YTD': datetime.timedelta(days=today.timetuple().tm_yday),
-        'ALL': datetime.timedelta(days=365 * 30),
-    }
-    begin = today - time_deltas.get(zoom, datetime.timedelta(days=30 * 1))
-
-    # Decide what frequency to display the data in.
-    days = (today - begin).days
-
-    if 0 < days <= 3 * MONTH:
-        frequency = 'D'
-    elif 3 * MONTH < days <= 1 * YEAR:
-        frequency = 'W'
-    elif 1 * YEAR < days <= 3 * YEAR:
-        frequency = 'M'
-    elif days > 3 * YEAR:
-        frequency = 'Q'
-    else:  # default
-        frequency = 'D'
-
-    # Get metrics in the desired frequency
-    metrics = Metric.objects.filter(
-        project=project,
-        date__gte=begin,
-        date__lte=today,
-    ).order_by('date').values(
-        'date',
-        'metrics__complexity',
-        'metrics__github_issue_age',
-        'metrics__github_issues_open',
-        'metrics__github_issues_closed',
-        'metrics__github_pull_requests_merged',
-        'metrics__github_pull_requests_cumulative_age',
-    )
-    if metrics.count() > 0:
-        metrics = resample_metrics(metrics, frequency)
-
-    # Calculate metrics that are based on mulitple simple metrics.
-    for metric in metrics:
-        metric['github_avg_pull_request_age'] = \
-            metric['github_pull_requests_cumulative_age'] / metric['github_pull_requests_merged'] \
-                if metric['github_pull_requests_merged'] != 0 else 0
-
-        metric['github_avg_pull_request_age'] = metric['github_avg_pull_request_age'] / 60 / 60
-
-    # Get releases in desired frequency
-    if release_flag == 'no-releases':
-        releases = []
-    else:
-        releases = Release.objects.filter(
-            project=project,
-            timestamp__gte=begin,
-        ).order_by('timestamp').values(
-            'timestamp',
-            'name',
-        )
-        if releases.count() > 0:
-            releases = resample_releases(releases, frequency)
-
     # Render the HTML and send to client.
     context = {
         'user': request.user,
         'projects': Project.objects.all().order_by('name'),
         'project': project,
-        'zoom': zoom,
-        'frequency': frequency,
-        'show_releases': release_flag != 'no-releases',
-        'metrics': metrics,
-        'current_lead_time': round(metrics[-1]['github_issue_age'], 1) if len(metrics) > 0 else 0,
-        'current_avg_pull_request_age': round(metrics[-1]['github_avg_pull_request_age'], 1) if len(metrics) > 0 else 0,
-        'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
         'current_complexity_change': 111,
-        'releases': releases,
         'data_tree': project.current_source_status.tree if project.current_source_status else {},
-        'min_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,
-        'max_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,
         'min_changes': project.current_source_status.min_changes if project.current_source_status else 1,
         'max_changes': project.current_source_status.max_changes if project.current_source_status else 1,
-        'file_churn': [],
     }
 
     """
@@ -547,8 +456,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
     ]
     """
 
-    context['metrics'] = metrics
-
     # Usage statistics
     now = timezone.now()
     Usage.objects.create(
@@ -557,26 +464,6 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         timestamp=now,
         action='project.load',
     )
-    Usage.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        project=project,
-        timestamp=now,
-        action='project.evolution.zoom_%s' % zoom.lower(),
-    )
-    if release_flag == 'no-releases':
-        Usage.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            project=project,
-            timestamp=now,
-            action='project.evolution.releases.hide',
-        )
-    else:
-        Usage.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            project=project,
-            timestamp=now,
-            action='project.evolution.releases.show',
-        )
 
     html = render_to_string('project/detail.html', context=context, request=request)
     return HttpResponse(html)

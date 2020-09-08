@@ -1,26 +1,20 @@
 {% extends "../base_app.html" %}
 {% load static humanize %}
 
-
 {% block head_end %}
+    <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"></script>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
-
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script type="text/javascript" src="{% static "js/evolution-diagram.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/file-churn-diagram.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/problem-areas-chart.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/file-stats-charts.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/project.js" %}"></script>
+
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <script src="{% static "js/evolution-diagram.js" %}"></script>
-    <script src="{% static "js/file-churn-diagram.js" %}"></script>
-    <script src="{% static "js/problem-areas-chart.js" %}"></script>
-    <script src="{% static "js/file-stats-charts.js" %}"></script>
-    <script src="{% static "js/project.js" %}"></script>
 
     <script type="text/javascript">
         const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
@@ -387,7 +381,3 @@
 
     </div>
 {% endblock content %}
-
-
-{% block body_end %}
-{% endblock body_end %}
