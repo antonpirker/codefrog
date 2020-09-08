@@ -3,12 +3,16 @@
 
 
 {% block head_end %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.7/chartjs-plugin-annotation.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.7"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -21,74 +25,37 @@
     <script type="text/javascript">
         const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
 
+        const setupDateRangePicker = function() {
+            let start = moment().subtract(29, 'days');
+            let end = moment();
+
+            function cb(start, end) {
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                   'Last 14 Days': [moment().subtract(14, 'days'), moment()],
+                   'Last 30 Days': [moment().subtract(30, 'days'), moment()],
+                   'Last 3 Months': [moment().subtract(3, 'months'), moment()],
+                   'Last 6 Months': [moment().subtract(6, 'months'), moment()],
+                   'This Month': [moment().startOf('month'), moment().endOf('month')],
+                   'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                   'This Year': [moment().startOf('year'), moment().endOf('year')],
+                   'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+                }
+            }, cb);
+
+            cb(start, end);
+        }
+
         window.onload = function () {
             window.projectId = {{ project.pk }};
             loadProject(window.projectId);
 
-            const labels = [  // Labels should be Date objects
-                {% for metric in metrics %}
-                    moment("{{ metric.date|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'){% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const complexityValues = [
-                {% for metric in metrics %}
-                    {{ metric.complexity|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const openIssues = [
-                {% for metric in metrics %}
-                    {{ metric.github_issues_open|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const issuesClosed = [
-                {% for metric in metrics %}
-                    {{ metric.github_issues_closed|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const prsMerged = [
-                {% for metric in metrics %}
-                    {{ metric.github_pull_requests_merged|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const avgPRAge = [
-                {% for metric in metrics %}
-                    {{ metric.github_avg_pull_request_age|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-
-            const leadTimes = [
-                {% for metric in metrics %}
-                    {{ metric.github_issue_age|default:0 }}{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const releases = [
-                {% for release in releases %}
-                    {
-                        date: moment("{{ release.timestamp|date:"c" }}").format('YYYY-MM-DD HH:mm:ss'),
-                        name: "{{ release.name }}",
-                    }
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const evolutionDiagramFrequency = '{{ frequency }}';
-
-            const evolutionDiagram = createEvolutionDiagram(
-                "evolution-diagram",
-                labels,
-                complexityValues,
-                issuesClosed,
-                prsMerged,
-                avgPRAge,
-                releases,
-                evolutionDiagramFrequency
-            );
+            setupDateRangePicker();
 
             let updateFileStats = function(data) {
                 const ctx = {
@@ -207,7 +174,7 @@
 
         <!-- Bread crumbs -->
         <div class="grid-x grid-margin-x">
-            <div class="large-12 cell">
+            <div class="large-8 medium-6 small-12 cell">
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'index' %}" id="show-repository-list">Repositories</a>
                     <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
@@ -215,8 +182,11 @@
                 {% endif %}
             </div>
 
-            <div class="large-12 cell">
-                &nbsp;
+            <div class="large-4 medium-6 small-12 text-right cell">
+                <span id="reportrange" style="background: #fff; cursor: pointer; padding: 0.6em; border: 1px solid #ccc;">
+                    <i class="fa fa-calendar"></i>&nbsp;
+                    <span></span> <i class="fa fa-caret-down"></i>
+                </span>
             </div>
         </div>
 
@@ -279,7 +249,7 @@
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-compass"></i> State of affairs</h2>
-                <p>This weeks metrics compared to one week ago.</p>
+                <p>This periods metrics compared to the previous period.</p>
             </div>
 
             <!-- Complexity -->
@@ -355,6 +325,30 @@
             </div>
         </div>
 
+        <!-- File Churn -->
+        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <a name="file-churn"></a>
+            <div class="large-12 cell">
+                <h2><i class="fas fa-file"></i> File churn</h2>
+                <p>All your files, sorted by how often they where changed. The vast amount of work is done in a tiny portion of your code base.</p>
+            </div>
+
+            <!-- Graph -->
+            <div class="large-12 cell" style="padding: 0 1em;">
+                <div id="file-churn-diagram"></div>
+            </div>
+
+            <!-- Explanation text below graph -->
+            <div class="large-12 cell">
+                <p id="file-churn-diagram-description">&nbsp;</p>
+            </div>
+
+            <!-- List: Top 5 changed files-->
+            <div class="large-12 cell">
+                <h3>Top 5 "most changed files"</h3>
+                <ul id="file-churn-top5-list"></ul>
+            </div>
+        </div>
 
         <!-- Work Areas -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
@@ -389,87 +383,9 @@
             </div>
         </div>
 
-        <!-- File Churn -->
-        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
-            <a name="file-churn"></a>
-            <div class="large-12 cell">
-                <h2><i class="fas fa-file"></i> File churn</h2>
-                <p>All your files, sorted by how often they where changed. The vast amount of work is done in a tiny portion of your code base.</p>
-            </div>
-
-            <!-- Graph -->
-            <div class="large-12 cell" style="padding: 0 1em;">
-                <div id="file-churn-diagram"></div>
-            </div>
-
-            <!-- Explanation text below graph -->
-            <div class="large-12 cell">
-                <p id="file-churn-diagram-description">&nbsp;</p>
-            </div>
-
-            <!-- List: Top 5 changed files-->
-            <div class="large-12 cell">
-                <h3>Top 5 "most changed files"</h3>
-                <ul id="file-churn-top5-list"></ul>
-            </div>
-        </div>
-
-        <!-- Evolution -->
-        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
-            <div class="large-12 cell">
-                <h2><i class="fas fa-chart-line"></i> Evolution</h2>
-                <p>How is the complexity increasing in your code base? How many issues are you closing? Are you becoming faster or slower in closing issues?</p>
-            </div>
-
-            <div class="large-6 small-6 cell">
-                Zoom:
-                {% if zoom == '1M' %}<b>1M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1M" id="zoom-1m">1M</a>{% endif %}
-                {% if zoom == '3M' %}<b>3M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/3M" id="zoom-3m">3M</a>{% endif %}
-                {% if zoom == '6M' %}<b>6M</b>{% else %}<a href="{% url 'project-detail' project.slug %}/6M" id="zoom-6m">6M</a>{% endif %}
-                {% if zoom == '1Y' %}<b>1Y</b>{% else %}<a href="{% url 'project-detail' project.slug %}/1Y" id="zoom-1y">1Y</a>{% endif %}
-                {% if zoom == 'YTD' %}<b>YTD</b>{% else %}<a href="{% url 'project-detail' project.slug %}/YTD" id="zoom-ytd">YTD</a>{% endif %}
-                {% if zoom == 'ALL' %}<b>ALL</b>{% else %}<a href="{% url 'project-detail' project.slug %}/ALL" id="zoom-all">ALL</a>{% endif %}
-            </div>
-            <div class="large-5 small-9 cell large-text-right">
-                Show releases on diagram?
-            </div>
-            <div class="large-1 small-3 cell text-right">
-                <div class="switch tiny">
-                    <input class="switch-input" id="show-releases" type="checkbox" name="show-releases" {% if show_releases %}checked{% endif %}>
-                    <label class="switch-paddle" for="show-releases">
-                        <span class="show-for-sr">Show releases on diagram?</span>
-                        <span class="switch-active" aria-hidden="true">Yes</span>
-                        <span class="switch-inactive" aria-hidden="true">No</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="large-12 cell" style="padding: 0 1em;">
-                <div class="diagram-container">
-                    <canvas id="evolution-diagram"></canvas>
-                </div>
-            </div>
-        </div>
-
     </div>
 {% endblock content %}
 
 
 {% block body_end %}
-    <script>
-        let releaseSwitch = document.querySelector('#show-releases');
-        releaseSwitch.onclick = function() {
-            oldUrl = window.location.href;
-            if(releaseSwitch.checked) {
-                newUrl = oldUrl.replace('/no-releases', '');
-            } else {
-                if(!oldUrl.match(/\/no\-releases$/)) {
-                    newUrl = oldUrl + '/no-releases';
-                } else {
-                    newUrl = oldUrl;
-                }
-            }
-            window.location.replace(newUrl);
-        };
-    </script>
 {% endblock body_end %}
