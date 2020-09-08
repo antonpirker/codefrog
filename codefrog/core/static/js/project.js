@@ -40,6 +40,9 @@ let loadProject = function (projectId) {
     const handleFileChangesData = function (data) {
         window.projectFileChanges = data['results'];
     }
+    const handleSourceStatusData = function (data) {
+        window.projectSourceStatus = data[0];
+    }
 
     const urlsAndHandlers = [
         {
@@ -54,6 +57,9 @@ let loadProject = function (projectId) {
         }, {
             url: location.origin + '/api-internal/projects/' + projectId + '/file-changes/',
             handler: handleFileChangesData,
+        }, {
+            url: location.origin + '/api-internal/projects/' + projectId + '/source-status/',
+            handler: handleSourceStatusData,
         }
     ];
 
