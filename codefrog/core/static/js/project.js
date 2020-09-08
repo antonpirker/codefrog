@@ -3,10 +3,29 @@
  * @param projectId
  */
 let loadProject = function (projectId) {
+    // default date range
     const params = {
-        'date_from': '2020-08-01',
-        'date_to': (new Date()).toISOString().split("T")[0]
+        'date_from': moment().subtract(14, 'days'),
+        'date_to': moment()
     };
+
+    // .toISOString().split("T")[0]
+    if (window.projectDateFrom) {
+        params['date_from'] = window.projectDateFrom;
+    }
+    if (window.projectDateTo) {
+        params['date_to'] = window.projectDateTo;
+    }
+
+    // check if in the future
+    if (params['date_to'].isAfter()) {
+        params['date_to'] = moment()
+    }
+
+    // format to iso date format
+    params['date_from'] = params['date_from'].format('YYYY-MM-DD');
+    params['date_to'] = params['date_to'].format('YYYY-MM-DD');
+
     const qs = (new URLSearchParams(params)).toString();
 
     const fetchData = function (url) {
