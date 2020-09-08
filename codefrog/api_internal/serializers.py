@@ -1,11 +1,14 @@
+import datetime
 
+from dateutil.parser import parse
+from django.utils import timezone
 from rest_framework import serializers
 
 from core.models import Metric, Project
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    state_of_affairs = serializers.DictField(source='get_state_of_affairs')
+    state_of_affairs = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -15,6 +18,19 @@ class ProjectSerializer(serializers.ModelSerializer):
             'user', 'state_of_affairs',
         ]
 
+    def get_state_of_affairs(self, obj):
+        date_to = timezone.now()
+        date_from = date_to - datetime.timedelta(days=14)
+
+        date_override = self.context.get("request").GET.get('date_from', None)
+        if date_override:
+            date_from = parse(date_override)
+
+        date_override = self.context.get("request").GET.get('date_to', None)
+        if date_override:
+            date_to = parse(date_override)
+
+        return obj.get_state_of_affairs(date_from, date_to);
 
 class SimpleMetricSerializer(serializers.Serializer):
     date = serializers.DateTimeField()

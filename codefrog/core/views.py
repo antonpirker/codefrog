@@ -151,7 +151,7 @@ def project_detail(request, slug, zoom=None, release_flag=None):
         'current_lead_time': round(metrics[-1]['github_issue_age'], 1) if len(metrics) > 0 else 0,
         'current_avg_pull_request_age': round(metrics[-1]['github_avg_pull_request_age'], 1) if len(metrics) > 0 else 0,
         'current_open_tickets': int(metrics[-1]['github_issues_open']) if len(metrics) > 0 else 0,
-        'current_complexity_change': round(project.get_complexity_change(), 1),
+        'current_complexity_change': 111,
         'releases': releases,
         'data_tree': project.current_source_status.tree if project.current_source_status else {},
         'min_complexity': project.current_source_status.min_complexity if project.current_source_status else 1,

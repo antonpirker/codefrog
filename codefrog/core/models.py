@@ -79,19 +79,6 @@ class Project(GithubMixin, models.Model):
     def current_source_status(self):
         return self.source_stati.filter(active=True).order_by('timestamp').last()
 
-    def get_state_of_affairs(self):
-        DAYS = 7
-
-        state_of_affairs = {
-            'complexity_change': self.get_complexity_change(days=DAYS),
-            'issue_age': self.get_issue_age(),
-            'issue_age_change': self.get_issue_age_change(days=DAYS),
-            'pr_age': self.get_pr_age(),
-            'pr_age_change': self.get_pr_age_change(days=DAYS),
-        }
-
-        return state_of_affairs
-
     def get_file_changes(self, date_from, date_to):
         changes = CodeChange.objects.filter(
                 project=self,
@@ -282,63 +269,72 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
-    def get_complexity_change(self, days=30):
-        ref_date = timezone.now() - timedelta(days=days)
-        ref_metric = Metric.objects.filter(project=self, date__lte=ref_date)\
+    def get_state_of_affairs(self, date_from, date_to):
+        avg_issue_age = self.get_avg_issue_age(date_from, date_to)
+        avg_pr_age = self.get_avg_pr_age(date_from, date_to)
+
+        # get metrics of previous period
+        days = (date_to - date_from).days
+        date_from_past = date_from - timedelta(days=days)
+        date_to_past = date_from
+        avg_issue_age_past = self.get_avg_issue_age(date_from_past, date_to_past)
+        avg_pr_age_past = self.get_avg_pr_age(date_from_past, date_to_past)
+
+        state_of_affairs = {
+            'complexity_change': self.get_complexity_change(date_from, date_to),
+            'issue_age': avg_issue_age,
+            'issue_age_change': self.get_value_change(avg_issue_age_past, avg_issue_age),
+            'pr_age': avg_pr_age,
+            'pr_age_change': self.get_value_change(avg_pr_age_past, avg_pr_age),
+        }
+
+        return state_of_affairs
+
+    def get_value_change(self, old_value, new_value):
+        old_value = old_value if old_value != 0 else 1
+        new_value = new_value if new_value != 0 else 1
+        change = new_value/old_value*100 - 100
+        return change
+
+    def get_complexity_change(self, date_from, date_to):
+        ref_metric = Metric.objects.filter(project=self, date__lte=date_from)\
             .order_by('date')\
             .last()
-        metric = Metric.objects.filter(project=self).order_by('date').last()
+        metric = Metric.objects.filter(project=self, date__lte=date_to)\
+            .order_by('date')\
+            .last()
 
         try:
             complexity = metric.metrics['complexity']
-            if complexity == 0:
-                complexity = 1
         except (KeyError, AttributeError):
-            complexity = 1
+            complexity = 0
 
         try:
             ref_complexity = ref_metric.metrics['complexity']
-            if ref_complexity == 0:
-                ref_complexity = 1
         except (KeyError, AttributeError):
-            ref_complexity = 1
+            ref_complexity = 0
 
-        change = complexity/ref_complexity*100 - 100
-
+        change = self.get_value_change(ref_complexity, complexity)
         return change
 
-    def get_issue_age(self, date=None):
+    def get_avg_issue_age(self, date_from, date_to):
         kwargs = {
-            'project': self
+            'project': self,
+            'date__gte': date_from,
+            'date__lte': date_to,
         }
-        if date:
-            kwargs['date__lte'] = date
 
         metric = Metric.objects.filter(**kwargs).order_by('date').last()
         age = metric.metrics['github_issue_age'] if 'github_issue_age' in metric.metrics else 0
 
         return age
 
-    def get_issue_age_change(self, days=30):
-        today = timezone.now()
-        ref_date = today - timedelta(days=days)
-
-        age = self.get_issue_age(today)
-        age = age if age != 0 else 1
-
-        ref_age = self.get_issue_age(ref_date)
-        ref_age = ref_age if ref_age != 0 else 1
-
-        change = age/ref_age*100 - 100
-
-        return change
-
-    def get_pr_age(self, date=None):
+    def get_avg_pr_age(self, date_from, date_to):
         kwargs = {
-            'project': self
+            'project': self,
+            'date__gte': date_from,
+            'date__lte': date_to,
         }
-        if date:
-            kwargs['date__lte'] = date
 
         metric = Metric.objects.filter(**kwargs).order_by('date').last()
         age = metric.metrics['github_pull_requests_cumulative_age'] / metric.metrics['github_pull_requests_merged'] \
@@ -346,19 +342,6 @@ class Project(GithubMixin, models.Model):
         age = age / 60 / 60
 
         return age
-
-    def get_pr_age_change(self, days=30):
-        today = timezone.now()
-        ref_date = today - timedelta(days=days)
-
-        age = self.get_pr_age(today)
-        age = age if age != 0 else 1
-        ref_age = self.get_pr_age(ref_date)
-        ref_age = ref_age if ref_age != 0 else 1
-
-        change = age/ref_age*100 - 100
-
-        return change
 
     def get_file_complexity_trend(self, path, days=30):
         """
