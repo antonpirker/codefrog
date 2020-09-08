@@ -1,11 +1,9 @@
-import datetime
 import hashlib
 import secrets
 
 from django.conf import settings
 from django.contrib.auth.models import User
-
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template.loader import render_to_string
 from django.utils import timezone
 
