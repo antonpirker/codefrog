@@ -20,20 +20,31 @@
         const chart_colors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
 
         const setupDateRangePicker = function() {
-            let start = moment().subtract(14, 'days');
-            let end = moment();
-            $('#reportrange span').html(start.format('MMM D, YYYY') + ' - ' + end.format('MMM D, YYYY'));
-
             function cb(start, end) {
                 $('#reportrange span').html(start.format('MMM D, YYYY') + ' - ' + end.format('MMM D, YYYY'));
                 window.projectDateFrom = start;
                 window.projectDateTo = end;
+
+                // push new URL to browser address bar
+                if(window.history.pushState) {
+                    const params = {
+                        'date_from': window.projectDateFrom.format('YYYY-MM-DD'),
+                        'date_to': window.projectDateTo.format('YYYY-MM-DD')
+                    }
+                    const qs = (new URLSearchParams(params)).toString();
+                    const url = window.location.href.split('?')[0] + '?' + qs;
+                    window.history.pushState({},null, url);
+                }
+
                 loadProject(window.projectId);
             }
 
+            const params = getDateRange();
+            $('#reportrange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
+
             $('#reportrange').daterangepicker({
-                startDate: start,
-                endDate: end,
+                startDate: params['date_from'],
+                endDate: params['date_to'],
                 ranges: {
                    'Last 14 Days': [moment().subtract(14, 'days'), moment()],
                    'Last 30 Days': [moment().subtract(30, 'days'), moment()],

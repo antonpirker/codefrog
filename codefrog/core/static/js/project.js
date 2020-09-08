@@ -3,26 +3,16 @@
  * @param projectId
  */
 let loadProject = function (projectId) {
-    // default date range
-    const params = {
-        'date_from': moment().subtract(14, 'days'),
-        'date_to': moment()
-    };
-
-    // .toISOString().split("T")[0]
-    if (window.projectDateFrom) {
-        params['date_from'] = window.projectDateFrom;
-    }
-    if (window.projectDateTo) {
-        params['date_to'] = window.projectDateTo;
+    // Update date picker if there is a date range in the URL
+    const params = getDateRange();
+    const urlParams = parseQuery(window.location.search);
+    const dateRangeDefinedInUrl = 'date_to' in urlParams || 'date_from' in urlParams
+    if (dateRangeDefinedInUrl) {
+        // Update date picker
+        $('#reportrange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
     }
 
-    // check if in the future
-    if (params['date_to'].isAfter()) {
-        params['date_to'] = moment()
-    }
-
-    // format to iso date format
+    // Format to iso date format
     params['date_from'] = params['date_from'].format('YYYY-MM-DD');
     params['date_to'] = params['date_to'].format('YYYY-MM-DD');
 
@@ -67,6 +57,7 @@ let loadProject = function (projectId) {
         }
     ];
 
+    // load data from all remote urls in parallel
     (async () => {
         const promises = urlsAndHandlers.map((urlAndHandler, index) => fetchData(urlAndHandler['url']));
         await Promise.all(promises).then(responses => {
