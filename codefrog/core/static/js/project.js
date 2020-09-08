@@ -2,30 +2,61 @@
  * Load all project related data from API
  * @param projectId
  */
-let loadProject = function(projectId) {
-    let projectUrl = location.origin + '/api-internal/projects/' + projectId + '/';
-    fetch(projectUrl)
-        .then(response => response.json())
-        .then(data => {
-            window.project = data;
+let loadProject = function (projectId) {
+    const params = {
+        'date_from': '2020-08-01',
+        'date_to': (new Date()).toISOString().split("T")[0]
+    };
+    const qs = (new URLSearchParams(params)).toString();
 
-            let projectMetricsUrl = location.origin + '/api-internal/projects/' + projectId + '/metrics/';
-            fetch(projectMetricsUrl)
-                .then(response => response.json())
-                .then(data => {
-                    window.projectMetrics = data['results'];
+    const fetchData = function (url) {
+        url = url + '?' + qs;
+        console.log('Fetching ' + url);
 
-                    let projectReleasesUrl = location.origin + '/api-internal/projects/' + projectId + '/releases/';
-                    fetch(projectReleasesUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            window.projectReleases = data['results'];
+        return fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                return data;
+            });
+    }
+    const handleProjectData = function (data) {
+        window.project = data;
+    }
+    const handleMetricsData = function (data) {
+        window.projectMetrics = data['results'];
+    }
+    const handleReleasesData = function (data) {
+        window.projectReleases = data['results'];
+    }
+    const handleFileChangesData = function (data) {
+        window.projectFileChanges = data['results'];
+    }
 
-                            const event = new Event('projectLoaded');
-                            document.dispatchEvent(event);
-                        });
-                });
+    const urlsAndHandlers = [
+        {
+            url: location.origin + '/api-internal/projects/' + projectId + '/',
+            handler: handleProjectData,
+        }, {
+            url: location.origin + '/api-internal/projects/' + projectId + '/metrics/',
+            handler: handleMetricsData,
+        }, {
+            url: location.origin + '/api-internal/projects/' + projectId + '/releases/',
+            handler: handleReleasesData,
+        }, {
+            url: location.origin + '/api-internal/projects/' + projectId + '/file-changes/',
+            handler: handleFileChangesData,
+        }
+    ];
+
+    (async () => {
+        const promises = urlsAndHandlers.map((urlAndHandler, index) => fetchData(urlAndHandler['url']));
+        await Promise.all(promises).then(responses => {
+            responses.map((response, index) => urlsAndHandlers[index]['handler'](response));
+            console.log('All data of project loaded.');
+            const event = new Event('projectLoaded');
+            document.dispatchEvent(event);
         });
+    })();
 }
 
 
@@ -33,7 +64,7 @@ let loadProject = function(projectId) {
  * Update the data in the "State of affairs" part of the project page
  * @param data
  */
-let updateStateOfAffairs = function(data) {
+let updateStateOfAffairs = function (data) {
     let ids = ['complexity', 'issue-age', 'pr-age']
     let trendValues = [
         data['state_of_affairs']['complexity_change'].toFixed(1),
@@ -46,7 +77,7 @@ let updateStateOfAffairs = function(data) {
         data['state_of_affairs']['pr_age'].toFixed(1)
     ]
 
-    for(let i in ids) {
+    for (let i in ids) {
         let valueElement = document.querySelector('#' + ids[i] + ' span')
         let trendElement = document.querySelector('#' + ids[i] + '-trend')
         let caretElement = document.querySelector('#' + ids[i] + '-trend i')
@@ -83,7 +114,7 @@ document.addEventListener('projectLoaded', function (e) {
 
 
 /**
-     * When page is loaded, setup UI buttons.
+ * When page is loaded, setup UI buttons.
  */
 document.addEventListener("DOMContentLoaded", () => {
     let buttonDown = document.querySelector('#log-history-arrow-button-down');
@@ -95,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let buttonDown = document.querySelector('#log-history-arrow-button-down');
         let buttonUp = document.querySelector('#log-history-arrow-button-up');
         let isVisible = logHistory.style.display === 'block';
-        if(isVisible) {
+        if (isVisible) {
             buttonDown.style.display = 'inline-block';
             buttonUp.style.display = null;
 
