@@ -79,5 +79,12 @@ function createFileChurnDiagram(fileChanges) {
     let description = document.getElementById('file-churn-diagram-description');
     description.innerHTML = descriptionTemplate;
 
-    // TODO for later:     fileChanges = fileChanges.slice(0, 5);
+    // Update list of Top 5 most changed files
+    let list = document.getElementById('file-churn-top5-list');
+    let top5 = fileChanges.slice(0, 5);
+    for(let i in top5) {
+        let ctx = top5[i];
+        let listItemTemplate = `<li><a href="${ctx.repo_link}" target="_blank">${ctx.file_path}</a> - ${ctx.changes} changes</li>`;
+        list.innerHTML = list.innerHTML + listItemTemplate;
+    }
 }

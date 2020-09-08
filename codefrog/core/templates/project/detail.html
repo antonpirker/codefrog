@@ -410,11 +410,7 @@
             <!-- List: Top 5 changed files-->
             <div class="large-12 cell">
                 <h3>Top 5 "most changed files"</h3>
-                <ul>
-                    {% for item in file_churn|slice:":5" %}
-                        <li><a href="{{ item.repo_link }}" target="_blank">{{ item.file_path }}</a> - {{ item.changes }} changes</li>
-                    {% endfor %}
-                </ul>
+                <ul id="file-churn-top5-list"></ul>
             </div>
         </div>
 
