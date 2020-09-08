@@ -315,7 +315,7 @@ class Project(GithubMixin, models.Model):
             kwargs['date__lte'] = date
 
         metric = Metric.objects.filter(**kwargs).order_by('date').last()
-        age = metric.metrics['github_issue_age']
+        age = metric.metrics['github_issue_age'] if 'github_issue_age' in metric.metrics else 0
 
         return age
 
@@ -324,7 +324,10 @@ class Project(GithubMixin, models.Model):
         ref_date = today - timedelta(days=days)
 
         age = self.get_issue_age(today)
+        age = age if age != 0 else 1
+
         ref_age = self.get_issue_age(ref_date)
+        ref_age = ref_age if ref_age != 0 else 1
 
         change = age/ref_age*100 - 100
 
@@ -349,7 +352,9 @@ class Project(GithubMixin, models.Model):
         ref_date = today - timedelta(days=days)
 
         age = self.get_pr_age(today)
+        age = age if age != 0 else 1
         ref_age = self.get_pr_age(ref_date)
+        ref_age = ref_age if ref_age != 0 else 1
 
         change = age/ref_age*100 - 100
 
