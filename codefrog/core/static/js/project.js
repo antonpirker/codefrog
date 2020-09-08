@@ -110,6 +110,7 @@ document.addEventListener('projectLoaded', function (e) {
     updateStateOfAffairs(window.project);
     createEvolutionOfIssuesDiagram(window.projectMetrics, window.projectReleases);
     createEvolutionOfPullRequestsDiagram(window.projectMetrics, window.projectReleases);
+    createFileChurnDiagram(window.projectFileChanges);
 }, false);
 
 

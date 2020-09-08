@@ -194,7 +194,7 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
         hovertemplate: '%{y:.1f} days',
     }
 
-    let data = [complexity, issues_closed, issue_age]
+    let data = [complexity, issues_closed, issue_age];
 
     // Paint releases to the chart
     let shapes = [];

@@ -90,27 +90,6 @@
                 evolutionDiagramFrequency
             );
 
-            const fileChurnFilenames = [
-                {% for item in file_churn %}
-                    '{{ item.file_path }}'
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const fileChurnChanges = [
-                {% for item in file_churn %}
-                    {{ item.changes }}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
-
-            const fileChurnDiagram = createFileChurnDiagram(
-                "file-churn-diagram",
-                fileChurnFilenames,
-                fileChurnChanges
-            );
-
-
             let updateFileStats = function(data) {
                 const ctx = {
                     path: data.path,
@@ -410,26 +389,27 @@
             </div>
         </div>
 
-        <!-- File churn -->
+        <!-- File Churn -->
         <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+            <a name="file-churn"></a>
             <div class="large-12 cell">
                 <h2><i class="fas fa-file"></i> File churn</h2>
-                <p>All your files, sorted by how often they where changed over the last 30 days. The vast amount of work is done in a tiny portion of your code base.</p>
+                <p>All your files, sorted by how often they where changed. The vast amount of work is done in a tiny portion of your code base.</p>
             </div>
 
             <!-- Graph -->
-            <div class="large-12 cell">
-                <div class="file-churn-container">
-                    <canvas id="file-churn-diagram"></canvas>
-                </div>
+            <div class="large-12 cell" style="padding: 0 1em;">
+                <div id="file-churn-diagram"></div>
             </div>
+
+            <!-- Explanation text below graph -->
             <div class="large-12 cell">
-                <p id="file-churn-diagram-description">You made X changes to Y files of a total of Z files in your code base over the last 30 days.</p>
-                <button type="button" id="file-churn-diagram-reset-zoom" class="button primary">reset zoom</button>
+                <p id="file-churn-diagram-description">&nbsp;</p>
             </div>
-            <!-- Top 5 change files-->
+
+            <!-- List: Top 5 changed files-->
             <div class="large-12 cell">
-                <h3>Top 5 "most changed files" over the last 30 days</h3>
+                <h3>Top 5 "most changed files"</h3>
                 <ul>
                     {% for item in file_churn|slice:":5" %}
                         <li><a href="{{ item.repo_link }}" target="_blank">{{ item.file_path }}</a> - {{ item.changes }} changes</li>

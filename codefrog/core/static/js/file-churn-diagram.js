@@ -1,88 +1,83 @@
 /**
  * Create a bar chart showing what files are changed the most.
  */
-function createFileChurnDiagram(elementId, labels, values) {
-    const data = {
-        labels: labels,
-        datasets: [{
-            data: values,
-            label: 'Changes',
-            borderColor: chart_colors[2],
-            backgroundColor: chart_colors[2],
-            xAxisID: 'x-axis',
-            yAxisID: 'y-axis'
-        }]
-    };
+function createFileChurnDiagram(fileChanges) {
+    // Data to display on the chart
+    let xData = [];
+    let numberOfChanges = [];
 
-    const options = {
+    for(let i in fileChanges) {
+        xData.push(fileChanges[i]['file_path']);
+        numberOfChanges.push(fileChanges[i]['changes']);
+    }
+
+    let fileChangesTrace = {
+	    x: xData,
+	    y: numberOfChanges,
+        name: 'Number of changes to file',
         type: 'bar',
-        data: data,
-        options: {
-            fill: false,
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: {
-                display: false
-            },
-            scales: {
-                xAxes: [{
-                    "id": "x-axis",
-                    display: false
-                }],
-                yAxes: [{
-                    "id": "y-axis",
-                    display: true,
-                    ticks: {
-                        beginAtZero: true,
-                        precision: 0
-                    }
-                }]
-            },
-            plugins: {
-                zoom: {
-                    pan: {
-                        enabled: true,
-                        mode: 'x'
-                    },
-                    zoom: {
-                        enabled: true,
-                        drag: false,
-                        mode: 'x',
-                        sensitivity: 0,
-                        speed: 1,
-                        // Function called once zooming is completed
-                        onZoomComplete: function({chart}) {
-                            let resetButton = document.getElementById('file-churn-diagram-reset-zoom');
-                            resetButton.style.display = 'block';
-                        }
-                    }
-                }
-            }
-        }
-    };
+        marker: {
+	        color: chart_colors[1]
+        },
+    }
+    let data = [fileChangesTrace];
 
-    const ctx = document.getElementById(elementId).getContext('2d');
-    let churnChart = new Chart(ctx, options);
 
-    // Setup up reset zoom button
-    let resetButton = document.getElementById(elementId+'-reset-zoom');
-    resetButton && resetButton.addEventListener('click', (element) => {
-        churnChart.resetZoom();
-    });
+    // Layout of the chart
+    let layout = {
+        showlegend: true,
+        legend: {
+            orientation: "h"
+        },
+        xaxis: {
+            showticklabels: false
+        },
+        yaxis: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false
+        },
+        margin: {
+            l: 0,
+            r: 0,
+            t: 0,
+            b: 0
+        },
+    }
+
+    // General chart configuration
+    let config = {
+        displayModeBar: false,
+        responsive: true
+    }
+    let htmlElement = document.getElementById('file-churn-diagram');
+    Plotly.newPlot(htmlElement, data, layout, config);
 
     // Show a text description of how many files where changed
-    let countOnlyChanges = n => n === 0.1 ? 0 : n;
-    let changes = values.reduce((a, b)=> countOnlyChanges(a) + countOnlyChanges(b), 0);
+    let totalChanges = fileChanges.reduce((a, b) => {
+        return {
+            'changes': a['changes'] + b['changes']
+        }
+    })['changes'];
+
+    let filesChanged = fileChanges.reduce((a, b) => {
+        let count = 0;
+        if (b['changes'] > 0) {
+            count = 1;
+        }
+        return a + count;
+    }, 0);
 
     let descriptionContext = {
-        changes: changes,
-        filesChanged: values.indexOf(0.1) - 1,
-        filesTotal: labels.length
+        changes: totalChanges,
+        filesChanged: filesChanged,
+        filesTotal: fileChanges.length
     };
     descriptionContext.filesChangedPercentage = Math.round(descriptionContext.filesChanged / descriptionContext.filesTotal * 100);
-    let descriptionTemplate = `You made ${descriptionContext.changes} changes to ${descriptionContext.filesChanged} files (~${descriptionContext.filesChangedPercentage}%) of a total of ${descriptionContext.filesTotal} files in your codebase over the last 30 days.`;
-    let description = document.getElementById(elementId+'-description');
+    let descriptionTemplate = `You made ${descriptionContext.changes} changes to ${descriptionContext.filesChanged} files (~${descriptionContext.filesChangedPercentage}%) of a total of ${descriptionContext.filesTotal} files in your codebase.`;
+    let description = document.getElementById('file-churn-diagram-description');
     description.innerHTML = descriptionTemplate;
 
-    return churnChart;
+    // TODO for later:     fileChanges = fileChanges.slice(0, 5);
 }
