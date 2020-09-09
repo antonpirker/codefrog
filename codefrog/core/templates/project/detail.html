@@ -22,6 +22,21 @@
         const setupDateRangePicker = function() {
             function cb(start, end) {
                 $('#reportrange span').html(start.format('MMM D, YYYY') + ' - ' + end.format('MMM D, YYYY'));
+
+                // put whole UI in "loading" modus
+                let loadingHtml = `
+                    <div class="loading">
+                        <div class="blob"></div>
+                        <div class="frog"></div>
+                    </div>
+                `;
+                let elements = document.querySelectorAll('#evolution-issues-diagram, #evolution-pull-requests-diagram, #file-churn-diagram, #problem-areas-diagram');
+                elements.forEach(function(el) {
+                    el.innerHTML = loadingHtml;
+                });
+                let element = document.getElementById('file-information');
+                element.innerHTML = '';
+
                 window.projectDateFrom = start;
                 window.projectDateTo = end;
 
