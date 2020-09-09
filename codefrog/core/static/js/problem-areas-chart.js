@@ -135,6 +135,9 @@ let createProblemAreasDiagram = function (data) {
     let focus = root;
     let view;
 
+    let htmlElement = document.getElementById('problem-areas-diagram');
+    htmlElement.innerHTML = '';
+
     const svg = d3.select("#problem-areas-diagram").append("svg")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")

@@ -52,6 +52,7 @@ function createFileChurnDiagram(fileChanges) {
         responsive: true
     }
     let htmlElement = document.getElementById('file-churn-diagram');
+    htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 
     // Show a text description of how many files where changed

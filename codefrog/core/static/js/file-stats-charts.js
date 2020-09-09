@@ -34,6 +34,7 @@ function createPieChart(elementId, labels, values) {
     }
 
     let htmlElement = document.getElementById(elementId);
+    htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 }
 
@@ -83,5 +84,6 @@ function createSparkline(elementId, labels, values) {
     }
 
     let htmlElement = document.getElementById(elementId);
+    htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 }

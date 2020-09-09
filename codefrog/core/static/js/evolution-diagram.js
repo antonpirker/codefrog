@@ -132,6 +132,7 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
     }
 
     let htmlElement = document.getElementById('evolution-issues-diagram');
+    htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 }
 
@@ -270,5 +271,6 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
     }
 
     let htmlElement = document.getElementById('evolution-pull-requests-diagram');
+    htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 }
