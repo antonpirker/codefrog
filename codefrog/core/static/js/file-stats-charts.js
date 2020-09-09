@@ -61,45 +61,42 @@ function createPieChart(elementId, labels, values) {
  * @returns {Chart}
  */
 function createSparkline(elementId, labels, values) {
-    let config = {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                fill: false,
-                borderColor: '#999',
-                backgroundColor: '#999',
-                pointRadius: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                xAxes: [{
-                    display: false
-                }],
-                yAxes: [{
-                    display: false
-                }]
-            },
-            legend: {
-                display: false
-            },
-            tooltips: {
-                enabled: false
-            },
-            layout: {
-                padding: {
-                    left: 10,
-                    right: 10,
-                    top: 10,
-                    bottom: 10
-                }
-            }
-        }
-    };
+    let trace = {
+	    x: labels,
+	    y: values,
+        type: 'scatter',
+        mode: 'lines'
+    }
+    let data = [trace];
 
-    let ctx = document.getElementById(elementId).getContext('2d');
-    return new Chart(ctx, config);
+    // Layout of the chart
+    let layout = {
+        showlegend: false,
+        xaxis: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            fixedrange: true
+        },
+        yaxis: {
+            showgrid: false,
+            zeroline: false,
+            showline: false,
+            showticklabels: false,
+            fixedrange: true
+        },
+        margin: {
+            l: 0,
+            r: 0
+        }
+    }
+
+    // General chart configuration
+    let config = {
+        displayModeBar: false
+    }
+
+    let htmlElement = document.getElementById(elementId);
+    Plotly.newPlot(htmlElement, data, layout, config);
 }

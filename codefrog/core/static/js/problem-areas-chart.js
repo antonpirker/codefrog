@@ -45,23 +45,18 @@ let updateFileStats = function (data) {
 
             <div class="large-12 cell dashboard-card">
                 <h5>Who made changes</h5>
-                 <p>(over the last 30 days)</p>
                 <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
                 </canvas>
             </div>
 
             <div class="large-12 cell dashboard-card">
                 <h5>Number of file changes</h5>
-                 <p>(over the last 30 days)</p>
-                <canvas id="diagram-changes" style="width:100%; height: 4em;">
-                </canvas>
+                <div id="diagram-changes" style="width:100%; height: 4em;"></div>
             </div>
 
             <div class="large-12 cell dashboard-card">
                 <h5>Complexity trend</h5>
-                 <p>(over the last 30 days)</p>
-                <canvas id="diagram-complexity" style="width:100%; height: 4em;">
-                </canvas>
+                <div id="diagram-complexity" style="width:100%; height: 4em;"></div>
             </div>
         </div>
     `;
@@ -74,28 +69,29 @@ let updateFileStats = function (data) {
         count('project.problem_areas.file_details.clicked');
     });
 
-    console.log('complexity trend');
-    console.log(data.complexity_trend);
+    // convert the date labels into real date objects for better display
+    for (let i in data.complexity_trend_labels) {
+        data.complexity_trend_labels[i] = moment(data.complexity_trend_labels[i]).toDate();
+    }
+    for (let i in data.changes_trend_labels) {
+        data.changes_trend_labels[i] = moment(data.changes_trend_labels[i]).toDate();
+    }
+
     const complexityDiagram = createSparkline(
         "diagram-complexity",
         data.complexity_trend_labels,
         data.complexity_trend,
     );
-
-    console.log('changes trend');
-    console.log(data.changes_trend);
     const changesDiagram = createSparkline(
         "diagram-changes",
         data.changes_trend_labels,
         data.changes_trend,
     );
-
     const commitCountDiagram = createPieChart(
         "diagram-commit-count",
         data.commit_counts_labels,
         data.commit_counts,
     );
-
     const codeOwnershipDiagram = createPieChart(
         "diagram-code-ownership",
         data.code_ownership_labels,
