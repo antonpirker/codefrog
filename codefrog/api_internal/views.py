@@ -221,7 +221,6 @@ class FileStatusViewSet(viewsets.ModelViewSet):
             source_status=project.current_source_status,
             path=os.path.join(project.github_repo_name, path),
         ).exists()
-        import ipdb; ipdb.set_trace()
         if not data_for_path:
             return []
 
