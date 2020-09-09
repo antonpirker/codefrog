@@ -39,14 +39,12 @@ let updateFileStats = function (data) {
 
             <div class="large-12 cell dashboard-card">
                 <h5>Who owns the code in the file</h5>
-                <canvas id="diagram-code-ownership" style="width:100%; height: 8em;">
-                </canvas>
+                <div id="diagram-code-ownership" style="width:100%; height: 12em;"></div>
             </div>
 
             <div class="large-12 cell dashboard-card">
                 <h5>Who made changes</h5>
-                <canvas id="diagram-commit-count" style="width:100%; height: 8em;">
-                </canvas>
+                <div id="diagram-commit-count" style="width:100%; height: 12em;"></div>
             </div>
 
             <div class="large-12 cell dashboard-card">

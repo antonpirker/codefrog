@@ -1,64 +1,49 @@
 /**
  *
  * @param elementId
- * @param datasetLabel
  * @param labels
  * @param values
- * @returns {Chart}
+ * @returns
  */
 function createPieChart(elementId, labels, values) {
-    colors = [];
-    window.usedColors = [];
-    window.labelColors = {};
+    let trace = {
+	    labels: labels,
+	    values: values,
+        type: 'pie',
+        textinfo: "label",
+        textposition: "none"
+    }
+    let data = [trace];
 
-    for(const label of labels) {
-        let nextColor = null;
-        // find an unused color
-        for(nextColor of window.chartColors) {
-            if(window.usedColors.indexOf(nextColor) == -1) {
-                window.usedColors.push(nextColor);
-                break;
-            }
+    // Layout of the chart
+    let layout = {
+        legend: {
+            orientation: "h"
+        },
+        margin: {
+            l: 0,
+            r: 0,
+            t: 0,
+            b: 0
         }
-
-        // if the label has not yet a color, assign the unused one.
-        if(!window.labelColors[label]) {
-            window.labelColors[label] = nextColor;
-        }
-
-        // add the assigned color
-        colors.push(window.labelColors[label]);
     }
 
+    // General chart configuration
     let config = {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: values,
-                backgroundColor: colors,
-            }],
-            labels: labels,
-        },
-        options: {
-            responsive: true,
-            legend: {
-                position: 'right'
-            }
-        }
-    };
+        displayModeBar: false
+    }
 
-    let ctx = document.getElementById(elementId).getContext('2d');
-    return new Chart(ctx, config);
+    let htmlElement = document.getElementById(elementId);
+    Plotly.newPlot(htmlElement, data, layout, config);
 }
 
 
 /**
  *
  * @param elementId
- * @param datasetLabel
  * @param labels
  * @param values
- * @returns {Chart}
+ * @returns
  */
 function createSparkline(elementId, labels, values) {
     let trace = {
