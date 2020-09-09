@@ -105,6 +105,10 @@ let updateFileStats = function (data) {
  * @param data
  */
 let createProblemAreasDiagram = function (data) {
+    if (data === [] || data === {} || !data) {
+        return
+    }
+
     let dataTree = data['tree'];
     let minChanges = data['min_changes'];
     let maxChanges = data['max_chnages'];

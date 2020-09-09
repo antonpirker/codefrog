@@ -20,7 +20,6 @@ let loadProject = function (projectId) {
 
     const fetchData = function (url) {
         url = url + '?' + qs;
-        console.log('Fetching ' + url);
 
         return fetch(url)
             .then(response => response.json())
@@ -28,78 +27,115 @@ let loadProject = function (projectId) {
                 return data;
             });
     }
-    const handleProjectData = function (data) {
-        window.project = data;
-    }
-    const handleMetricsData = function (data) {
-        window.projectMetrics = data['results'];
-    }
-    const handleReleasesData = function (data) {
-        window.projectReleases = data['results'];
-    }
-    const handleFileChangesData = function (data) {
-        window.projectFileChanges = data['results'];
-    }
-    const handleSourceStatusData = function (data) {
-        window.projectSourceStatus = data[0];
-    }
 
-    const urlsAndHandlers1 = [
-        {
-            url: location.origin + '/api-internal/projects/' + projectId + '/',
-            handler: handleProjectData,
-        }, {
-            url: location.origin + '/api-internal/projects/' + projectId + '/metrics/',
-            handler: handleMetricsData,
-        }, {
-            url: location.origin + '/api-internal/projects/' + projectId + '/releases/',
-            handler: handleReleasesData,
-        }
-    ];
-    (async () => {
-        const promises = urlsAndHandlers1.map((urlAndHandler, index) => fetchData(urlAndHandler['url']));
-        await Promise.all(promises).then(responses => {
-            console.log("Evolution loaded");
-            responses.map((response, index) => urlsAndHandlers1[index]['handler'](response));
-            const event = new Event('projectLoaded1');
+    console.log(`Loading source-status ... ` + new Date());
+    let sourceStatusUrl = location.origin + '/api-internal/projects/' + projectId + '/source-status/';
+    fetchData(sourceStatusUrl).then(resp => {
+            window.projectSourceStatus = resp[0];
+
+            console.log(`Everything loaded from source-status ` + new Date());
+
+            const event = new Event('source-status-loaded');
             document.dispatchEvent(event);
         });
-    })();
 
-    const urlsAndHandlers2 = [
-        {
-            url: location.origin + '/api-internal/projects/' + projectId + '/file-changes/',
-            handler: handleFileChangesData,
-        }
-    ];
-    (async () => {
-        const promises = urlsAndHandlers2.map((urlAndHandler, index) => fetchData(urlAndHandler['url']));
-        await Promise.all(promises).then(responses => {
-            console.log("File churn loaded");
-            responses.map((response, index) => urlsAndHandlers2[index]['handler'](response));
-            const event = new Event('projectLoaded2');
+    loadPaginatedResource(projectId, 'file-changes', 'projectFileChanges');
+
+
+    const evolutionPromises = [];
+    console.log(`Loading project... ` + new Date());
+    let projectUrl = location.origin + '/api-internal/projects/' + projectId + '/';
+    let promise1 = fetchData(projectUrl).then(resp => {
+            window.project = resp;
+
+            console.log(`Everything loaded from project ` + new Date());
+
+            const event = new Event('project-loaded');
             document.dispatchEvent(event);
         });
-    })();
+    let promise2 = loadPaginatedResource(projectId, 'metrics', 'projectMetrics');
+    let promise3 = loadPaginatedResource(projectId, 'releases', 'projectReleases');
 
-    const urlsAndHandlers3 = [
-        {
-            url: location.origin + '/api-internal/projects/' + projectId + '/source-status/',
-            handler: handleSourceStatusData,
-        }
-    ];
-    (async () => {
-        const promises = urlsAndHandlers3.map((urlAndHandler, index) => fetchData(urlAndHandler['url']));
-        await Promise.all(promises).then(responses => {
-            console.log("Work areas loaded");
-            responses.map((response, index) => urlsAndHandlers3[index]['handler'](response));
-            const event = new Event('projectLoaded3');
-            document.dispatchEvent(event);
-        });
-    })();
-
-
+    Promise.all([promise1, promise2, promise3]).then(response => {
+        console.log("Everything for evolution diagramm loaded!");
+        const event = new Event('evolution-loaded');
+        document.dispatchEvent(event);
+    });
 }
+
+
+let loadPaginatedResource = function(projectId, action, propertyName) {
+    console.log(`Loading ${action} ... ` + new Date());
+
+    let params = getDateRange();
+    params['date_from'] = params['date_from'].format('YYYY-MM-DD');
+    params['date_to'] = params['date_to'].format('YYYY-MM-DD');
+    const qs = (new URLSearchParams(params)).toString();
+
+    let url = location.origin + '/api-internal/projects/' + projectId + '/' + action+ '/';
+
+    let numPages = 0;
+    return fetch(url + '?' + qs)
+        .then(response => response.json())
+        .then(data => {
+            // Fetch all pages
+            const apiPromises = [];
+            numPages = data['num_pages'];
+            console.log(`${action}: There are ${numPages} pages to load.`);
+            for (let page=1; page<=numPages; page++) {
+                params['page'] = page;
+                const qs = (new URLSearchParams(params)).toString();
+                let pageUrl = url + '?' + qs;
+
+                let promise = fetch(pageUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        return data;
+                    });
+
+                apiPromises.push(promise);
+            }
+
+            // Wait until loading of all pages is done.
+            let allPromise = Promise.all(apiPromises)
+                .then(responses => {
+                    const processedResponses = [];
+                    responses.map(data => {
+                        processedResponses.push(data);
+                    });
+
+                    // Save the results of all pages into window object
+                    window[propertyName] = [];
+                    for (let i in processedResponses) {
+                        window[propertyName] = window[propertyName].concat(processedResponses[i]['results']);
+                    }
+                    console.log(`Everything loaded from ${action} ` + new Date());
+
+                    // Tell everyone that we are done loading stuff
+                    const event = new Event(action + '-loaded');
+                    document.dispatchEvent(event);
+                });
+            return allPromise;
+        });
+}
+
+
+/**
+ * When project data is loaded, update UI.
+ */
+document.addEventListener('evolution-loaded', function (e) {
+    updateStateOfAffairs(window.project);
+    createEvolutionOfIssuesDiagram(window.projectMetrics, window.projectReleases);
+    createEvolutionOfPullRequestsDiagram(window.projectMetrics, window.projectReleases);
+}, false);
+
+document.addEventListener('file-changes-loaded', function (e) {
+    createFileChurnDiagram(window.projectFileChanges);
+}, false);
+
+document.addEventListener('source-status-loaded', function (e) {
+    createProblemAreasDiagram(window.projectSourceStatus);
+}, false);
 
 
 /**
@@ -143,22 +179,6 @@ let updateStateOfAffairs = function (data) {
         }
     }
 };
-
-
-/**
- * When project data is loaded, update UI.
- */
-document.addEventListener('projectLoaded1', function (e) {
-    updateStateOfAffairs(window.project);
-    createEvolutionOfIssuesDiagram(window.projectMetrics, window.projectReleases);
-    createEvolutionOfPullRequestsDiagram(window.projectMetrics, window.projectReleases);
-}, false);
-document.addEventListener('projectLoaded2', function (e) {
-    createFileChurnDiagram(window.projectFileChanges);
-}, false);
-document.addEventListener('projectLoaded3', function (e) {
-    createProblemAreasDiagram(window.projectSourceStatus);
-}, false);
 
 
 /**

@@ -30,7 +30,13 @@ function createFileChurnDiagram(fileChanges) {
             orientation: "h"
         },
         xaxis: {
-            showticklabels: false
+            showticklabels: false,
+            showline: true,
+            showgrid: false,
+            ticks: 'outside',
+            tickcolor: 'rgb(204,204,204)',
+            tickwidth: 2,
+            ticklen: 5,
         },
         yaxis: {
             showgrid: false,

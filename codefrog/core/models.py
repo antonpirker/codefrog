@@ -108,7 +108,7 @@ class Project(GithubMixin, models.Model):
         for path in all_paths:
             out.append({
                 'file_path': path,
-                'changes': changes_dict.get(path, 0.1),
+                'changes': changes_dict.get(path, 0),
                 'repo_link': self.get_repo_link(path),
             })
 
