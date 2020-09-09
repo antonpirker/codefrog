@@ -7,8 +7,13 @@ let fileClickCallback = function (path, link) {
     let elem = document.getElementById('file-information');
     elem.innerHTML = '';
 
-    let projectSlug = document.querySelector('[name=projectslug]').value;
-    fetch('/project/' + projectSlug + '/file-stats?path=' + path)
+    let dateRange = getDateRange();
+    let fileStatusUrl = '/api-internal/projects/' + window.project.id + '/file-status/' +
+        '?path=' + path +
+        '&date_from=' + dateRange['date_from'].format('YYYY-MM-DD') +
+        '&date_to=' + dateRange['date_to'].format('YYYY-MM-DD');
+
+    fetch(fileStatusUrl)
         .then(response => response.json())
         .then(updateFileStats);
 };
@@ -19,6 +24,7 @@ let fileClickCallback = function (path, link) {
  * @param data
  */
 let updateFileStats = function (data) {
+    data = data[0];
     const ctx = {
         path: data.path,
         link: data.link  // TODO: this is complete garbage....
