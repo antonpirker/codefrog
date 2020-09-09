@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from dateutil.parser import parse
 from django.http import Http404
@@ -8,9 +9,9 @@ from rest_framework import permissions
 from rest_framework import viewsets
 
 from api_internal.serializers import SimpleMetricSerializer, ProjectSerializer, ReleaseSerializer, \
-    FileChangesSerializer, SourceStatusSerializer
+    FileChangesSerializer, SourceStatusSerializer, FileStatusSerializer
 from api_internal.utils import get_best_frequency
-from core.models import Metric, Project, Release
+from core.models import Metric, Project, Release, SourceNode
 from core.utils import resample_metrics, resample_releases
 
 
@@ -180,6 +181,88 @@ class SourceStatusViewSet(viewsets.ModelViewSet):
 
         return [source_status, ]
 
+
+class FileStatusViewSet(viewsets.ModelViewSet):
+    serializer_class = FileStatusSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        project_pk = self.kwargs['project_pk']
+        user = self.request.user
+        project = get_object_or_404(
+            Project,
+            pk=project_pk,
+            user=user,
+            active=True,
+        )
+
+        # Private projects can only be requested by owner or superuser
+        if project.private \
+                and project.user != user \
+                and not user.is_superuser:
+            raise Http404('Project does not exist')
+
+        try:
+            date_from = parse(self.request.GET.get('date_from'))
+        except (TypeError, ValueError):
+            date_from = datetime.date(1970, 1, 1)
+
+        try:
+            date_to = parse(self.request.GET.get('date_to'))
+        except (TypeError, ValueError):
+            date_to = timezone.now().date()
+
+        path = self.request.GET.get('path')
+        if not path:
+            return []
+
+        data_for_path =SourceNode.objects.filter(
+            source_status=project.current_source_status,
+            path=os.path.join(project.github_repo_name, path),
+        ).exists()
+        import ipdb; ipdb.set_trace()
+        if not data_for_path:
+            return []
+
+        # Number of commits in the last n days
+        commit_count = project.get_file_commit_count(path, date_from, date_to)
+        commit_counts = []
+        commit_counts_labels = []
+
+        for author in sorted(commit_count, key=commit_count.get, reverse=True):
+            commit_counts_labels.append(author)
+            commit_counts.append(commit_count[author])
+
+        # Code ownership of the file
+        ownership = project.get_file_ownership(path)
+
+        complexity_trend = project.get_file_complexity_trend(path, date_from, date_to)
+        complexity_trend_labels = [x[0] for x in complexity_trend]
+        complexity_trend = [x[1] for x in complexity_trend]
+
+        changes_trend = project.get_file_changes_trend(path, date_from, date_to)
+        changes_trend_labels = [x[0] for x in changes_trend]
+        changes_trend = [x[1] for x in changes_trend]
+
+        json = {
+            'path': path,
+            'link': f'{project.github_repo_url}/blame/master/{path}',
+
+            'code_ownership': [o['lines'] for o in ownership],
+            'code_ownership_labels': [o['author'].split('<')[0].strip() for o in ownership],
+
+            'commit_counts': commit_counts,
+            'commit_counts_labels': commit_counts_labels,
+
+            'complexity_trend': complexity_trend,
+            'complexity_trend_labels': complexity_trend_labels,
+
+            'changes_trend': changes_trend,
+            'changes_trend_labels': changes_trend_labels,
+        }
+
+        return [json, ]
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer

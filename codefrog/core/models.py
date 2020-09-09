@@ -356,71 +356,64 @@ class Project(GithubMixin, models.Model):
 
         return age
 
-    def get_file_complexity_trend(self, path, days=30):
+    def get_file_complexity_trend(self, path, date_from, date_to):
         """
-        Return an array of complexities for the given path over the given days.
+        Return an array of complexities for the given path over the given time period.
 
         :param path: The file for which the complexities should be returned.
-        :param days: The number of days from today into the past.
         :return: Array of integers
         """
-        today = timezone.now().date()
-        ref_date = today - timedelta(days=days)
-
         try:
             ref_complexity = Complexity.objects.filter(
                 project=self,
                 file_path=path,
-                timestamp__lte=ref_date,
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
             ).order_by('-timestamp').first().complexity
         except AttributeError:
             ref_complexity = 0
 
         complexities = {}
-        for day in date_range(ref_date, today):
-            complexities[day.strftime('%Y%m%d')] = ref_complexity
+        for day in date_range(date_from, date_to):
+            complexities[day.strftime('%Y-%m-%d')] = ref_complexity
 
         comps = Complexity.objects.filter(
             project=self,
             file_path=path,
-            timestamp__gte=ref_date,
+            timestamp__date__gte=date_from,
+            timestamp__date__lte=date_to,
         ).order_by('timestamp')
 
         for comp in comps:
-            complexities[comp.timestamp.strftime('%Y%m%d')] = comp.complexity
+            complexities[comp.timestamp.strftime('%Y-%m-%d')] = comp.complexity
 
-        trend = [x[1] for x in sorted(complexities.items())]
-        return trend
+        return sorted(complexities.items())
 
-    def get_file_changes_trend(self, path, days=30):
+    def get_file_changes_trend(self, path, date_from, date_to):
         """
-        Return an array of code change for the given path over the given days.
+        Return an array of code change for the given path over the given time period.
 
         :param path: The file for which the code changes should be returned.
-        :param days: The number of days from today into the past.
         :return: Array of integers
         """
-        today = timezone.now().date()
-        ref_date = today - timedelta(days=days)
-
         changes = {}
-        for day in date_range(ref_date, today):
-            changes[day.strftime('%Y%m%d')] = 0
+        for day in date_range(date_from, date_to):
+            changes[day.strftime('%Y-%m-%d')] = 0
 
         raw_changes = CodeChange.objects.filter(
                 project=self,
                 file_path=path,
-                timestamp__gte=ref_date,
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
             )\
-            .extra(select={'day': "TO_CHAR(timestamp, 'YYYYMMDD')"})\
+            .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
             .values('day')\
             .annotate(changes=Count('timestamp'))
 
         for raw_change in raw_changes:
             changes[raw_change['day']] = raw_change['changes']
 
-        trend = [x[1] for x in sorted(changes.items())]
-        return trend
+        return sorted(changes.items())
 
     def get_file_metrics(self, path):
         path = os.path.join(self.github_repo_name, path)
@@ -430,9 +423,9 @@ class Project(GithubMixin, models.Model):
         file_metrics = self.get_file_metrics(path)
         return file_metrics['ownership']
 
-    def get_file_commit_count(self, path, days):
+    def get_file_commit_count(self, path, date_from, date_to):
         cmd = (
-            f'git shortlog --summary --numbered --since="{days} days" HEAD -- "{path}"'
+            f'git shortlog --summary --numbered --after="{date_from}" --before="{date_to}" HEAD -- "{path}"'
         )
         output = run_shell_command(cmd, cwd=self.repo_dir)
         lines = [line for line in output.split('\n') if line]

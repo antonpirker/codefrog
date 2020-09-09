@@ -71,3 +71,32 @@ class SourceStatusSerializer(serializers.Serializer):
     tree = serializers.DictField()
     min_changes = serializers.IntegerField()
     max_changes = serializers.IntegerField()
+
+
+class FileStatusSerializer(serializers.Serializer):
+    path = serializers.CharField()
+    link = serializers.CharField()
+    complexity_trend = serializers.ListField(
+       child=serializers.IntegerField()
+    )
+    complexity_trend_labels = serializers.ListField(
+       child=serializers.CharField()
+    )
+    changes_trend = serializers.ListField(
+       child=serializers.IntegerField()
+    )
+    changes_trend_labels = serializers.ListField(
+       child=serializers.CharField()
+    )
+    commit_counts = serializers.ListField(
+       child=serializers.IntegerField()
+    )
+    commit_counts_labels = serializers.ListField(
+       child=serializers.CharField()
+    )
+    code_ownership = serializers.ListField(
+       child=serializers.IntegerField()
+    )
+    code_ownership_labels = serializers.ListField(
+       child=serializers.CharField()
+    )
