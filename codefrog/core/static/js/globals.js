@@ -1,8 +1,7 @@
 
-const link_color = '#FFAC33';
-    const color_palette = ['#DD0F7E', '#009BBE', '#A8DA00', '#F2E205', '#EE5A02'];
+const link_color = '#FFAC33'; // not used in JS, only here for reference
 
-window.chartColors = [
+let colorGradient = [
     'rgb(255, 99, 132)',
     'rgb(255, 159, 64)',
     'rgb(255, 205, 86)',
@@ -12,10 +11,62 @@ window.chartColors = [
     'rgb(201, 203, 207)'
 ];
 
-window.usedColors = [];
+// OLD Chart colors
+//const chartColors = ['#DD0F7E', '#0082A5', '#99cddb', '#82a500']; // https://www.color-hex.com/color/0082a5
 
-window.labelColors = {};
+let COLOR_COMPLEXITY = 0
 
+let COLOR_METRIC1 = 1
+let COLOR_METRIC1_ALT = 2
+
+let COLOR_METRIC2 = 3
+let COLOR_METRIC2_ALT = 4
+
+let COLOR_FILE_CHANGES = 5
+
+
+let colorsLufthansa = [
+    '#ddd',
+    'hsla(230, 96, 12, 1)',
+    'hsla(230, 8, 41, 1)',
+    'hsla(22, 96, 48, 1)',
+    'hsla(39, 96, 48, 1)',
+    'hsla(28, 96, 48, 1)',
+];
+let colorsUsingWeather = [
+    '#ddd',
+    'hsla(146, 96, 28, 1)',
+    'hsla(118, 31, 63, 1)',
+    'hsla(11, 84, 68, 1)',
+    'hsla(22, 84, 68, 1)',
+    'hsla(213, 96, 33, 1)',
+];
+let colorsDataVizCollection = [
+    '#ddd',
+    'hsla(185, 60, 28, 1)',
+    'hsla(163, 60, 34, 1)',
+    'hsla(5, 85, 64, 1)',
+    'hsla(33, 84, 68, 1)',
+    'hsla(39, 84, 67, 1)',
+];
+let colorsBoat = [
+    '#ddd',
+    'hsla(354, 87, 58, 1)',
+    'hsla(354, 82, 71, 1)',
+    'hsla(174, 96, 28, 1)',
+    'hsla(39, 63, 59, 1)',
+    'hsla(33, 86, 63, 1)',
+];
+let colorsPredictiveAnalytics = [
+    '#ddd',
+    'hsla(191, 68, 44, 1)',
+    'hsla(50, 34, 48, 1)',
+    'hsla(16, 96, 28, 1)',
+    'hsla(11, 94, 48, 1)',
+    'hsla(22, 89, 51, 1)',
+];
+
+const chartColors = colorsDataVizCollection;
 
 
 function parseQuery(queryString) {

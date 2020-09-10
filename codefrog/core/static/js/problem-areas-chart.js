@@ -48,7 +48,7 @@ let updateFileStats = function (data) {
             </div>
 
             <div class="large-12 cell dashboard-card">
-                <h5>Number of file changes</h5>
+                <h5>Number of changes</h5>
                 <div id="diagram-changes" style="width:100%; height: 4em;"></div>
             </div>
 

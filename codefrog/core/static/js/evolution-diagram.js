@@ -25,7 +25,7 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
 	        width: 0
         },
         fill: 'tozeroy',
-        fillcolor: '#ddd',
+        fillcolor: chartColors[COLOR_COMPLEXITY],
         hoverinfo: 'skip'
     }
 
@@ -36,7 +36,7 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
         type: 'bar',
         yaxis: 'y2',
         marker: {
-	        color: chart_colors[1]
+	        color: chartColors[COLOR_METRIC1]
         },
     }
 
@@ -47,11 +47,11 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
         mode: 'lines+markers',
         yaxis: 'y3',
         marker: {
-	        color: chart_colors[0],
+	        color: chartColors[COLOR_METRIC1_ALT],
 	        size: 10
         },
         line: {
-	        color: chart_colors[0]
+	        color: chartColors[COLOR_METRIC1_ALT]
         },
         hovertemplate: '%{y:.1f} days',
     }
@@ -72,7 +72,7 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
             yref: 'paper',
             y1: 1,
             line: {
-                color: 'grey',
+                color: '#999',
                 width: 1.5,
                 dash: 'dot'
             }
@@ -164,38 +164,38 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
 	        width: 0
         },
         fill: 'tozeroy',
-        fillcolor: '#ddd',
+        fillcolor: chartColors[COLOR_COMPLEXITY],
         hoverinfo: 'skip'
     }
 
-    let issues_closed = {
+    let prs_closed = {
 	    x: xData,
 	    y: pullRequestsClosedData,
         name: 'Pull Requests Closed',
         type: 'bar',
         yaxis: 'y2',
         marker: {
-	        color: chart_colors[1]
+	        color: chartColors[COLOR_METRIC2]
         },
     }
 
-    let issue_age = {
+    let pr_age = {
 	    x: xData,
 	    y: pullRequestAgeData,
         name: 'Pull Request Age',
         mode: 'lines+markers',
         yaxis: 'y3',
         marker: {
-	        color: chart_colors[0],
+	        color: chartColors[COLOR_METRIC2_ALT],
 	        size: 10
         },
         line: {
-	        color: chart_colors[0]
+	        color: chartColors[COLOR_METRIC2_ALT]
         },
         hovertemplate: '%{y:.1f} days',
     }
 
-    let data = [complexity, issues_closed, issue_age];
+    let data = [complexity, prs_closed, pr_age];
 
     // Paint releases to the chart
     let shapes = [];
@@ -211,7 +211,7 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
             yref: 'paper',
             y1: 1,
             line: {
-                color: 'grey',
+                color: '#999',
                 width: 1.5,
                 dash: 'dot'
             }

@@ -1,5 +1,5 @@
 /**
- * Load all project related data from API
+ * Load all project related data from API endpoints
  * @param projectId
  */
 let loadProject = function (projectId) {
@@ -28,6 +28,7 @@ let loadProject = function (projectId) {
             });
     }
 
+    // Loading data for work area diagram
     console.log(`Loading source-status ... ` + new Date());
     let sourceStatusUrl = location.origin + '/api-internal/projects/' + projectId + '/source-status/';
     fetchData(sourceStatusUrl).then(resp => {
@@ -39,10 +40,10 @@ let loadProject = function (projectId) {
             document.dispatchEvent(event);
         });
 
+    // Loading data for file churn diagram
     loadPaginatedResource(projectId, 'file-changes', 'projectFileChanges');
 
-
-    const evolutionPromises = [];
+    // loading data for evolution diagrams
     console.log(`Loading project... ` + new Date());
     let projectUrl = location.origin + '/api-internal/projects/' + projectId + '/';
     let promise1 = fetchData(projectUrl).then(resp => {
@@ -57,13 +58,21 @@ let loadProject = function (projectId) {
     let promise3 = loadPaginatedResource(projectId, 'releases', 'projectReleases');
 
     Promise.all([promise1, promise2, promise3]).then(response => {
-        console.log("Everything for evolution diagramm loaded!");
+        console.log("Everything for evolution diagram loaded!");
         const event = new Event('evolution-loaded');
         document.dispatchEvent(event);
     });
 }
 
-
+/**
+ * Loads all pages of a paginated API endpoint and saves the result in the window object.
+ * If everything was loaded the {action}-loaded event is triggered.
+ *
+ * @param projectId
+ * @param action
+ * @param propertyName
+ * @returns {Promise<unknown>}
+ */
 let loadPaginatedResource = function(projectId, action, propertyName) {
     console.log(`Loading ${action} ... ` + new Date());
 

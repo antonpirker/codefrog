@@ -17,7 +17,7 @@ function createFileChurnDiagram(fileChanges) {
         name: 'Number of changes to file',
         type: 'bar',
         marker: {
-	        color: chart_colors[1]
+	        color: chartColors[COLOR_FILE_CHANGES]
         },
     }
     let data = [fileChangesTrace];
@@ -34,7 +34,6 @@ function createFileChurnDiagram(fileChanges) {
             showline: true,
             showgrid: false,
             ticks: 'outside',
-            tickcolor: 'rgb(204,204,204)',
             tickwidth: 2,
             ticklen: 5,
         },
