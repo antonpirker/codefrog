@@ -3,7 +3,7 @@
  * @param path
  * @param link
  */
-let fileClickCallback = function (path) {
+let bubbleClickCallback = function (path, isFile) {
     let elem = document.getElementById('file-information');
     elem.innerHTML = '';
 
@@ -15,9 +15,33 @@ let fileClickCallback = function (path) {
 
     fetch(fileStatusUrl)
         .then(response => response.json())
-        .then(updateFileStats);
+        .then(data => isFile ? updateFileStats(data) : updateDirectoryStats(data));
 };
 
+
+/**
+ *
+ * @param data
+ */
+let updateDirectoryStats = function (data) {
+    data = data[0];
+    const ctx = {
+        path: data.path,
+        link: data.link  // TODO: this is complete garbage....
+    };
+
+    let infoTemplateDirectory = `
+        <div class="grid-x grid-padding-x grid-padding-y">
+            <div class="large-12 cell dashboard-card" style="margin-top: 0;">
+                <h5>Source (on GitHub)</h5>
+                <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
+            </div>
+        </div>
+    `;
+
+    let elem = document.getElementById('file-information');
+    elem.innerHTML = infoTemplateDirectory;
+};
 
 /**
  *
@@ -33,7 +57,7 @@ let updateFileStats = function (data) {
     let infoTemplate = `
         <div class="grid-x grid-padding-x grid-padding-y">
             <div class="large-12 cell dashboard-card" style="margin-top: 0;">
-                <h5>Source file (on GitHub)</h5>
+                <h5>Source (on GitHub)</h5>
                 <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
             </div>
 
@@ -174,8 +198,8 @@ let createProblemAreasDiagram = function (data) {
                     d3.event.stopPropagation();
                 }
 
+                bubbleClickCallback(d.data.path, d.data.is_file);
                 if (d.data.is_file) {
-                    fileClickCallback(d.data.path);
                     count('project.problem_areas.file.clicked');
                 } else {
                     count('project.problem_areas.directory.clicked');
