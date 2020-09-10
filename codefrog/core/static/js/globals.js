@@ -62,6 +62,8 @@ let colorsPredictiveAnalytics = [
 
 const chartColors = colorsDataVizCollection;
 
+const bubbleColorRange = ["#ffd1c9", "#990000"];
+const bubbleBackgroundColorRange = ["#ffffff", "#a9a9a9"];
 
 function parseQuery(queryString) {
     var query = {};

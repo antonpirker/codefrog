@@ -114,21 +114,21 @@ let createProblemAreasDiagram = function (data) {
         return
     }
 
-    let dataTree = data['tree'];
-    let minChanges = data['min_changes'];
-    let maxChanges = data['max_chnages'];
+    dataTree = data['tree'];
+    minChanges = data['min_changes'];
+    maxChanges = data['max_changes'];
 
-    let backgroundColor = d3.scaleLinear()
+    backgroundColor = d3.scaleLinear()
         .domain([0, 10])
-        .range(["#ffffff", "#a9a9a9"])
+        .range(bubbleBackgroundColorRange)
         .interpolate(d3.interpolateHcl);
 
-    let bubbleColor = d3.scaleLinear()
+    bubbleColor = d3.scaleLinear()
         .domain([0, 1])
-        .range(["#ffd1c9", "#990000"])
+        .range(bubbleColorRange)
         .interpolate(d3.interpolateHcl);
 
-    let c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0, 1]);
+    normalize = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0, 1]);
 
     format = d3.format(",d");
     width = 932;
@@ -159,7 +159,7 @@ let createProblemAreasDiagram = function (data) {
         .selectAll("circle")
         .data(root.descendants().slice(1))
         .join("circle")
-        .attr("fill", d => d.children ? backgroundColor(d.depth) : bubbleColor(c(d.data.changes)))
+        .attr("fill", d => d.children ? backgroundColor(d.depth) : bubbleColor(normalize(d.data.changes)))
         .attr("pointer-events", d => !d.children ? null : null)
         .on("mouseover", function (d) {
             d3.select(this).attr("stroke", "#000");

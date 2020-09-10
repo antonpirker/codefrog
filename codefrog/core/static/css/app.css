@@ -123,12 +123,12 @@ body.app .dashboard-card h2 i.fas {
     height: 1em;
     display: inline-block;
     background: #fcebec;
-    background: -moz-linear-gradient(left, #fcebec 0%, #df2935 100%);
-    background: -webkit-linear-gradient(left, #fcebec 0%, #df2935 100%);
-    background: -o-linear-gradient(left, #fcebec 0%, #df2935 100%);
-    background: -ms-linear-gradient(left, #fcebec 0%, #df2935 100%);
-    background: linear-gradient(to right, #fcebec 0%, #df2935 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcebec', endColorstr='#df2935', GradientType=1 );
+    background: -moz-linear-gradient(left, #ffd1c9 0%, #990000 100%);
+    background: -webkit-linear-gradient(left, #ffd1c9 0%, #990000 100%);
+    background: -o-linear-gradient(left, #ffd1c9 0%, #990000 100%);
+    background: -ms-linear-gradient(left, #ffd1c9 0%, #990000 100%);
+    background: linear-gradient(to right, #ffd1c9 0%, #990000 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffd1c9', endColorstr='#990000', GradientType=1 );
 }
 
 .circle1 {
