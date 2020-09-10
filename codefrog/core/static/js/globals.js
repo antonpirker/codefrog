@@ -1,14 +1,12 @@
 
 const link_color = '#FFAC33'; // not used in JS, only here for reference
 
-let colorGradient = [
-    'rgb(255, 99, 132)',
-    'rgb(255, 159, 64)',
-    'rgb(255, 205, 86)',
-    'rgb(75, 192, 192)',
-    'rgb(54, 162, 235)',
-    'rgb(153, 102, 255)',
-    'rgb(201, 203, 207)'
+let colorGradient = [ // from: https://learnui.design/tools/data-color-picker.html
+    '#0070a3',
+    '#8171c2',
+    '#e263ab',
+    '#ff6e69',
+    '#ffa600',
 ];
 
 // OLD Chart colors

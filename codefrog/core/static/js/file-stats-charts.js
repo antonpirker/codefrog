@@ -11,7 +11,10 @@ function createPieChart(elementId, labels, values) {
 	    values: values,
         type: 'pie',
         textinfo: "label",
-        textposition: "none"
+        textposition: "none",
+        marker: {
+            colors: colorGradient
+        },
     }
     let data = [trace];
 
