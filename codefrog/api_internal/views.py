@@ -217,7 +217,7 @@ class FileStatusViewSet(viewsets.ModelViewSet):
         if not path:
             return []
 
-        data_for_path =SourceNode.objects.filter(
+        data_for_path = SourceNode.objects.filter(
             source_status=project.current_source_status,
             path=os.path.join(project.github_repo_name, path),
         ).exists()

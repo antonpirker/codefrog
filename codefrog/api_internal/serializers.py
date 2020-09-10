@@ -68,7 +68,7 @@ class FileChangesSerializer(serializers.Serializer):
 
 
 class SourceStatusSerializer(serializers.Serializer):
-    tree = serializers.DictField()
+    tree = serializers.DictField(source='simple_tree')
     min_changes = serializers.IntegerField()
     max_changes = serializers.IntegerField()
 

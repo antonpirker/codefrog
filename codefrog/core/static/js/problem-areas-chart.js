@@ -3,7 +3,7 @@
  * @param path
  * @param link
  */
-let fileClickCallback = function (path, link) {
+let fileClickCallback = function (path) {
     let elem = document.getElementById('file-information');
     elem.innerHTML = '';
 
@@ -174,9 +174,9 @@ let createProblemAreasDiagram = function (data) {
                     d3.event.stopPropagation();
                 }
 
-                if (d.data.path && d.data.repo_link) {
+                if (d.data.is_file) {
+                    fileClickCallback(d.data.path);
                     count('project.problem_areas.file.clicked');
-                    fileClickCallback(d.data.path, d.data.repo_link);
                 } else {
                     count('project.problem_areas.directory.clicked');
                 }
@@ -192,7 +192,7 @@ let createProblemAreasDiagram = function (data) {
         .join("text")
         .style("fill-opacity", d => d.parent === root ? 1 : 0)
         .style("display", d => d.parent === root ? "inline" : "none")
-        .text(d => d.data.name);
+        .text(d => d.data.path.substring(d.data.path.lastIndexOf('/')+1));
 
     zoomTo([root.x, root.y, root.r * 2]);
 

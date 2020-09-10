@@ -480,6 +480,18 @@ class SourceStatus(models.Model):
     active = models.BooleanField(default=False)
 
     @property
+    def simple_tree(self):
+        def render_tree(node):
+            current_node = node.simple_json_representation
+            for child in node.get_children():
+                current_node['children'].append(render_tree(child))
+
+            return current_node
+
+        root = SourceNode.objects.get(source_status=self, parent__isnull=True)
+        return render_tree(root)
+
+    @property
     def tree(self):
         def render_tree(node):
             current_node = node.json_representation
@@ -535,8 +547,24 @@ class SourceNode(MPTTModel):
         return self.name
 
     @property
+    def is_file(self):
+        return self.repo_link != ""
+
+    @property
     def project_path(self):
         return os.sep.join(self.path.split(os.sep)[1:])  # remove first directory
+
+    @property
+    def simple_json_representation(self):
+        representation = {
+            "path": self.project_path,
+            "is_file": self.is_file,
+            "size": self.complexity,
+            "changes": self.changes,
+            "children": [],
+        }
+
+        return representation
 
     @property
     def json_representation(self):
@@ -545,6 +573,7 @@ class SourceNode(MPTTModel):
 
             "path": self.project_path,
             "repo_link": self.repo_link,
+            "is_file": self.is_file,
 
             "size": self.complexity,
             "changes": self.changes,
