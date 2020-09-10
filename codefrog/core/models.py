@@ -350,8 +350,11 @@ class Project(GithubMixin, models.Model):
         age = 0
         metric = Metric.objects.filter(**kwargs).order_by('date').last()
         if metric:
-            age = metric.metrics['github_pull_requests_cumulative_age'] / metric.metrics['github_pull_requests_merged'] \
-                if metric.metrics['github_pull_requests_merged'] != 0 else 0
+            age = metric.metrics['github_pull_requests_cumulative_age'] or 0 \
+                if 'github_pull_requests_cumulative_age' in metric.metrics else 0 \
+                / metric.metrics['github_pull_requests_merged'] or 1 \
+                if 'github_pull_requests_merged' in metric.metrics \
+                   and metric.metrics['github_pull_requests_merged'] != 0 else 1
         age = age / 60 / 60
 
         return age

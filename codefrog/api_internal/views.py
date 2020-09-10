@@ -17,16 +17,23 @@ from core.utils import resample_metrics, resample_releases
 
 class MetricViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleMetricSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         project_pk = self.kwargs['project_pk']
         user = self.request.user
+        kwargs = {
+            'active': True,
+            'pk': project_pk,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
         project = get_object_or_404(
             Project,
-            pk=project_pk,
-            user=user,
-            active=True,
+            **kwargs,
         )
 
         # Private projects can only be requested by owner or superuser
@@ -70,16 +77,23 @@ class MetricViewSet(viewsets.ModelViewSet):
 
 class ReleaseViewSet(viewsets.ModelViewSet):
     serializer_class = ReleaseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         project_pk = self.kwargs['project_pk']
         user = self.request.user
+        kwargs = {
+            'active': True,
+            'pk': project_pk,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
         project = get_object_or_404(
             Project,
-            pk=project_pk,
-            user=user,
-            active=True,
+            **kwargs,
         )
 
         # Private projects can only be requested by owner or superuser
@@ -117,16 +131,23 @@ class ReleaseViewSet(viewsets.ModelViewSet):
 
 class FileChangesViewSet(viewsets.ModelViewSet):
     serializer_class = FileChangesSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         project_pk = self.kwargs['project_pk']
         user = self.request.user
+        kwargs = {
+            'active': True,
+            'pk': project_pk,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
         project = get_object_or_404(
             Project,
-            pk=project_pk,
-            user=user,
-            active=True,
+            **kwargs,
         )
 
         # Private projects can only be requested by owner or superuser
@@ -151,17 +172,24 @@ class FileChangesViewSet(viewsets.ModelViewSet):
 
 class SourceStatusViewSet(viewsets.ModelViewSet):
     serializer_class = SourceStatusSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = None
 
     def get_queryset(self):
         project_pk = self.kwargs['project_pk']
         user = self.request.user
+        kwargs = {
+            'active': True,
+            'pk': project_pk,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
         project = get_object_or_404(
             Project,
-            pk=project_pk,
-            user=user,
-            active=True,
+            **kwargs,
         )
 
         # Private projects can only be requested by owner or superuser
@@ -184,17 +212,24 @@ class SourceStatusViewSet(viewsets.ModelViewSet):
 
 class FileStatusViewSet(viewsets.ModelViewSet):
     serializer_class = FileStatusSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = None
 
     def get_queryset(self):
         project_pk = self.kwargs['project_pk']
         user = self.request.user
+        kwargs = {
+            'active': True,
+            'pk': project_pk,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
         project = get_object_or_404(
             Project,
-            pk=project_pk,
-            user=user,
-            active=True,
+            **kwargs
         )
 
         # Private projects can only be requested by owner or superuser
@@ -265,9 +300,17 @@ class FileStatusViewSet(viewsets.ModelViewSet):
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         user = self.request.user
-        projects = Project.objects.filter(user=user, active=True)
+        kwargs = {
+            'active': True,
+        }
+        if user.is_authenticated:
+            kwargs['user'] = user
+        else:
+            kwargs['private'] = False
+
+        projects = Project.objects.filter(**kwargs)
         return projects
