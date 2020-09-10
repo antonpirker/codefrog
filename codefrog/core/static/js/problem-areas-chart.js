@@ -49,12 +49,12 @@ let updateFileStats = function (data) {
 
             <div class="large-12 cell dashboard-card">
                 <h5>Number of changes</h5>
-                <div id="diagram-changes" style="width:100%; height: 4em;"></div>
+                <div id="diagram-changes" style="width:100%; height: 12em;"></div>
             </div>
 
             <div class="large-12 cell dashboard-card">
                 <h5>Complexity trend</h5>
-                <div id="diagram-complexity" style="width:100%; height: 4em;"></div>
+                <div id="diagram-complexity" style="width:100%; height: 12em;"></div>
             </div>
         </div>
     `;
@@ -75,15 +75,20 @@ let updateFileStats = function (data) {
         data.changes_trend_labels[i] = moment(data.changes_trend_labels[i]).toDate();
     }
 
-    const complexityDiagram = createSparkline(
+    const complexityDiagram = createSparkDiagram(
         "diagram-complexity",
         data.complexity_trend_labels,
         data.complexity_trend,
+        COLOR_COMPLEXITY,
+        COLOR_COMPLEXITY_FILL,
     );
-    const changesDiagram = createSparkline(
+    const changesDiagram = createSparkDiagram(
         "diagram-changes",
         data.changes_trend_labels,
         data.changes_trend,
+        chartColors[COLOR_FILE_CHANGES],
+        null,
+        'bars'
     );
     const commitCountDiagram = createPieChart(
         "diagram-commit-count",

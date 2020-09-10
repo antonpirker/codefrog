@@ -20,12 +20,12 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
 	    y: complexityData,
         name: 'Complexity',
         type: 'scatter',
-        mode: 'lines',
         line: {
-	        width: 0
+	        color: COLOR_COMPLEXITY,
+	        width: 2
         },
         fill: 'tozeroy',
-        fillcolor: chartColors[COLOR_COMPLEXITY],
+        fillcolor: COLOR_COMPLEXITY_FILL,
         hoverinfo: 'skip'
     }
 
@@ -161,10 +161,11 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
         type: 'scatter',
         mode: 'lines',
         line: {
-	        width: 0
+	        color: COLOR_COMPLEXITY,
+	        width: 2
         },
         fill: 'tozeroy',
-        fillcolor: chartColors[COLOR_COMPLEXITY],
+        fillcolor: COLOR_COMPLEXITY_FILL,
         hoverinfo: 'skip'
     }
 

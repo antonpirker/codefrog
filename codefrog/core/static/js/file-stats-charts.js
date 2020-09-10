@@ -49,12 +49,28 @@ function createPieChart(elementId, labels, values) {
  * @param values
  * @returns
  */
-function createSparkline(elementId, labels, values) {
+function createSparkDiagram(elementId, labels, values, lineColor, fillColor, diagramType) {
+    diagramType = diagramType || 'lines'
     let trace = {
 	    x: labels,
 	    y: values,
-        type: 'scatter',
-        mode: 'lines'
+        line: {
+	        color: lineColor,
+	        width: 2
+        },
+        marker: {
+	        color: lineColor
+        },
+    }
+    if (diagramType == 'bars') {
+        trace['type'] = 'bar'
+    } else {
+        trace['type'] = 'scatter'
+        trace['mode'] = 'lines'
+    }
+    if (fillColor) {
+        trace['fill'] = 'tozeroy';
+        trace['fillcolor'] = fillColor;
     }
     let data = [trace];
 
@@ -64,9 +80,12 @@ function createSparkline(elementId, labels, values) {
         xaxis: {
             showgrid: false,
             zeroline: false,
-            showline: false,
             showticklabels: false,
-            fixedrange: true
+            showline: true,
+            fixedrange: true,
+            ticks: 'outside',
+            tickwidth: 2,
+            ticklen: 5,
         },
         yaxis: {
             showgrid: false,
@@ -77,13 +96,16 @@ function createSparkline(elementId, labels, values) {
         },
         margin: {
             l: 0,
-            r: 0
+            r: 0,
+            t: 0,
+            b: 50,
         }
     }
 
     // General chart configuration
     let config = {
-        displayModeBar: false
+        displayModeBar: false,
+        responsive: true
     }
 
     let htmlElement = document.getElementById(elementId);
