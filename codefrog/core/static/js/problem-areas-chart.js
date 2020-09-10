@@ -205,6 +205,9 @@ let createProblemAreasDiagram = function (data) {
                     count('project.problem_areas.directory.clicked');
                 }
             }
+        })
+        .on("dblclick", function (d)  {
+            zoom(root);
         });
 
     const label = svg.append("g")
