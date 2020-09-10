@@ -118,22 +118,23 @@ let createProblemAreasDiagram = function (data) {
     let minChanges = data['min_changes'];
     let maxChanges = data['max_chnages'];
 
-    let heatmapColour = d3.scaleLinear()
-        .domain([0, 1])
-        .range(["#fcebec", "#df2935"])
-        .interpolate(d3.interpolateHcl);
-
-    let c = d3.scaleLinear().domain([minChanges, maxChanges / 2]).range([0, 1]);
-
-    let color = d3.scaleLinear()
+    let backgroundColor = d3.scaleLinear()
         .domain([0, 10])
         .range(["#ffffff", "#a9a9a9"])
         .interpolate(d3.interpolateHcl);
-    let format = d3.format(",d");
-    let width = 932;
-    let height = width;
 
-    let pack = data_tree => d3.pack()
+    let bubbleColor = d3.scaleLinear()
+        .domain([0, 1])
+        .range(["#ffd1c9", "#990000"])
+        .interpolate(d3.interpolateHcl);
+
+    let c = d3.scaleLinear().domain([minChanges, maxChanges/2]).range([0, 1]);
+
+    format = d3.format(",d");
+    width = 932;
+    height = width;
+
+    pack = data_tree => d3.pack()
         .size([width, height])
         .padding(3)
     (d3.hierarchy(data_tree)
@@ -150,7 +151,7 @@ let createProblemAreasDiagram = function (data) {
     const svg = d3.select("#problem-areas-diagram").append("svg")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")
-        .style("background", color(0))
+        .style("background", backgroundColor(0))
         .style("cursor", "pointer");
     //.on("click", () => zoom(root));
 
@@ -158,7 +159,7 @@ let createProblemAreasDiagram = function (data) {
         .selectAll("circle")
         .data(root.descendants().slice(1))
         .join("circle")
-        .attr("fill", d => d.children ? color(d.depth) : heatmapColour(c(d.data.changes)))
+        .attr("fill", d => d.children ? backgroundColor(d.depth) : bubbleColor(c(d.data.changes)))
         .attr("pointer-events", d => !d.children ? null : null)
         .on("mouseover", function (d) {
             d3.select(this).attr("stroke", "#000");
