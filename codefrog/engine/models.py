@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -36,8 +38,10 @@ class Issue(models.Model):
         else:
             closed = self.closed_at or at_date
 
-        closed = closed.replace(hour=0, minute=0, second=0, microsecond=0)
-        opened = self.opened_at.replace(hour=0, minute=0, second=0, microsecond=0)
+        closed = closed.replace(hour=0, minute=0, second=0, microsecond=0).date() \
+            if isinstance(closed, datetime.datetime) else closed
+        opened = self.opened_at.replace(hour=0, minute=0, second=0, microsecond=0).date() \
+            if isinstance(self.opened_at, datetime.datetime) else self.opened_at
 
         return (closed-opened).days
 
