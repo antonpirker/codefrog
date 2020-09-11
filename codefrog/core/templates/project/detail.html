@@ -19,7 +19,7 @@
     <script type="text/javascript">
         const setupDateRangePicker = function() {
             function cb(start, end) {
-                $('#reportrange span').html(start.format('MMM D, YYYY') + ' - ' + end.format('MMM D, YYYY'));
+                $('#daterange span').html(start.format('MMM D, YYYY') + ' - ' + end.format('MMM D, YYYY'));
 
                 // put whole UI in "loading" modus
                 let loadingHtml = `
@@ -53,9 +53,9 @@
             }
 
             const params = getDateRange();
-            $('#reportrange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
+            $('#daterange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
 
-            $('#reportrange').daterangepicker({
+            $('#daterange').daterangepicker({
                 startDate: params['date_from'],
                 endDate: params['date_to'],
                 ranges: {
@@ -107,6 +107,7 @@
                     <i class="fas fa-chevron-right" style="color: #999; margin: 0 0.5em;"></i>
                     {{ project.github_repo_full_name }}
                 {% endif %}
+                &nbsp;
             </div>
         </div>
 
@@ -160,10 +161,10 @@
         <div class="grid-x grid-margin-x">
             <div class="cell large-auto hide-for-small-only"></div>
             <div class="cell large-shrink small-12 text-center medium-text-right">
-                <span id="reportrange" class="date-range-picker">
+                <div id="daterange" class="date-range-picker">
                     <i class="fa fa-calendar"></i>&nbsp;
                     <span></span> <i class="fa fa-caret-down"></i>
-                </span>
+                </div>
             </div>
         </div>
 
@@ -178,7 +179,7 @@
         </div>
 
         <!-- State of affairs -->
-        <div class="grid-x grid-margin-x grid-margin-y dashboard-card">
+        <div class="grid-x grid-margin-x grid-padding-y grid-margin-y dashboard-card">
             <div class="large-12 cell">
                 <h2><i class="fas fa-compass"></i> State of affairs</h2>
                 <p>This periods metrics compared to the previous period.</p>
@@ -193,7 +194,7 @@
                         </div>
                     </div>
                     <div id="complexity" class="large-12 cell text-center">
-                        <div class="trend"><span style="display: none;"></span>&nbsp;</div>
+                        <div class="trend hide-for-small-only"><span style="display: none;"></span>&nbsp;</div>
                         Complexity
                     </div>
                 </div>

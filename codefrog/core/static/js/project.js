@@ -9,7 +9,7 @@ let loadProject = function (projectId) {
     const dateRangeDefinedInUrl = 'date_to' in urlParams || 'date_from' in urlParams
     if (dateRangeDefinedInUrl) {
         // Update date picker
-        $('#reportrange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
+        $('#daterange span').html(params['date_from'].format('MMM D, YYYY') + ' - ' + params['date_to'].format('MMM D, YYYY'));
     }
 
     // Format to iso date format

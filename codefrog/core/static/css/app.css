@@ -123,7 +123,6 @@ body.app .dashboard-card h2 i.fas {
     cursor: pointer;
     padding: 0.8em 0.6em 0.6em 0.6em;
     border: 1px solid #ccc;
-    margin-right: -15px;
     white-space: nowrap;
 }
 
