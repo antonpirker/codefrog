@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.utils import timezone
 
 
 class CodeChange(models.Model):
@@ -34,7 +35,7 @@ class Issue(models.Model):
 
     def get_age(self, at_date=None):
         if self.closed_at and at_date:
-            closed = min(self.closed_at, at_date)
+            closed = min(self.closed_at, timezone.make_aware(datetime.datetime.combine(at_date, datetime.time.max)))
         else:
             closed = self.closed_at or at_date
 
