@@ -117,6 +117,16 @@ body.app .dashboard-card h2 i.fas {
     }
 }
 
+/* Date range picker */
+.date-range-picker {
+    background: #fff;
+    cursor: pointer;
+    padding: 0.8em 0.6em 0.6em 0.6em;
+    border: 1px solid #ccc;
+    margin-right: -15px;
+    white-space: nowrap;
+}
+
 /* Work Areas */
 .change_frequency_gradient {
     width: 10em;
