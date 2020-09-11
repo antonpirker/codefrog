@@ -226,6 +226,7 @@ body.app .dashboard-card h2 i.fas {
     color: #444;
     background:  #dfdfdf;
     padding: 1em;
+    margin-bottom: 1em;
     max-height: 10em;
     overflow: scroll;
 }
