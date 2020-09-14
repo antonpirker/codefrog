@@ -103,6 +103,14 @@ a.plain:hover, a.plain:focus {
     text-shadow: none;
     font-weight: bold;
 }
+.lang-typescript {
+    background: #294E80;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    text-shadow: none;
+    font-weight: bold;
+}
 .contributors {
     white-space: nowrap;
     background: #dfdfdf;
