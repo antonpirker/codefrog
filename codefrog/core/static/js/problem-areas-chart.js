@@ -3,8 +3,8 @@
  * @param path
  * @param link
  */
-let bubbleClickCallback = function (path, isFile) {
-    let elem = document.getElementById('file-information');
+let bubbleClickCallback = function (path, elementId, isFile) {
+    let elem = document.getElementById(elementId);
     elem.innerHTML = '';
 
     let dateRange = getDateRange();
@@ -15,7 +15,7 @@ let bubbleClickCallback = function (path, isFile) {
 
     fetch(fileStatusUrl)
         .then(response => response.json())
-        .then(data => isFile ? updateFileStats(data) : updateDirectoryStats(data));
+        .then(data => isFile ? updateFileStats(data, elementId) : updateDirectoryStats(data, elementId));
 };
 
 
@@ -23,7 +23,7 @@ let bubbleClickCallback = function (path, isFile) {
  *
  * @param data
  */
-let updateDirectoryStats = function (data) {
+let updateDirectoryStats = function (data, elementId) {
     data = data[0];
     const ctx = {
         path: data.path,
@@ -39,51 +39,54 @@ let updateDirectoryStats = function (data) {
         </div>
     `;
 
-    let elem = document.getElementById('file-information');
+    let elem = document.getElementById(elementId);
     elem.innerHTML = infoTemplateDirectory;
 };
+
 
 /**
  *
  * @param data
  */
-let updateFileStats = function (data) {
+let updateFileStats = function (data, elementId) {
     data = data[0];
     const ctx = {
         path: data.path,
-        link: data.link  // TODO: this is complete garbage....
+        link: data.link,  // TODO: this is complete garbage....
+        widthClass: elementId.indexOf('problem-areas') >= 0 ? 'large-12': 'large-3',
+        suffix: elementId.indexOf('problem-areas') >= 0 ? '-one': '-two',
     };
 
     let infoTemplate = `
         <div class="grid-x grid-padding-x grid-padding-y">
             <div class="large-12 cell dashboard-card" style="margin-top: 0;">
                 <h5>Source (on GitHub)</h5>
-                <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
+                <h5><a href="${ctx.link}" target="_blank" id="file-details${ctx.suffix}">${ctx.path}</a></h5>
             </div>
 
-            <div class="large-12 cell dashboard-card">
+            <div class="${ctx.widthClass} cell dashboard-card">
                 <h5>Who owns the code in the file</h5>
-                <div id="diagram-code-ownership" style="width:100%; height: 12em;"></div>
+                <div id="diagram-code-ownership${ctx.suffix}" style="width:100%; height: 12em;"></div>
             </div>
 
-            <div class="large-12 cell dashboard-card">
+            <div class="${ctx.widthClass} cell dashboard-card">
                 <h5>Who made changes</h5>
-                <div id="diagram-commit-count" style="width:100%; height: 12em;"></div>
+                <div id="diagram-commit-count${ctx.suffix}" style="width:100%; height: 12em;"></div>
             </div>
 
-            <div class="large-12 cell dashboard-card">
+            <div class="${ctx.widthClass} cell dashboard-card">
                 <h5>Number of changes</h5>
-                <div id="diagram-changes" style="width:100%; height: 12em;"></div>
+                <div id="diagram-changes${ctx.suffix}" style="width:100%; height: 12em;"></div>
             </div>
 
-            <div class="large-12 cell dashboard-card">
+            <div class="${ctx.widthClass} cell dashboard-card">
                 <h5>Complexity trend</h5>
-                <div id="diagram-complexity" style="width:100%; height: 12em;"></div>
+                <div id="diagram-complexity${ctx.suffix}" style="width:100%; height: 12em;"></div>
             </div>
         </div>
     `;
 
-    let elem = document.getElementById('file-information');
+    let elem = document.getElementById(elementId);
     elem.innerHTML = infoTemplate;
 
     let el = document.querySelector('#file-details');
@@ -100,14 +103,14 @@ let updateFileStats = function (data) {
     }
 
     const complexityDiagram = createSparkDiagram(
-        "diagram-complexity",
+        "diagram-complexity" + ctx.suffix,
         data.complexity_trend_labels,
         data.complexity_trend,
         COLOR_COMPLEXITY,
         COLOR_COMPLEXITY_FILL,
     );
     const changesDiagram = createSparkDiagram(
-        "diagram-changes",
+        "diagram-changes" + ctx.suffix,
         data.changes_trend_labels,
         data.changes_trend,
         chartColors[COLOR_FILE_CHANGES],
@@ -115,12 +118,12 @@ let updateFileStats = function (data) {
         'bars'
     );
     const commitCountDiagram = createPieChart(
-        "diagram-commit-count",
+        "diagram-commit-count" + ctx.suffix,
         data.commit_counts_labels,
         data.commit_counts,
     );
     const codeOwnershipDiagram = createPieChart(
-        "diagram-code-ownership",
+        "diagram-code-ownership" + ctx.suffix,
         data.code_ownership_labels,
         data.code_ownership,
     );
@@ -197,7 +200,7 @@ let createProblemAreasDiagram = function (data) {
                     d3.event.stopPropagation();
                 }
 
-                bubbleClickCallback(d.data.path, d.data.is_file);
+                bubbleClickCallback(d.data.path, 'problem-areas-file-information', d.data.is_file);
                 if (d.data.is_file) {
                     count('project.problem_areas.file.clicked');
                 } else {

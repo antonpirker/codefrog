@@ -32,8 +32,8 @@
                 elements.forEach(function(el) {
                     el.innerHTML = loadingHtml;
                 });
-                let element = document.getElementById('file-information');
-                element.innerHTML = '';
+                document.getElementById('problem-areas-file-information').innerHTML = '';
+                document.getElementById('file-churn-file-information').innerHTML = ''
 
                 window.projectDateFrom = start;
                 window.projectDateTo = end;
@@ -287,10 +287,8 @@
                 </div>
             </div>
 
-            <!-- List: Top 5 changed files-->
             <div class="large-12 cell">
-                <h3>Top 5 "most changed files"</h3>
-                <ul id="file-churn-top5-list"></ul>
+                <div id="file-churn-file-information"></div>
             </div>
         </div>
 
@@ -331,7 +329,7 @@
                 </div>
             </div>
             <div class="large-4 small-12 cell">
-                <div id="file-information"></div>
+                <div id="problem-areas-file-information"></div>
             </div>
         </div>
 

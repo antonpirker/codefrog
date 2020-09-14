@@ -60,6 +60,11 @@ function createFileChurnDiagram(fileChanges) {
     htmlElement.innerHTML = '';
     Plotly.newPlot(htmlElement, data, layout, config);
 
+    htmlElement.on('plotly_click', function(data){
+        let path = data.points[0].x;
+        bubbleClickCallback(path, 'file-churn-file-information', true);
+    });
+
     // Show a text description of how many files where changed
     let totalChanges = fileChanges.reduce((a, b) => {
         return {
@@ -85,13 +90,4 @@ function createFileChurnDiagram(fileChanges) {
     let description = document.getElementById('file-churn-diagram-description');
     description.innerHTML = descriptionTemplate;
 
-    // Update list of Top 5 most changed files
-    let list = document.getElementById('file-churn-top5-list');
-    list.innerHTML = '';
-    let top5 = fileChanges.slice(0, 5);
-    for(let i in top5) {
-        let ctx = top5[i];
-        let listItemTemplate = `<li><a href="${ctx.repo_link}" target="_blank">${ctx.file_path}</a> - ${ctx.changes} changes</li>`;
-        list.innerHTML = list.innerHTML + listItemTemplate;
-    }
 }
