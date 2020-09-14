@@ -153,10 +153,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '%(asctime)s %(levelname)s %(module)s %(pathname)s:%(lineno)d (%(funcName)s) %(message)s',
-        },
-        'json': {
+        'structured_json': {
             '()': structlog.stdlib.ProcessorFormatter,
             'processor': structlog.processors.JSONRenderer(),
         },
@@ -165,7 +162,7 @@ LOGGING = {
         'console': {
             'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
-            'formatter': 'json',
+            'formatter': 'structured_json',
         },
         'null': {
             'level': 'DEBUG',

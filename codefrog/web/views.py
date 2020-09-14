@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 
+import structlog
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -10,6 +11,8 @@ from django.utils import timezone
 from core.decorators import only_matching_authenticated_users, add_user_and_project
 from web.models import Message
 from web.models import Usage
+
+logger = structlog.get_logger(__name__)
 
 
 def landing(request):
@@ -22,6 +25,12 @@ def landing(request):
         timestamp=timezone.now(),
         action='landing_page.view',
     )
+
+    logger.debug('This is a DEBUG message')
+    logger.info('This is a INFO message')
+    logger.warning('This is a WARNING message')
+    logger.error('This is a ERROR message')
+    logger.critical('This is a CRITICAL message')
 
     context = {}
     html = render_to_string('landing.html', context=context, request=request)
