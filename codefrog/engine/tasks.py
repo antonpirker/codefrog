@@ -13,6 +13,7 @@ from engine.models import CodeChange, Issue, PullRequest
 
 logger = structlog.get_logger(__name__)
 
+
 DAYS_PER_CHUNK = 365 * 10
 
 

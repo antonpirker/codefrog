@@ -3,6 +3,7 @@ import operator
 import os
 from collections import defaultdict
 
+import structlog
 from celery import shared_task
 from dateutil.parser import parse
 from django.conf import settings
@@ -12,7 +13,7 @@ from core.models import Project, Release, STATUS_UPDATING
 from core.utils import run_shell_command, log, make_one
 from engine.models import CodeChange
 
-
+logger = structlog.get_logger(__name__)
 
 
 DAYS_PER_CHUNK = 3650
