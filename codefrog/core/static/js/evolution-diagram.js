@@ -95,6 +95,9 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
         },
         shapes: shapes,
         annotations: annotations,
+        xaxis: {
+            tickformat: '%b %d (%a), %Y' // For more time formatting types, see: https://github.com/d3/d3-time-format/blob/master/README.md
+        },
         yaxis: {
             showgrid: false,
             zeroline: false,
@@ -235,6 +238,9 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
         },
         shapes: shapes,
         annotations: annotations,
+        xaxis: {
+            tickformat: '%b %d (%a), %Y' // For more time formatting types, see: https://github.com/d3/d3-time-format/blob/master/README.md
+        },
         yaxis: {
             showgrid: false,
             zeroline: false,
