@@ -178,7 +178,7 @@ LOGGING = {
             'level': 'WARNING',
             'handlers': ['console'],
         },
-        'requests': {
+        'requests.packages.urllib3': {
             'level': 'WARNING',
             'handlers': ['console'],
         },
