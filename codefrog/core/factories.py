@@ -1,15 +1,14 @@
+import datetime
 import random
 
 import factory
 from django.conf import settings
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyDateTime
 
 from core.models import Project, Release
 from engine.factories import IssueFactory, PullRequestFactory
-
-from django.utils import timezone
-import datetime
 
 
 class UserFactory(DjangoModelFactory):
