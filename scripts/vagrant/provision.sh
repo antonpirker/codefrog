@@ -62,3 +62,10 @@ echo "###### Setup Database ..." && tput sgr0 && echo ""
 
 runuser -l  postgres -c "psql -c \"CREATE ROLE codefrog with PASSWORD 'codefrog' LOGIN CREATEDB;\"" || true
 runuser -l  postgres -c "psql -c \"CREATE DATABASE codefrog OWNER codefrog;\"" || true
+
+
+echo "-------------------------------------------------------------------------"
+echo "###### Setup dir for Git repos ..." && tput sgr0 && echo ""
+
+mkdir -p /codefrog_projects_git_repos
+chown vagrant.vagrant /codefrog_projects_git_repos

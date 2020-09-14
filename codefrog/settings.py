@@ -246,7 +246,7 @@ except Exception:
 
 
 # Codefrog Configuration
-PROJECT_SOURCE_CODE_DIR = get_env(env.str, 'PROJECT_SOURCE_CODE_DIR', default='/tmp/git_repos')
+PROJECT_SOURCE_CODE_DIR = get_env(env.str, 'PROJECT_SOURCE_CODE_DIR', default='/codefrog_projects_git_repos')
 if not os.path.exists(PROJECT_SOURCE_CODE_DIR):
     os.makedirs(PROJECT_SOURCE_CODE_DIR)
 
