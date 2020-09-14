@@ -174,6 +174,10 @@ LOGGING = {
         'handlers': ['console'],
     },
     'loggers': {
+        'celery': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+        },
         # discard logs from...
         'faker': {
             'level': 'DEBUG',

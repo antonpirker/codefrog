@@ -5,6 +5,7 @@ import structlog
 from celery import Celery
 from celery.schedules import crontab
 from celery.signals import setup_logging
+from django.dispatch import receiver
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
 logger = structlog.get_logger(__name__)
@@ -34,7 +35,7 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # pr
             'version': 1,
             'disable_existing_loggers': False,
             'formatters': {
-                'json': {
+                'structured_json': {
                     '()': structlog.stdlib.ProcessorFormatter,
                     'processor': structlog.processors.JSONRenderer(),
                 },
@@ -43,7 +44,7 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # pr
                 'console': {
                     'level': 'INFO',
                     'class': 'logging.StreamHandler',
-                    'formatter': 'json',
+                    'formatter': 'structured_json',
                 },
                 'null': {
                     'level': 'DEBUG',
@@ -52,7 +53,7 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # pr
             },
             'root': {
                 'level': 'INFO',
-                'handlers': ['console'],
+                'handlers': ['console', ],
             },
             'loggers': {
                 # discard logs from...
@@ -83,7 +84,6 @@ def receiver_setup_logging(loglevel, logfile, format, colorize, **kwargs):  # pr
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
-
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
