@@ -26,12 +26,6 @@ def landing(request):
         action='landing_page.view',
     )
 
-    logger.debug('This is a DEBUG message')
-    logger.info('This is a INFO message')
-    logger.warning('This is a WARNING message')
-    logger.error('This is a ERROR message')
-    logger.critical('This is a CRITICAL message')
-
     context = {}
     html = render_to_string('landing.html', context=context, request=request)
 
