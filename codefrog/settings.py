@@ -178,8 +178,8 @@ LOGGING = {
             'level': 'WARNING',
             'handlers': ['console'],
         },
-        'requests.packages.urllib3': {
-            'level': 'WARNING',
+        'urllib3.connectionpool': {
+            'level': 'INFO',
             'handlers': ['console'],
         },
         # discard logs from...
