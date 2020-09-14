@@ -178,6 +178,10 @@ LOGGING = {
             'level': 'WARNING',
             'handlers': ['console'],
         },
+        'requests': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+        },
         # discard logs from...
         'faker': {
             'level': 'DEBUG',
