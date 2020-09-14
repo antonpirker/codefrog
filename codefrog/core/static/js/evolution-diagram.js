@@ -102,7 +102,8 @@ function createEvolutionOfIssuesDiagram(metrics, releases) {
             showgrid: false,
             zeroline: false,
             showline: false,
-            showticklabels: false
+            showticklabels: false,
+            rangemode: 'nonnegative'
         },
         yaxis2: {
             showgrid: false,
@@ -245,7 +246,8 @@ function createEvolutionOfPullRequestsDiagram(metrics, releases) {
             showgrid: false,
             zeroline: false,
             showline: false,
-            showticklabels: false
+            showticklabels: false,
+            rangemode: 'nonnegative'
         },
         yaxis2: {
             showgrid: false,
