@@ -129,11 +129,12 @@ def check_suite__requested(payload, request=None):
     logger.info('Finished performing complexity check')
 
     # Set check to completed and display result
+    details_url = request.build_absolute_uri(reverse('project-detail', kwargs={'slug': project.slug}))
     check_run_payload = {
         'name': 'Complexity',
         'status': 'completed',
         'head_sha': commit_sha_after,
-        'details_url': None,
+        'details_url': details_url,
         'conclusion': output['conclusion'],
         'output': {
             'title': output['title'],
