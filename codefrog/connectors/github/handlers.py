@@ -86,7 +86,10 @@ def check_suite__requested(payload, request=None):
     commit_sha_before = payload[event]['before']
     commit_sha_after = payload[event]['after']
 
-    project = checks.get_project_matching_github_hook(payload)
+    try:
+        project = checks.get_project_matching_github_hook(payload)
+    except Project.DoesNotExist:
+        project = None
 
     if not project:
         logger.warning(
