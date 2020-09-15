@@ -255,42 +255,43 @@ def import_tags(project_id, *args, **kwargs):
         logger.info('Project(%s): Finished (aborted) import_tags.', project_id)
         return
 
-    cmd = (
-        f'git tag --list '
-        f'--format "%(refname:strip=2);%(taggerdate);%(committerdate)"'
-    )
-    output = run_shell_command(cmd, cwd=project.repo_dir)
-    tags = [line for line in output.split('\n') if line]
-
-    for tag in tags:
-        tag_name, tagger_date, committer_date = tag.split(';')
-
-        try:
-            tagger_date = parse(tagger_date)
-        except ValueError:
-            tagger_date = None
-
-        try:
-            committer_date = parse(committer_date)
-        except ValueError:
-            committer_date = None
-
-        tag_date = tagger_date or committer_date
-
-        logger.debug(
-            'Project(%s): Git Tag %s %s',
-            project_id,
-            tag_name,
-            tag_date,
+    with project.get_tmp_repo_dir() as tmp_dir:
+        cmd = (
+            f'git tag --list '
+            f'--format "%(refname:strip=2);%(taggerdate);%(committerdate)"'
         )
-        Release.objects.update_or_create(
-            project_id=project_id,
-            timestamp=tag_date,
-            type='git_tag',
-            name=tag_name,
-        )
+        output = run_shell_command(cmd, cwd=tmp_dir)
+        tags = [line for line in output.split('\n') if line]
 
-    logger.info('Project(%s): Finished import_tags.', project_id)
-    log(project_id, 'Importing Git tags', 'stop')
+        for tag in tags:
+            tag_name, tagger_date, committer_date = tag.split(';')
 
-    return project_id
+            try:
+                tagger_date = parse(tagger_date)
+            except ValueError:
+                tagger_date = None
+
+            try:
+                committer_date = parse(committer_date)
+            except ValueError:
+                committer_date = None
+
+            tag_date = tagger_date or committer_date
+
+            logger.debug(
+                'Project(%s): Git Tag %s %s',
+                project_id,
+                tag_name,
+                tag_date,
+            )
+            Release.objects.update_or_create(
+                project_id=project_id,
+                timestamp=tag_date,
+                type='git_tag',
+                name=tag_name,
+            )
+
+        logger.info('Project(%s): Finished import_tags.', project_id)
+        log(project_id, 'Importing Git tags', 'stop')
+
+        return project_id
