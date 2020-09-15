@@ -11,8 +11,6 @@ urlpatterns = [
     path('', views.index, name='index'),
 
     # project details
-    path('project/<slug:slug>/file-stats',
-        views.project_file_stats, name='project-file-stats'),
     path('project/<slug:slug>',
         views.project_detail, name='project-detail'),
 
