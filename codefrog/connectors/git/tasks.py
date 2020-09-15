@@ -83,8 +83,6 @@ def import_code_changes(project_id, start_date=None, *args, **kwargs):
     :return:
     """
     logger.info('Project(%s): Starting import_code_changes(%s).', project_id, start_date)
-    logger.warning('args: %s', args)
-    logger.warning('kwargs: %s', kwargs)
     project_id = make_one(project_id)
     log(project_id, 'Importing latest code changes', 'start')
 
@@ -99,41 +97,42 @@ def import_code_changes(project_id, start_date=None, *args, **kwargs):
         start_date = parse(start_date)
     start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
 
-    # get first commit date
-    cmd = (
-        f'git rev-list --max-parents=0 HEAD '
-        f' --pretty="%ad" --date=iso8601-strict-local'
-    )
-    output = run_shell_command(cmd, cwd=project.repo_dir).split('\n')[1]
-    first_commit_date = parse(output).date()
+    with project.get_tmp_repo_dir() as tmp_dir:
+        # get first commit date
+        cmd = (
+            f'git rev-list --max-parents=0 HEAD '
+            f' --pretty="%ad" --date=iso8601-strict-local'
+        )
+        output = run_shell_command(cmd, cwd=tmp_dir).split('\n')[1]
+        first_commit_date = parse(output).date()
 
-    start_date = start_date if start_date >= first_commit_date else first_commit_date
+        start_date = start_date if start_date >= first_commit_date else first_commit_date
 
-    logger.info(
-        f'Project(%s): Running import_code_changes starting with %s.',
-        project_id,
-        start_date.strftime("%Y-%m-%d"),
-    )
+        logger.info(
+            f'Project(%s): Running import_code_changes starting with %s.',
+            project_id,
+            start_date.strftime("%Y-%m-%d"),
+        )
 
-    # get git commits for date range
-    cmd = (
-        f'git log --reverse --date-order'
-        f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
-        f' --pretty="%ad;~;%H;~;%aN;~;%aE" --date=iso8601-strict-local'
-    )
+        # get git commits for date range
+        cmd = (
+            f'git log --reverse --date-order'
+            f' --after="{start_date.strftime("%Y-%m-%d")} 00:00"'
+            f' --pretty="%ad;~;%H;~;%aN;~;%aE" --date=iso8601-strict-local'
+        )
 
-    output = run_shell_command(cmd, cwd=project.repo_dir)
-    code_changes = [
-        operator.add([project_id, project.repo_dir], line.split(';~;'))
-        for line in output.split('\n') if line
-    ]
+        output = run_shell_command(cmd, cwd=tmp_dir)
+        code_changes = [
+            operator.add([project_id, project.repo_dir], line.split(';~;'))
+            for line in output.split('\n') if line
+        ]
 
-    save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
+        save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
 
-    logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
-    log(project_id, 'Importing latest code changes', 'stop')
+        logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
+        log(project_id, 'Importing latest code changes', 'stop')
 
-    return project_id
+        return project_id
 
 
 @shared_task
