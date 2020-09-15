@@ -51,7 +51,6 @@ def get_file_changes(filename, project, days=30):
     ref_date = timezone.now() - timedelta(days=days)
     ref_date = ref_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    filename = filename.replace('{}{}'.format(project.repo_dir, os.sep), '')
     return CodeChange.objects.filter(
         project=project,
         file_path=filename,
@@ -59,9 +58,9 @@ def get_file_changes(filename, project, days=30):
     ).count() or 1
 
 
-def get_file_ownership(filename, project):
+def get_file_ownership(filename, source_dir):
     cmd = f'git shortlog --summary --numbered --email HEAD -- "{filename}"'
-    output = run_shell_command(cmd, cwd=project.repo_dir)
+    output = run_shell_command(cmd, cwd=source_dir)
     output = [line for line in output.split('\n') if line]
 
     ownerships = []

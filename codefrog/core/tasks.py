@@ -59,21 +59,22 @@ def update_source_status_with_metrics(project_id, *args, **kwargs):
         logger.warning('No inactive SourceStatus found. Aborting.')
         return
 
-    for node in SourceNode.objects.filter(source_status=source_status):
-        logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
-        full_path = os.path.join(project.repo_dir, node.project_path)
-        node.complexity = get_file_complexity(full_path)
-        node.ownership = get_file_ownership(full_path, project)
-        node.changes = get_file_changes(full_path, project)
-        node.save()
+    with project.get_tmp_repo_dir() as tmp_dir:
+        for node in SourceNode.objects.filter(source_status=source_status):
+            logger.debug('Project(%s): calculating complexity for %s', project_id, node.path)
+            full_path = os.path.join(tmp_dir, node.project_path)
+            node.complexity = get_file_complexity(full_path)
+            node.ownership = get_file_ownership(full_path, tmp_dir)
+            node.changes = get_file_changes(node.project_path, project)
+            node.save()
 
-    source_status.active = True
-    source_status.save()
+        source_status.active = True
+        source_status.save()
 
-    logger.info('Project(%s): Finished update_source_status_with_metrics.', project_id)
-    log(project_id, 'Updating complexity of code base', 'stop')
+        logger.info('Project(%s): Finished update_source_status_with_metrics.', project_id)
+        log(project_id, 'Updating complexity of code base', 'stop')
 
-    return project_id
+        return project_id
 
 
 @shared_task
