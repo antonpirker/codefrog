@@ -2,6 +2,7 @@ import datetime
 import os
 
 from dateutil.parser import parse
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -259,14 +260,18 @@ class FileStatusViewSet(viewsets.ModelViewSet):
         if not data_for_path:
             return []
 
-        # Number of commits in the last n days
-        commit_count = project.get_file_commit_count(path, date_from, date_to)
-        commit_counts = []
-        commit_counts_labels = []
+        # Number of commits in the given time period
+        code_changes = project.codechange_set.filter(
+            timestamp__date__gte=date_from,
+            timestamp__date__lte=date_to,
+            file_path=path,
+        )\
+        .values('author')\
+        .annotate(count=Count('author'))\
+        .order_by('-count', 'author')
 
-        for author in sorted(commit_count, key=commit_count.get, reverse=True):
-            commit_counts_labels.append(author)
-            commit_counts.append(commit_count[author])
+        commit_counts = [x['count'] for x in code_changes]
+        commit_counts_labels = [x['author'].split(' <')[0] for x in code_changes]
 
         # Code ownership of the file
         ownership = project.get_file_ownership(path)

@@ -442,20 +442,6 @@ class Project(GithubMixin, models.Model):
         file_metrics = self.get_file_metrics(path)
         return file_metrics['ownership']
 
-    def get_file_commit_count(self, path, date_from, date_to):
-        cmd = (
-            f'git shortlog --summary --numbered --after="{date_from}" --before="{date_to}" HEAD -- "{path}"'
-        )
-        output = run_shell_command(cmd, cwd=self.repo_dir)
-        lines = [line for line in output.split('\n') if line]
-
-        commit_counts = {}
-        for line in lines:
-            commit_count, author = line.strip().split('\t', 1)
-            commit_counts[author] = int(commit_count)
-
-        return commit_counts
-
 
 class LogEntry(models.Model):
     project = models.ForeignKey(
