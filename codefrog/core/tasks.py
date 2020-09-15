@@ -122,7 +122,7 @@ def get_source_status(project_id, *args, **kwargs):
                 is_leaf_level = idx + 1 >= len(path_parts)
                 if not is_leaf_level:
                     directory_path = '/'.join(path_parts[:idx+1])
-                    logger.info('Project(%s): Get or create directory node: %s', project_id, directory_path)
+                    logger.debug('Project(%s): Get or create directory node: %s', project_id, directory_path)
                     child_node, created = SourceNode.objects.get_or_create(
                         source_status=source_status,
                         name=node_name,
@@ -133,7 +133,7 @@ def get_source_status(project_id, *args, **kwargs):
                 else:
                     file_path = '/'.join(path_parts)
                     repo_link = project.get_repo_link(os.sep.join(file_path.split(os.sep)[1:])) # remove first directory)
-                    logger.info('Project(%s): Creating file node: %s', project_id, file_path)
+                    logger.debug('Project(%s): Creating file node: %s', project_id, file_path)
                     SourceNode.objects.create(
                         source_status=source_status,
                         parent=current_node,
