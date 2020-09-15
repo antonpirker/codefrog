@@ -1,5 +1,10 @@
+import structlog
+
 from core.models import Project
 from core.utils import get_path_complexity, run_shell_command
+
+
+logger = structlog.get_logger(__name__)
 
 
 def get_project_matching_github_hook(payload):
@@ -10,21 +15,27 @@ def get_project_matching_github_hook(payload):
 
 
 def perform_complexity_check(project, commit_sha_before, commit_sha_after):
+    logger.info('Starting perform_complexity_check')
+
     with project.get_tmp_repo_dir() as tmp_dir:
         # Calculate complexity before
+        logger.info('Calculate complexity before PR')
         cmd = f'git reset --hard "{commit_sha_before}"'
         run_shell_command(cmd, cwd=tmp_dir)
         complexity_before = get_path_complexity(tmp_dir)
 
         # Calculate complexity after
+        logger.info('Calculate complexity after PR')
         cmd = f'git reset --hard "{commit_sha_after}"'
         run_shell_command(cmd, cwd=tmp_dir)
         complexity_after = get_path_complexity(tmp_dir)
 
         # Calculate change
+        logger.info('Calculate complexity change')
         complexity_change = round((100 / complexity_before) * complexity_after - 100, 1)
 
-        # Create "weather forecast" for the complexity change
+        # Create "weather report" for the complexity change
+        logger.info('Assemble nice complexity weather report')
         sunny = '🌞'  # U+1F31E
         party_cloudy = '⛅'  # U+26C5
         cloudy = '☁'  # U+2601
@@ -69,5 +80,7 @@ def perform_complexity_check(project, commit_sha_before, commit_sha_after):
             'summary': summary,
             'conclusion': conclusion,
         }
+
+        logger.info('Finished perform_complexity_check')
 
         return output

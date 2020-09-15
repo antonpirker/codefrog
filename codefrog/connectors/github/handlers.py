@@ -65,7 +65,7 @@ def installation__created(payload, request=None):
 
 
 def installation__deleted(payload, request=None):
-    print("### INSTALLATION / DELETED")
+    logger.info("### INSTALLATION / DELETED")
 
 
 def check_suite__requested(payload, request=None):
@@ -76,6 +76,7 @@ def check_suite__requested(payload, request=None):
     :param request:
     :return:
     """
+    logger.info('Starting check_suite__requested')
     event = 'check_suite'
     action = 'requested'
 
@@ -104,6 +105,7 @@ def check_suite__requested(payload, request=None):
         'status': 'queued',
     }
     create_check_run(repository_full_name, installation_access_token, check_run_payload)
+    logger.info('Set check to "queued" in Github')
 
     # Tell Github we started the check
     check_run_payload = {
@@ -112,13 +114,16 @@ def check_suite__requested(payload, request=None):
         'status': 'in_progress',
     }
     create_check_run(repository_full_name, installation_access_token, check_run_payload)
+    logger.info('Set check to "in progress" in Github')
 
     # Perform check
+    logger.info('Performing complexity check')
     output = checks.perform_complexity_check(
         project=project,
         commit_sha_before=commit_sha_before,
         commit_sha_after=commit_sha_after,
     )
+    logger.info('Finished performing complexity check')
 
     # Set check to completed and display result
     check_run_payload = {
@@ -133,5 +138,7 @@ def check_suite__requested(payload, request=None):
         }
     }
     out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
+    logger.info('Told Github the result of the check and set it to "completed".')
 
+    logger.info('Finished check_suite__requested')
     return out
