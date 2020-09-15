@@ -123,7 +123,7 @@ def import_code_changes(project_id, start_date=None, *args, **kwargs):
 
         output = run_shell_command(cmd, cwd=tmp_dir)
         code_changes = [
-            operator.add([project_id, project.repo_dir], line.split(';~;'))
+            operator.add([project_id, tmp_dir], line.split(';~;'))
             for line in output.split('\n') if line
         ]
 
@@ -138,7 +138,7 @@ def import_code_changes(project_id, start_date=None, *args, **kwargs):
 @shared_task
 def save_code_changes(
         project_id,
-        repo_dir,
+        source_dir,
         timestamp,
         git_commit_hash,
         author_name,
@@ -153,12 +153,12 @@ def save_code_changes(
 
     # get stats
     timestamp = parse(timestamp)
-    added, removed = _get_complexity_change(repo_dir, git_commit_hash)
+    added, removed = _get_complexity_change(source_dir, git_commit_hash)
     file_names = list(set(list(added.keys()) + list(removed.keys())))
 
     # get commit message
     cmd = f'git log --format=%B -n 1 {git_commit_hash}'
-    commit_message = run_shell_command(cmd, cwd=repo_dir)
+    commit_message = run_shell_command(cmd, cwd=source_dir)
 
     try:
         for file_name in file_names:
@@ -186,12 +186,6 @@ def save_code_changes(
 
 
 def _get_complexity_change(source_dir, git_commit_hash):
-    """
-
-    :param source_dir:
-    :param git_commit_hash:
-    :return:
-    """
     complexity_added = defaultdict(int)
     complexity_removed = defaultdict(int)
 
