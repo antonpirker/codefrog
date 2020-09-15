@@ -85,6 +85,16 @@ def check_suite__requested(payload, request=None):
     commit_sha_before = payload[event]['before']
     commit_sha_after = payload[event]['after']
 
+    project = checks.get_project_matching_github_hook(payload)
+
+    if not project:
+        logger.warning(
+            'Project not found for Github web hook for repo %s(%s)',
+            repository_full_name,
+            repository_github_id,
+        )
+        return
+
     installation_access_token = get_access_token(installation_id)
 
     # Tell Github we queued our check
@@ -93,21 +103,19 @@ def check_suite__requested(payload, request=None):
         'head_sha': commit_sha_after,
         'status': 'queued',
     }
-    out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
+    create_check_run(repository_full_name, installation_access_token, check_run_payload)
 
-    # Actually start the check
+    # Tell Github we started the check
     check_run_payload = {
         'name': 'Complexity',
         'head_sha': commit_sha_after,
         'status': 'in_progress',
     }
-    out = create_check_run(repository_full_name, installation_access_token, check_run_payload)
+    create_check_run(repository_full_name, installation_access_token, check_run_payload)
 
     # Perform check
     output = checks.perform_complexity_check(
-        installation_access_token=installation_access_token,
-        repository_full_name=repository_full_name,
-        repository_github_id=repository_github_id,
+        project=project,
         commit_sha_before=commit_sha_before,
         commit_sha_after=commit_sha_after,
     )

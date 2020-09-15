@@ -1,4 +1,7 @@
 import os
+import shutil
+import tempfile
+from contextlib import contextmanager
 from datetime import timedelta
 
 import structlog
@@ -70,6 +73,19 @@ class Project(GithubMixin, models.Model):
     @property
     def repo_dir(self):
         return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
+
+    @contextmanager
+    def get_tmp_repo_dir(self):
+        self.clone_repo()
+        tmp_dir = tempfile.mkdtemp()
+
+        cmd = f'git clone {self.repo_dir} "{tmp_dir}"'
+        run_shell_command(cmd)
+
+        try:
+            yield tmp_dir
+        finally:
+            shutil.rmtree(tmp_dir)
 
     @property
     def log_history(self):
