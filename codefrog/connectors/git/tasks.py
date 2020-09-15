@@ -127,7 +127,8 @@ def import_code_changes(project_id, start_date=None, *args, **kwargs):
             for line in output.split('\n') if line
         ]
 
-        save_code_changes.chunks(code_changes, settings.CELERY_CHUNK_SIZE).apply_async()
+        for change in code_changes:
+            save_code_changes(*change)
 
         logger.info('Project(%s): Finished import_code_changes(%s).', project_id, start_date)
         log(project_id, 'Importing latest code changes', 'stop')
