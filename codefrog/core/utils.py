@@ -26,12 +26,7 @@ def run_shell_command(cmd, cwd=None):
     Runs a shell command and returns the commands output as string.
     """
     logger.debug(f'Command: {cmd}')
-    try:
-        output = subprocess.check_output(cmd, cwd=cwd, shell=True)
-    except subprocess.CalledProcessError as err:
-        logger.error(f'Non zero exit code running: {err.cmd}', output=err.output, stderr=err.stderr)
-        output = err.output
-
+    output = subprocess.check_output(cmd, cwd=cwd, shell=True)
     return output.decode('utf-8')
 
 
