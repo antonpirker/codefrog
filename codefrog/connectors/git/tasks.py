@@ -58,7 +58,7 @@ def clone_repo(project_id, *args, **kwargs):
         if installation_access_token:
             git_url = git_url.replace('https://', f'https://x-access-token:{installation_access_token}@')
 
-        cmd = f'git clone {git_url} "{project.repo_dir}"'
+        cmd = f'git clone -q "{git_url}" "{project.repo_dir}"'
         run_shell_command(cmd)
         logger.info('Project(%s): Finished cloning.', project_id)
 

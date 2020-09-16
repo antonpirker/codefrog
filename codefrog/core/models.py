@@ -79,7 +79,7 @@ class Project(GithubMixin, models.Model):
         self.clone_repo()
         tmp_dir = tempfile.mkdtemp()
 
-        cmd = f'git clone {self.repo_dir} "{tmp_dir}"'
+        cmd = f'git clone -q "{self.repo_dir}" "{tmp_dir}"'
         run_shell_command(cmd)
 
         try:
