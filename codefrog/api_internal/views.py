@@ -32,6 +32,10 @@ class MetricViewSet(viewsets.ModelViewSet):
         else:
             kwargs['private'] = False
 
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
+
         project = get_object_or_404(
             Project,
             **kwargs,
@@ -92,6 +96,10 @@ class ReleaseViewSet(viewsets.ModelViewSet):
         else:
             kwargs['private'] = False
 
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
+
         project = get_object_or_404(
             Project,
             **kwargs,
@@ -146,6 +154,10 @@ class FileChangesViewSet(viewsets.ModelViewSet):
         else:
             kwargs['private'] = False
 
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
+
         project = get_object_or_404(
             Project,
             **kwargs,
@@ -188,6 +200,10 @@ class SourceStatusViewSet(viewsets.ModelViewSet):
         else:
             kwargs['private'] = False
 
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
+
         project = get_object_or_404(
             Project,
             **kwargs,
@@ -227,6 +243,10 @@ class FileStatusViewSet(viewsets.ModelViewSet):
             kwargs['user'] = user
         else:
             kwargs['private'] = False
+
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
 
         project = get_object_or_404(
             Project,
