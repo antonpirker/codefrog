@@ -337,5 +337,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         else:
             kwargs['private'] = False
 
+        # Superusers can see projects from other users
+        if user.is_superuser:
+            del kwargs['user']
+
         projects = Project.objects.filter(**kwargs)
         return projects
