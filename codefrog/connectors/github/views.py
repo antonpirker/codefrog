@@ -83,7 +83,7 @@ def authorization(request):
 
     try:
         hashes_to_plan = {
-            'hash_%s' % hashlib.sha224(b'%sfree' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'free',
+            'hash_%s' % hashlib.sha224(b'%sminimum' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'minimum',
             'hash_%s' % hashlib.sha224(b'%sindividual' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'individual',
             'hash_%s' % hashlib.sha224(b'%steam' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'team',
         }

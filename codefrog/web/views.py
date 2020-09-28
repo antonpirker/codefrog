@@ -43,7 +43,7 @@ def connect_github(request):
         action='connect_github_page.view',
     )
 
-    plan = request.GET.get('plan', 'free')
+    plan = request.GET.get('plan', 'minimum')
 
     bytes = b'%s%s' % (settings.SECRET_KEY.encode('utf8'), plan.encode('utf8'))
     hash = 'hash_%s' % hashlib.sha224(bytes).hexdigest()
