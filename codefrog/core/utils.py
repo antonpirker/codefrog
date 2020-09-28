@@ -259,7 +259,12 @@ class GitHub:
 
         out = requests.post(api_url, data=payload)
         data = parse_qs(out.content.decode())
-        user_access_token = data['access_token'][0]
+
+        try:
+            user_access_token = data['access_token'][0]
+        except KeyError:
+            user_access_token = None
+            logger.error('Could not get user access token.', data_from_server=data)
 
         return user_access_token
 
