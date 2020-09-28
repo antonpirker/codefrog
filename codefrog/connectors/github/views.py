@@ -66,7 +66,7 @@ def authorization(request):
 
     # TODO: compare the state with the state we create in the index page.
     #  (if we did not create a state in the index (the app was installed from github.com) there is no state,
-    #  so both must be none
+    #  so both must be none)
 
     # get information about the user
     gh = GitHub(code=code, state=state)
@@ -88,7 +88,7 @@ def authorization(request):
             'hash_%s' % hashlib.sha224(b'%steam' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'team',
         }
         plan = Plan.objects.get(slug=hashes_to_plan[state])
-    except Plan.DoesNotExist:
+    except (Plan.DoesNotExist, KeyError):
         plan = None
 
     if plan:
