@@ -11,8 +11,11 @@
 {% block content %}
     <div class="grid-container pricing">
         <div class="grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y">
-            <div class="large-12 cell text-center" style="padding-bottom: 4em;">
-                <h1>Pricing</h1>
+            <div class="large-12 cell text-center" style="padding-bottom: 4em; {% if signin %}background: #ffe6c1;{% endif %}">
+                <h1>{{ headline|default:"Pricing" }}</h1>
+                {% if message %}
+                    <h5><b>{{ message|safe }}</b><br/><br/></h5>
+                {% endif %}
                 <h5><b>Fun fact:</b> The average developer costs around <b style="font-size: 200%;">$71,000</b> per year.</h5>
             </div>
 

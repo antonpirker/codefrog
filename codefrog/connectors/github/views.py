@@ -68,19 +68,7 @@ def authorization(request):
     #  (if we did not create a state in the index (the app was installed from github.com) there is no state,
     #  so both must be none)
 
-    # get information about the user
-    gh = GitHub(code=code, state=state)
-    user_data = gh.get_user()
-    username = user_data['login']
-    email = user_data['email'] or ''
-
-    user, created = User.objects.update_or_create(
-        username=username,
-        defaults={
-            'email': email,
-        }
-    )
-
+    # get selected plan from web hook data (or none if just signing in)
     try:
         hashes_to_plan = {
             'hash_%s' % hashlib.sha224(b'%sminimum' % settings.SECRET_KEY.encode('utf8')).hexdigest(): 'minimum',
@@ -91,22 +79,46 @@ def authorization(request):
     except (Plan.DoesNotExist, KeyError):
         plan = None
 
-    if plan:
-        user_profile, created = UserProfile.objects.update_or_create(
-            user=user,
-            defaults={
-                'github_app_installation_refid': installation_id,
-                'plan': plan,
-            }
-        )
+    just_signing_in = plan is None
 
+    # get information about the user
+    gh = GitHub(code=code, state=state)
+    user_data = gh.get_user()
+    username = user_data['login']
+    email = user_data['email'] or ''
+
+    # check if we have this user:
+    user_exists = User.objects.filter(username=username, email=email).exists()
+
+    if just_signing_in and not user_exists:
+        # message about user not found and
+        # redirect to pricing page.
+        return HttpResponseRedirect('%s?signing=true' % reverse('pricing'))
+
+    # create new user
+    user, user_created = User.objects.update_or_create(
+        username=username,
+        defaults={
+            'email': email,
+        }
+    )
+
+    user_profile, _ = UserProfile.objects.update_or_create(
+        user=user,
+        defaults={
+            'github_app_installation_refid': installation_id,
+            'plan': plan,
+        }
+    )
+
+    # login new user in
     login(request, user)
 
     # import projects of the new user
-    if created:
+    if user_created:
         repositories = gh.get_installation_repositories(installation_id)
         for repository in repositories['repositories']:
-            project, created = Project.objects.update_or_create(
+            Project.objects.update_or_create(
                 user=user,
                 source='github',
                 slug=slugify(repository['full_name'].replace('/', '-')),

@@ -72,8 +72,18 @@ def pricing(request):
     context = {
         'github_state': secrets.token_urlsafe(50),
     }
-    html = render_to_string('pricing.html', context=context, request=request)
 
+    signing = request.GET.get('signing', False)
+
+    if signing:
+        context['signin'] = True
+        context['headline'] = 'No matching account found!'
+        context['message'] = """
+            You do not yet have an Codefrog account matching your GitHub account.<br/>
+            Please choose an account type below and start your free trial:
+        """
+
+    html = render_to_string('pricing.html', context=context, request=request)
     return HttpResponse(html)
 
 
