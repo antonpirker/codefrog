@@ -86,8 +86,13 @@ function createFileChurnDiagram(fileChanges) {
         filesTotal: fileChanges.length
     };
     descriptionContext.filesChangedPercentage = Math.round(descriptionContext.filesChanged / descriptionContext.filesTotal * 100);
-    let descriptionTemplate = `You made ${descriptionContext.changes} changes to ${descriptionContext.filesChanged} files (~${descriptionContext.filesChangedPercentage}%) of a total of ${descriptionContext.filesTotal} files in your codebase.`;
+
+    descriptionContext.changes = Number(descriptionContext.changes).toLocaleString();
+    descriptionContext.filesChanged = Number(descriptionContext.filesChanged).toLocaleString();
+    descriptionContext.filesTotal = Number(descriptionContext.filesTotal).toLocaleString();
+    descriptionContext.filesChangedPercentage = Number(descriptionContext.filesChangedPercentage).toLocaleString();
+
+    let descriptionTemplate = `You made changes to ${descriptionContext.filesChanged} files (of a total of ${descriptionContext.filesTotal} files) in your codebase. All your work was done in ~${descriptionContext.filesChangedPercentage}% of your code base.`;
     let description = document.getElementById('file-churn-diagram-description');
     description.innerHTML = descriptionTemplate;
-
 }
