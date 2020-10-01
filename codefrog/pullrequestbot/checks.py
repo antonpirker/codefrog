@@ -11,7 +11,7 @@ def get_project_matching_github_hook(payload):
     return Project.objects.get(git_url=payload['repository']['clone_url'])
 
 
-def perform_complexity_check(project, commit_sha_before, commit_sha_after):
+def perform_complexity_check(project, commit_sha_before, commit_sha_after, project_url):
     logger.info('Starting perform_complexity_check')
 
     with project.get_tmp_repo_dir() as tmp_dir:
@@ -39,16 +39,22 @@ def perform_complexity_check(project, commit_sha_before, commit_sha_after):
         stormy = '⛈'  # U+26C8
         unknown = ''  # nothing :)
 
-        if complexity_change <= 0:
+        if complexity_change <= -0.5:
             icon = sunny
             summary = f"""You have decreased your complexity of the system by {complexity_change:+.1f}%.
-                Well done! You are on the right tracks to make your project more maintainable!"""
+                **Well done!** You are on the right tracks to make your project more maintainable!"""
+            conclusion = 'success'
+
+        elif -0.5 < complexity_change <= 0.5:
+            icon = sunny
+            summary = f"""The complexity of you system stays more or less the same. 
+                **Well done!** You are on the right tracks to make your project more maintainable!"""
             conclusion = 'success'
 
         elif 0 < complexity_change <= 2.5:
             icon = party_cloudy
             summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
-                This is OK."""
+                    This is OK."""
             conclusion = 'neutral'
 
         elif 2.5 < complexity_change <= 5:
@@ -61,16 +67,21 @@ def perform_complexity_check(project, commit_sha_before, commit_sha_after):
         elif complexity_change > 5:
             icon = stormy
             summary = f"""You have increased your complexity of the system by {complexity_change:+.1f}%.
-                This is not a good sign. Maybe see if you can refactor your code
-                a little to have less complexity."""
+                This is not a good sign. Maybe see if you can refactor or clean up your code
+                a little to have less complexity!"""
             conclusion = 'neutral'
 
         else:
             icon = unknown
-            summary = f"""I do not know the complexity in your system has changed. Strange thing..."""
+            summary = f"""I do not know how the complexity in your system has changed. Strange thing..."""
             conclusion = 'neutral'
 
-        title = f'{icon} Complexity: {complexity_change:+.1f}%'
+        if -0.5 < complexity_change <= 0.5:
+            title = f'{icon} Complexity: ±0%'
+        else:
+            title = f'{icon} Complexity: {complexity_change:+.1f}%'
+
+        summary += f'\n\n\nSee more details on {project_url}\n\n'
 
         output = {
             'title': title,

@@ -98,9 +98,11 @@ def check_suite__requested(payload, request=None):
 
     installation_access_token = get_access_token(installation_id)
 
+    check_run_name = 'Complexity Check'
+
     # Tell Github we queued our check
     check_run_payload = {
-        'name': 'Complexity',
+        'name': check_run_name,
         'head_sha': commit_sha_after,
         'status': 'queued',
     }
@@ -109,7 +111,7 @@ def check_suite__requested(payload, request=None):
 
     # Tell Github we started the check
     check_run_payload = {
-        'name': 'Complexity',
+        'name': check_run_name,
         'head_sha': commit_sha_after,
         'status': 'in_progress',
     }
@@ -118,17 +120,18 @@ def check_suite__requested(payload, request=None):
 
     # Perform check
     logger.info('Performing complexity check')
+    details_url = request.build_absolute_uri(reverse('project-detail', kwargs={'slug': project.slug}))
     output = checks.perform_complexity_check(
         project=project,
         commit_sha_before=commit_sha_before,
         commit_sha_after=commit_sha_after,
+        project_url=details_url,
     )
     logger.info('Finished performing complexity check')
 
     # Set check to completed and display result
-    details_url = request.build_absolute_uri(reverse('project-detail', kwargs={'slug': project.slug}))
     check_run_payload = {
-        'name': 'Complexity',
+        'name': check_run_name,
         'status': 'completed',
         'head_sha': commit_sha_after,
         'details_url': details_url,
