@@ -8,7 +8,7 @@ logger = structlog.get_logger(__name__)
 
 
 def get_project_matching_github_hook(payload):
-    return Project.objects.get(external_services__github__repository_id=payload['repository']['id'])
+    return Project.objects.get(git_url=payload['repository']['clone_url'])
 
 
 def perform_complexity_check(project, commit_sha_before, commit_sha_after):

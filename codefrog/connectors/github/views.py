@@ -22,13 +22,11 @@ logger = structlog.get_logger(__name__)
 @csrf_exempt
 def hook(request):
     logger.debug('########## hook')
-    logger.debug('-----------------------------------------------------------')
-    logger.debug('request.headers: %s ' % request.headers)
-    logger.debug('-----------------------------------------------------------')
-    logger.debug('request.body: %s' % request.body)
-    logger.debug('-----------------------------------------------------------')
+    logger.debug('########## hook request.headers: %s ' % request.headers)
+    logger.debug('########## hook request.body: %s' % request.body)
 
     if 'X-Github-Event' in request.headers:
+        logger.debug("GitHub web hook received")
         msg = github_hook(request)
     else:
         msg = 'Not implemented yet.'

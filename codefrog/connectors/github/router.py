@@ -21,7 +21,7 @@ def github_hook(request):
     event = request.headers['X-Github-Event']
     payload = json.loads(request.body)
     action = payload['action']
-    logger.info(f'RECEIVED GITHUB HOOK:  {event}/{action}')
+    logger.info(f'RECEIVED GITHUB HOOK (event/action):  {event}/{action}')
 
     handlers_module = import_module('%s.handlers' % __name__.rpartition('.')[0])
     handler_name = f'{event}__{action}'
