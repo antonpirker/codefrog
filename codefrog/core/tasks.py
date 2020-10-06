@@ -2,6 +2,7 @@ import os
 
 import structlog
 from celery import shared_task
+from django.db import transaction
 from django.utils import timezone
 
 from core.models import Project, STATUS_READY, SourceNode
@@ -101,52 +102,58 @@ def get_source_status(project_id, *args, **kwargs):
         name='root',
     )
 
+    nodes = {}
     with project.get_tmp_repo_dir() as tmp_dir:
-        for root_dir, dirs, files in os.walk(tmp_dir):
-            for f in files:
-                path = os.path.join(
-                    project.github_repo_name,
-                    os.path.join(
-                        os.path.join(root_dir, '').replace(os.path.join(tmp_dir, ''), ''),
-                        f
-                    )
-                )
-
-                if any(x in path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
-                    continue
-
-                path_parts = [part for part in path.split(os.sep) if part]
-
-                current_node = root
-                for idx, path_part in enumerate(path_parts):
-                    node_name = path_part
-
-                    is_leaf_level = idx + 1 >= len(path_parts)
-                    if not is_leaf_level:
-                        directory_path = '/'.join(path_parts[:idx+1])
-                        logger.debug('Project(%s): Get or create directory node: %s', project_id, directory_path)
-                        child_node, created = SourceNode.objects.get_or_create(
-                            source_status=source_status,
-                            name=node_name,
-                            path=directory_path,
-                            parent=current_node,
+        with transaction.atomic():
+            with SourceNode.objects.delay_mptt_updates():
+                for root_dir, dirs, files in os.walk(tmp_dir):
+                    for f in files:
+                        path = os.path.join(
+                            project.github_repo_name,
+                            os.path.join(
+                                os.path.join(root_dir, '').replace(os.path.join(tmp_dir, ''), ''),
+                                f
+                            )
                         )
-                        current_node = child_node
-                    else:
-                        file_path = '/'.join(path_parts)
-                        repo_link = project.get_repo_link(os.sep.join(file_path.split(os.sep)[1:])) # remove first directory)
-                        logger.debug('Project(%s): Creating file node: %s', project_id, file_path)
-                        SourceNode.objects.create(
-                            source_status=source_status,
-                            parent=current_node,
-                            name=node_name,
-                            path=file_path,
-                            repo_link=repo_link,
-                        )
+
+                        if any(x in path for x in SOURCE_TREE_EXCLUDE):  # exclude certain directories
+                            continue
+
+                        path_parts = [part for part in path.split(os.sep) if part]
+
+                        current_node = root
+                        for idx, path_part in enumerate(path_parts):
+                            node_name = path_part
+                            is_leaf_level = idx + 1 >= len(path_parts)
+                            if not is_leaf_level:
+                                directory_path = '/'.join(path_parts[:idx+1])
+                                try:
+                                    child_node = nodes[directory_path]
+                                except KeyError:
+                                    logger.debug('Project(%s): Get or create directory node: %s', project_id, directory_path)
+                                    child_node = SourceNode.objects.create(
+                                        source_status=source_status,
+                                        name=node_name,
+                                        path=directory_path,
+                                        parent=current_node,
+                                    )
+                                    nodes[directory_path] = child_node
+
+                                current_node = child_node
+                            else:
+                                file_path = '/'.join(path_parts)
+                                repo_link = project.get_repo_link(os.sep.join(file_path.split(os.sep)[1:])) # remove first directory)
+                                logger.debug('Project(%s): Creating file node: %s', project_id, file_path)
+                                SourceNode.objects.create(
+                                    source_status=source_status,
+                                    parent=current_node,
+                                    name=node_name,
+                                    path=file_path,
+                                    repo_link=repo_link,
+                                )
 
         logger.info('Project(%s): Finished get_source_status.', project_id)
         log(project_id, 'Loading source status of code base', 'stop')
-
         return project_id
 
 
