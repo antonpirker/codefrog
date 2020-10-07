@@ -212,6 +212,7 @@ structlog.configure(
 
 
 # Celery
+DEFAULT_TASK_EXPIRATION = 90*60
 CELERY_BROKER_URL = \
     get_env(env.url, 'CELERY_BROKER_URL', default='redis://localhost:6379/0').geturl()
 CELERY_RESULT_BACKEND = \

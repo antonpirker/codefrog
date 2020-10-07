@@ -15,6 +15,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from core.mixins import GithubMixin
 from core.utils import date_range, run_shell_command, log
 from engine.models import CodeChange
+from settings import DEFAULT_TASK_EXPIRATION
 
 logger = structlog.get_logger(__name__)
 
@@ -150,31 +151,31 @@ class Project(GithubMixin, models.Model):
 
         ingest_project = chain(
             # Clone Repo
-            clone_repo.s(),
+            clone_repo.s().set(expires=DEFAULT_TASK_EXPIRATION),
             # Import git commits and at the same time all the data from GitHub.
             group(
-                import_code_changes.s(),
+                import_code_changes.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 chain(
-                    import_issues.s(),
-                    calculate_issue_metrics.s(),
+                    import_issues.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    calculate_issue_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
                 chain(
-                    import_pull_requests.s(),
-                    calculate_pull_request_metrics.s(),
+                    import_pull_requests.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    calculate_pull_request_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
-                import_releases.s(),
-                import_tags.s(),
+                import_releases.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                import_tags.s().set(expires=DEFAULT_TASK_EXPIRATION),
             ),
             # Calculate code metrics and at the same time the source status
             group(
-                calculate_code_metrics.s(), # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                calculate_code_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION), # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
-                    get_source_status.s(),
-                    update_source_status_with_metrics.s(),
+                    get_source_status.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    update_source_status_with_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
             ),
             # Save last update date
-            save_last_update.s(),
+            save_last_update.s().set(expires=DEFAULT_TASK_EXPIRATION),
         )
 
         ingest_project.apply_async((self.pk, ))
@@ -197,30 +198,30 @@ class Project(GithubMixin, models.Model):
         self.save()
 
         update_project = chain(
-            clone_repo.s(),
+            clone_repo.s().set(expires=DEFAULT_TASK_EXPIRATION),
             group(
                 import_code_changes.s(start_date=start_date),
                 chain(
-                    get_source_status.s(),
-                    update_source_status_with_metrics.s(),
+                    get_source_status.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    update_source_status_with_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
             ),
 
             group(
                 calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
-                    import_open_issues.s(),
+                    import_open_issues.s().set(expires=DEFAULT_TASK_EXPIRATION),
                     import_issues.s(start_date=start_date),
-                    calculate_issue_metrics.s(),
+                    calculate_issue_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
                 chain(
-                    import_pull_requests.s(),
-                    calculate_pull_request_metrics.s(),
+                    import_pull_requests.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    calculate_pull_request_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 ),
-                import_releases.s(),
-                import_tags.s(),
+                import_releases.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                import_tags.s().set(expires=DEFAULT_TASK_EXPIRATION),
             ),
-            save_last_update.s(),
+            save_last_update.s().set(expires=DEFAULT_TASK_EXPIRATION),
         )
         update_project.apply_async((self.pk, ))
 

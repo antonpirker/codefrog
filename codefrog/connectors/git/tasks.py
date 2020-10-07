@@ -6,7 +6,6 @@ from collections import defaultdict
 import structlog
 from celery import shared_task
 from dateutil.parser import parse
-from django.conf import settings
 
 from connectors.github.utils import get_access_token
 from core.models import Project, Release, STATUS_UPDATING
