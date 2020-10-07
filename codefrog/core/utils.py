@@ -391,6 +391,11 @@ class GitHub:
             'Authorization': 'token %s' % self.installation_access_token,
         }
 
+        # if we do not have a installation token,
+        # maybe it is a open repo and I can get information without authorization
+        if not self.installation_access_token:
+            del headers['Authorization']
+
         list_issues_url = f'/repos/{repo_owner}/{repo_name}/issues'
         url = f'{self.api_base_url}{list_issues_url}?%s' % urllib.parse.urlencode(params)
 
@@ -428,6 +433,11 @@ class GitHub:
             'Accept': 'application/vnd.github.machine-man-preview+json',
             'Authorization': 'token %s' % self.installation_access_token,
         }
+
+        # if we do not have a installation token,
+        # maybe it is a open repo and I can get information without authorization
+        if not self.installation_access_token:
+            del headers['Authorization']
 
         params = {}
 
@@ -478,6 +488,11 @@ class GitHub:
             'Accept': 'application/vnd.github.machine-man-preview+json',
             'Authorization': 'token %s' % self.installation_access_token,
         }
+
+        # if we do not have a installation token,
+        # maybe it is a open repo and I can get information without authorization
+        if not self.installation_access_token:
+            del headers['Authorization']
 
         list_pull_requests_url = f'/repos/{repo_owner}/{repo_name}/pulls'
         url = f'{self.api_base_url}{list_pull_requests_url}?%s' % urllib.parse.urlencode(params)

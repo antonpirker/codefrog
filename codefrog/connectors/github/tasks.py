@@ -7,6 +7,7 @@ from django.utils import timezone
 from core.models import Project, Release
 from core.utils import GitHub, log, make_one
 from engine.models import Issue, OpenIssue, PullRequest
+from web.models import UserProfile
 
 logger = structlog.get_logger(__name__)
 
@@ -24,7 +25,11 @@ def import_issues(project_id, start_date=None, *args, **kwargs):
         logger.info('Project(%s): Finished (aborted) import_issues.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
+    try:
+        installation_id = project.user.profile.github_app_installation_refid
+    except UserProfile.DoesNotExist:
+        installation_id = None
+
     gh = GitHub(installation_id=installation_id)
 
     issues = gh.get_issues(
@@ -88,7 +93,11 @@ def import_open_issues(project_id, *args, **kwargs):
         logger.info('Project(%s): Finished (aborted) import_open_issues.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
+    try:
+        installation_id = project.user.profile.github_app_installation_refid
+    except UserProfile.DoesNotExist:
+        installation_id = None
+
     gh = GitHub(installation_id=installation_id)
 
     # Delete all old open issues of today
@@ -139,7 +148,11 @@ def import_releases(project_id, *args, **kwargs):
         logger.info('Project(%s): Finished (aborted) import_releases.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
+    try:
+        installation_id = project.user.profile.github_app_installation_refid
+    except UserProfile.DoesNotExist:
+        installation_id = None
+
     gh = GitHub(installation_id=installation_id)
 
     releases = gh.get_releases(
@@ -192,7 +205,11 @@ def import_pull_requests(project_id, *args, **kwargs):
         logger.info('Project(%s): Finished (aborted) import_pull_requests.', project_id)
         return
 
-    installation_id = project.user.profile.github_app_installation_refid
+    try:
+        installation_id = project.user.profile.github_app_installation_refid
+    except UserProfile.DoesNotExist:
+        installation_id = None
+
     gh = GitHub(installation_id=installation_id)
 
     pull_requests = gh.get_pull_requests(
