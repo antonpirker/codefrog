@@ -16,8 +16,10 @@ logger = structlog.get_logger(__name__)
 
 def installation__created(payload, request=None):
     logger.info("### INSTALLATION / CREATED")
+    installation_id = payload['installation']['id']
+
     # create a user in our database
-    user, created = User.objects.update_or_create(
+    user, user_created = User.objects.update_or_create(
         username=payload['sender']['login'],
         is_staff=False,
         is_active=True,
@@ -26,20 +28,19 @@ def installation__created(payload, request=None):
             'password': secrets.token_urlsafe(90),
         },
     )
-    profile, created = UserProfile.objects.update_or_create(
+    UserProfile.objects.update_or_create(
         user=user,
         defaults={
-            'github_app_installation_refid': payload['installation']['id'],
+            'github_app_installation_refid': installation_id,
         },
     )
-
-    installation_id = payload['installation']['id']
-    gh = GitHub(installation_id=installation_id)
+    logger.info(f'- User {user} (with user profile) created')
 
     # add all repositories to the user
+    gh = GitHub(installation_id=installation_id)
     for repository in payload['repositories']:
         repository_data = gh.get_repository(repository['full_name'])
-        project, created = Project.objects.update_or_create(
+        project, project_created = Project.objects.update_or_create(
             user=user,
             source='github',
             slug=slugify(repository_data['full_name'].replace('/', '-')),
@@ -50,19 +51,43 @@ def installation__created(payload, request=None):
             },
         )
 
-        if created:
-            project.external_services = {
-                'github': {
-                    'repository_id': repository['id']
-                }
+        if project_created:
+            logger.info(f'- Project {project} created')
+        else:
+            logger.info(f'- Project {project} updated')
+
+        project.external_services = {
+            'github': {
+                'repository_id': repository['id']
             }
-            project.save()
+        }
+        project.save()
 
     logger.info("### FINISHED INSTALLATION / CREATED")
 
 
 def installation__deleted(payload, request=None):
     logger.info("### INSTALLATION / DELETED")
+    # set all projects that belong to the user with the given installation to inactive
+    # delete all git repos on the local disk
+    logger.info("### FINISHED INSTALLATION / DELETED")
+
+
+def installation__suspend(payload, request=None):
+    logger.info("### INSTALLATION / SUSPEND")
+    # set all projects that belong to the user with the given installation to inactive
+    # delete all git repos on the local disk
+    logger.info("### FINISHED INSTALLATION / SUSPEND")
+
+
+def installation__unsuspend(payload, request=None):
+    logger.info("### INSTALLATION / UNSUSPEND")
+    logger.info("### FINISHED INSTALLATION / UNSUSPEND")
+
+
+def installation__new_permissions_accepted(payload, request=None):
+    logger.info("### INSTALLATION / NEW PERMISSIONS ACCEPTED")
+    logger.info("### FINISHED INSTALLATION / NEW PERMISSIONS ACCEPTED")
 
 
 def check_suite__requested(payload, request=None):
