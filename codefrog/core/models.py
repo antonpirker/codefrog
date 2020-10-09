@@ -443,12 +443,27 @@ class Project(GithubMixin, models.Model):
 
     def get_file_metrics(self, path):
         path = os.path.join(self.github_repo_name, path)
-        return SourceNode.objects.get(source_status=self.current_source_status, path=path).json_representation
+        node = SourceNode.objects.get(source_status=self.current_source_status, path=path)
+        if node.children.all().count() == 0:
+            return node.json_representation
+        else:
+            return SourceNode.objects.filter(source_status=self.current_source_status, path__startswith=path)
 
     def get_file_ownership(self, path):
         file_metrics = self.get_file_metrics(path)
-        return file_metrics['ownership']
+        if type(file_metrics) == object:
+            return file_metrics['ownership']
+        else:
+            lines = {}
+            for node in file_metrics:
+                node_json = node.json_representation['ownership']
+                for node_ownership in node_json:
+                    if node_ownership['author'] not in lines.keys():
+                        lines[node_ownership['author']] = 0
+                    lines[node_ownership['author']] = lines[node_ownership['author']] + node_ownership['lines']
 
+            ownership = [{'author': key, 'lines': lines[key]}for key in lines.keys()]
+            return ownership
 
 class LogEntry(models.Model):
     project = models.ForeignKey(

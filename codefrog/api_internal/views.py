@@ -317,8 +317,6 @@ class FileStatusViewSet(viewsets.ModelViewSet):
         commit_counts = [x['count'] for x in code_changes]
         commit_counts_labels = [x['author'].split(' <')[0] for x in code_changes]
 
-#        import ipdb; ipdb.set_trace()
-
         # Code ownership of the file
         ownership = project.get_file_ownership(path)
 
