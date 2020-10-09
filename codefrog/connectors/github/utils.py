@@ -80,6 +80,20 @@ def get_app_installations():
     return json.loads(out.content)
 
 
+def get_repo_installation(repo_owner, repo_name):
+    headers = {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': 'Bearer %s' % create_jwt(),
+    }
+
+    url = f'/repos/{repo_owner}/{repo_name}/installation'
+    api_base_url = 'https://api.github.com'
+    api_url = f'{api_base_url}{url}'
+
+    out = requests.get(api_url, headers=headers)
+    return json.loads(out.content)
+
+
 def get_installations(access_token):
     api_url = f'https://api.github.com/user/installations'
 
