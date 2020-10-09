@@ -273,25 +273,51 @@ class FileStatusViewSet(viewsets.ModelViewSet):
         if not path:
             return []
 
-        data_for_path = SourceNode.objects.filter(
+        is_file = SourceNode.objects.get(
             source_status=project.current_source_status,
             path=os.path.join(project.github_repo_name, path),
-        ).exists()
-        if not data_for_path:
-            return []
+        ).children.all().count() == 0
 
-        # Number of commits in the given time period
-        code_changes = project.codechange_set.filter(
-            timestamp__date__gte=date_from,
-            timestamp__date__lte=date_to,
-            file_path=path,
-        )\
-        .values('author')\
-        .annotate(count=Count('author'))\
-        .order_by('-count', 'author')
+        if is_file:
+            data_for_path = SourceNode.objects.filter(
+                source_status=project.current_source_status,
+                path=os.path.join(project.github_repo_name, path),
+            ).exists()
+            if not data_for_path:
+                return []
+
+            # Number of commits in the given time period
+            code_changes = project.codechange_set.filter(
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
+                file_path=path,
+            )\
+            .values('author')\
+            .annotate(count=Count('author'))\
+            .order_by('-count', 'author')
+
+        else:
+            data_for_path = SourceNode.objects.filter(
+                source_status=project.current_source_status,
+                path__startswith=os.path.join(project.github_repo_name, path),
+            ).exists()
+            if not data_for_path:
+                return []
+
+            # Number of commits in the given time period
+            code_changes = project.codechange_set.filter(
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
+                file_path__startswith=path,
+            ) \
+            .values('author') \
+            .annotate(count=Count('author')) \
+            .order_by('-count', 'author')
 
         commit_counts = [x['count'] for x in code_changes]
         commit_counts_labels = [x['author'].split(' <')[0] for x in code_changes]
+
+#        import ipdb; ipdb.set_trace()
 
         # Code ownership of the file
         ownership = project.get_file_ownership(path)
