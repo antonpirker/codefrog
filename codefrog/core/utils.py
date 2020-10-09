@@ -529,6 +529,6 @@ class GitHub:
 
 def make_one(list_or_value):
     if type(list_or_value) == list:
-        return list(set(list_or_value)) [0]
+        return list(set(filter(None, list_or_value))) [0]
     else:
         return list_or_value
