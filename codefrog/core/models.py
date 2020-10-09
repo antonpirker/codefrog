@@ -426,15 +426,28 @@ class Project(GithubMixin, models.Model):
         for day in date_range(date_from, date_to):
             changes[day.strftime('%Y-%m-%d')] = 0
 
-        raw_changes = CodeChange.objects.filter(
-                project=self,
-                file_path=path,
-                timestamp__date__gte=date_from,
-                timestamp__date__lte=date_to,
-            )\
-            .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
-            .values('day')\
-            .annotate(changes=Count('timestamp'))
+        source_status = self.get_source_status(date=date_to)
+        is_file = SourceNode.objects.get(source_status=source_status, path=os.path.join(self.github_repo_name, path)).children.all().count() == 0
+        if is_file:
+            raw_changes = CodeChange.objects.filter(
+                    project=self,
+                    file_path=path,
+                    timestamp__date__gte=date_from,
+                    timestamp__date__lte=date_to,
+                )\
+                .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
+                .values('day')\
+                .annotate(changes=Count('timestamp'))
+        else:
+            raw_changes = CodeChange.objects.filter(
+                    project=self,
+                    file_path__startswith=path,
+                    timestamp__date__gte=date_from,
+                    timestamp__date__lte=date_to,
+                )\
+                .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
+                .values('day')\
+                .annotate(changes=Count('timestamp'))
 
         for raw_change in raw_changes:
             changes[raw_change['day']] = raw_change['changes']
