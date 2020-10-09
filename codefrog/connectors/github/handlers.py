@@ -68,25 +68,41 @@ def installation__created(payload, request=None):
 
 def installation__deleted(payload, request=None):
     logger.info("### INSTALLATION / DELETED")
+    installation_id = payload['installation']['id']
+
     # set all projects that belong to the user with the given installation to inactive
+    user = User.objects.get(profile__github_app_installation_refid=installation_id)
+    Project.objects.filter(user=user).update(active=False)
+    logger.info(f'- Set all projects of user {user} to inactive.')
+
     # delete all git repos on the local disk
+    for project in Project.objects.filter(user=user):
+        project.delete_repo_dir()
+    logger.info(f'- Deleted all source code from all projects of user {user}.')
+
+    # delete github_app_installation_refid id from userprofile
+    user.profile.github_app_installation_refid = None
+    user.profile.save()
+    logger.info(f'- Removed link to GitHub app installation from user {user}.')
+
     logger.info("### FINISHED INSTALLATION / DELETED")
 
 
 def installation__suspend(payload, request=None):
     logger.info("### INSTALLATION / SUSPEND")
-    # set all projects that belong to the user with the given installation to inactive
-    # delete all git repos on the local disk
+    # do nothing
     logger.info("### FINISHED INSTALLATION / SUSPEND")
 
 
 def installation__unsuspend(payload, request=None):
     logger.info("### INSTALLATION / UNSUSPEND")
+    # do nothing
     logger.info("### FINISHED INSTALLATION / UNSUSPEND")
 
 
 def installation__new_permissions_accepted(payload, request=None):
     logger.info("### INSTALLATION / NEW PERMISSIONS ACCEPTED")
+    # do nothing
     logger.info("### FINISHED INSTALLATION / NEW PERMISSIONS ACCEPTED")
 
 

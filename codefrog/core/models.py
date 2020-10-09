@@ -251,6 +251,12 @@ class Project(GithubMixin, models.Model):
             project_id=self.pk,
         )
 
+    def delete_repo_dir(self):
+        try:
+            shutil.rmtree(self.repo_dir)
+        except FileNotFoundError:
+            pass
+
     def import_code_changes(self, start_date=None):
         from connectors.git.tasks import import_code_changes
         import_code_changes(
