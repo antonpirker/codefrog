@@ -7,11 +7,14 @@ update-locale LC_ALL="en_US.utf8"
 echo "-------------------------------------------------------------------------"
 echo "###### Install generic nice stuff..." && tput sgr0 && echo ""
 
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+
 sudo apt-get update --quiet
 sudo apt-get install -y --no-install-recommends \
-    postgresql-10 \
-    postgresql-client-10 \
-    postgresql-server-dev-10 \
+    postgresql-12 \
+    postgresql-client-12 \
+    postgresql-server-dev-12 \
     apt-transport-https \
     build-essential \
     bzip2 \
