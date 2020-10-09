@@ -399,19 +399,36 @@ class Project(GithubMixin, models.Model):
         except AttributeError:
             ref_complexity = 0
 
+        source_status = self.get_source_status(date=date_to)
+        is_file = SourceNode.objects.get(source_status=source_status, path=os.path.join(self.github_repo_name, path)).children.all().count() == 0
         complexities = {}
-        for day in date_range(date_from, date_to):
-            complexities[day.strftime('%Y-%m-%d')] = ref_complexity
+        if is_file:
+            for day in date_range(date_from, date_to):
+                complexities[day.strftime('%Y-%m-%d')] = ref_complexity
 
-        comps = Complexity.objects.filter(
-            project=self,
-            file_path=path,
-            timestamp__date__gte=date_from,
-            timestamp__date__lte=date_to,
-        ).order_by('timestamp')
+            comps = Complexity.objects.filter(
+                project=self,
+                file_path=path,
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
+            ).order_by('timestamp')
 
-        for comp in comps:
-            complexities[comp.timestamp.strftime('%Y-%m-%d')] = comp.complexity
+            for comp in comps:
+                complexities[comp.timestamp.strftime('%Y-%m-%d')] = comp.complexity
+        else:
+            comps = Complexity.objects.filter(
+                project=self,
+                file_path=path,
+                timestamp__date__gte=date_from,
+                timestamp__date__lte=date_to,
+            ).order_by('timestamp')
+
+            for comp in comps:
+                key = comp.timestamp.strftime('%Y-%m-%d')
+                if key not in complexities.keys():
+                    complexities[comp.timestamp.strftime('%Y-%m-%d')] = 0
+
+                complexities[key] = complexities[key] + comp.complexity
 
         return sorted(complexities.items())
 
@@ -464,7 +481,7 @@ class Project(GithubMixin, models.Model):
 
     def get_file_ownership(self, path):
         file_metrics = self.get_file_metrics(path)
-        if type(file_metrics) == object:
+        if type(file_metrics) == dict:
             return file_metrics['ownership']
         else:
             lines = {}

@@ -325,7 +325,6 @@ class FileStatusViewSet(viewsets.ModelViewSet):
         complexity_trend_labels = [x[0] for x in complexity_trend]
         complexity_trend = [x[1] for x in complexity_trend]
 
-        # xxx
         changes_trend = project.get_file_changes_trend(path, date_from, date_to)
         changes_trend_labels = [x[0] for x in changes_trend]
         changes_trend = [x[1] for x in changes_trend]
