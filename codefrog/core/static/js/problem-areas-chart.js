@@ -158,6 +158,11 @@ let createProblemAreasDiagram = function (data) {
         .style("background", backgroundColor(0))
         .style("cursor", "pointer");
 
+    const tooltip = d3.select("#problem-areas-diagram").append("div")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("font-size", "0.7em")
+
     const node = svg.append("g")
         .selectAll("circle")
         .data(root.descendants().slice(1))
@@ -166,6 +171,10 @@ let createProblemAreasDiagram = function (data) {
         .attr("pointer-events", d => !d.children ? null : null)
         .on("mouseover", function (d) {
             d3.select(this).attr("stroke", "#000");
+            tooltip.text(d.data.path).style("visibility", "visible");
+        })
+        .on("mousemove", function() {
+            tooltip.style("visibility", "visible").style("top", (event.pageY+20)+"px").style("left",(event.pageX)+"px");
         })
         .on("mouseout", function () {
             d3.select(this).attr("stroke", null);
