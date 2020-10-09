@@ -482,7 +482,7 @@ class Project(GithubMixin, models.Model):
     def get_file_ownership(self, path):
         file_metrics = self.get_file_metrics(path)
         if type(file_metrics) == dict:
-            return file_metrics['ownership']
+            ownership = file_metrics['ownership']
         else:
             lines = {}
             for node in file_metrics:
@@ -493,7 +493,26 @@ class Project(GithubMixin, models.Model):
                     lines[node_ownership['author']] = lines[node_ownership['author']] + node_ownership['lines']
 
             ownership = [{'author': key, 'lines': lines[key]}for key in lines.keys()]
-            return ownership
+
+        # only return top 4 and the rest as "others"
+        top = ownership[:4]
+
+        others = ownership[6:]
+        lines_of_others = sum([x['lines'] for x in others])
+
+        if len(others) > 0:
+            top.append({
+                'author': '%s Others' % len(others),
+                'lines': lines_of_others,
+            })
+
+        # normalize ownership to percentage values
+        sum_values = sum([x['lines'] for x in top])
+        for x in top:
+            x['lines'] = round(x['lines'] / sum_values * 100)
+
+        return top
+
 
 class LogEntry(models.Model):
     project = models.ForeignKey(

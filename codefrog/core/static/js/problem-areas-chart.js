@@ -7,40 +7,17 @@ let bubbleClickCallback = function (path, elementId, isFile) {
     let elem = document.getElementById(elementId);
     elem.innerHTML = '';
 
-    let dateRange = getDateRange();
-    let fileStatusUrl = '/api-internal/projects/' + window.project.id + '/file-status/' +
-        '?path=' + path +
-        '&date_from=' + dateRange['date_from'].format('YYYY-MM-DD') +
-        '&date_to=' + dateRange['date_to'].format('YYYY-MM-DD');
+    if (path) {
+        let dateRange = getDateRange();
+        let fileStatusUrl = '/api-internal/projects/' + window.project.id + '/file-status/' +
+            '?path=' + path +
+            '&date_from=' + dateRange['date_from'].format('YYYY-MM-DD') +
+            '&date_to=' + dateRange['date_to'].format('YYYY-MM-DD');
 
-    fetch(fileStatusUrl)
-        .then(response => response.json())
-        .then(data => isFile ? updateFileStats(data, elementId) : updateDirectoryStats(data, elementId));
-};
-
-
-/**
- *
- * @param data
- */
-let updateDirectoryStats = function (data, elementId) {
-    data = data[0];
-    const ctx = {
-        path: data.path,
-        link: data.link  // TODO: this is complete garbage....
-    };
-
-    let infoTemplateDirectory = `
-        <div class="grid-x grid-padding-x grid-padding-y">
-            <div class="large-12 cell dashboard-card" style="margin-top: 0;">
-                <h5>Source (on GitHub)</h5>
-                <h5><a href="${ctx.link}" target="_blank" id="file-details">${ctx.path}</a></h5>
-            </div>
-        </div>
-    `;
-
-    let elem = document.getElementById(elementId);
-    elem.innerHTML = infoTemplateDirectory;
+        fetch(fileStatusUrl)
+            .then(response => response.json())
+            .then(data => updateFileStats(data, elementId));
+    }
 };
 
 

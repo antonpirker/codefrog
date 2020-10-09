@@ -67,23 +67,7 @@ def get_file_ownership(filename, source_dir):
             'lines': int(lines),
         })
 
-    top = ownerships[:4]
-
-    others = ownerships[6:]
-    lines_of_others = sum([x['lines'] for x in others])
-
-    if len(others) > 0:
-        top.append({
-            'author': '%s Others' % len(others),
-            'lines': lines_of_others,
-        })
-
-    # normalize ownership to percentage values
-    sum_values = sum([x['lines'] for x in top])
-    for x in top:
-        x['lines'] = round(x['lines'] / sum_values * 100)
-
-    return top
+    return ownerships
 
 
 def get_file_complexity(filename):
