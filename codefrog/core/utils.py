@@ -26,8 +26,12 @@ def run_shell_command(cmd, cwd=None):
     Runs a shell command and returns the commands output as string.
     """
     logger.debug(f'Command: {cmd}')
-    output = subprocess.check_output(cmd, cwd=cwd, shell=True)
-    return output.decode('utf-8')
+    try:
+        output = subprocess.check_output(cmd, cwd=cwd, shell=True, stderr=subprocess.STDOUT,)
+        return output.decode('utf-8')
+    except subprocess.CalledProcessError as err:
+        msg = f'Error in "{cmd}" (Code: {err.returncode}): {err.output}'
+        raise Exception(msg) from err
 
 
 def date_range(start_date, end_date):
