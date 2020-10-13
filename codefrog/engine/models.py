@@ -5,6 +5,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
+from engine.mixins import CategorizationMixin, CATEGORY_CHOICES, CATEGORY_CHANGE
+
 
 class CodeChange(models.Model):
     project = models.ForeignKey(
@@ -50,7 +52,7 @@ class CodeChange(models.Model):
         super().save(*args, **kwargs)
 
 
-class Issue(models.Model):
+class Issue(CategorizationMixin, models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,
@@ -64,6 +66,7 @@ class Issue(models.Model):
         models.CharField(max_length=255),
         default=list,
     )
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_CHANGE)
 
     def __str__(self):
         return f'Issue #{self.issue_refid} ({self.pk})'
@@ -102,7 +105,7 @@ class OpenIssue(models.Model):
     )
 
 
-class PullRequest(models.Model):
+class PullRequest(CategorizationMixin, models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,
@@ -116,6 +119,7 @@ class PullRequest(models.Model):
         models.CharField(max_length=255),
         default=list,
     )
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_CHANGE)
 
     def __str__(self):
         return f'Pull Request #{self.pull_request_refid} ({self.pk})'

@@ -71,10 +71,6 @@ class Project(GithubMixin, models.Model):
     def __str__(self):
         return f'{self.name} ({self.pk})'
 
-    @property
-    def repo_dir(self):
-        return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
-
     @contextmanager
     def get_tmp_repo_dir(self):
         self.clone_repo()
@@ -87,6 +83,10 @@ class Project(GithubMixin, models.Model):
             yield tmp_dir
         finally:
             shutil.rmtree(tmp_dir)
+
+    @property
+    def repo_dir(self):
+        return os.path.join(settings.PROJECT_SOURCE_CODE_DIR, self.github_repo_name)
 
     @property
     def log_history(self):
@@ -134,6 +134,9 @@ class Project(GithubMixin, models.Model):
 
     def get_repo_link(self, path):
         return f'{self.github_repo_url}/blame/master/{path}'
+
+    def get_bug_labels(self):
+        return ['bug', 'Bug', ]
 
     def ingest(self):
         """
