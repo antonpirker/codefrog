@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -9,6 +10,13 @@ class CodeChange(models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,
+        related_name='code_changes',
+    )
+    issue = models.OneToOneField(
+        'engine.Issue',
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='code_change',
     )
     timestamp = models.DateTimeField()
     file_path = models.CharField(max_length=255)
@@ -18,11 +26,35 @@ class CodeChange(models.Model):
     description = models.TextField(null=False, default='')
     git_commit_hash = models.CharField(max_length=255, null=False, default='')
 
+    def save(self, *args, **kwargs):
+        issue_refid = None
+        regex_issue_number = r'#[0-9]{1,8}'
+        search_object = re.search(regex_issue_number, self.description)
+        if search_object:
+            issue_refid = search_object.group(0)
+
+        regex_issue_number_other_repo = r'[\w-]+\/[\w-]+#[0-9]{1,8}'
+        search_object = re.search(regex_issue_number_other_repo, self.description)
+        if search_object:
+            issue_refid = search_object.group(0)
+
+        if not issue_refid:
+            return
+
+        if issue_refid.startswith('#'):
+            self.issue = self.project.issue_set.filter(issue_refid=issue_refid[1:]).first()
+        else:
+            # TODO: implement links to other repositories
+            raise NotImplemented('References to issues in other repositories is currently not implemented.')
+
+        super().save(*args, **kwargs)
+
 
 class Issue(models.Model):
     project = models.ForeignKey(
         'core.Project',
         on_delete=models.CASCADE,
+        related_name='issues',
     )
     issue_refid = models.CharField(max_length=100)
     opened_at = models.DateTimeField()
@@ -32,6 +64,9 @@ class Issue(models.Model):
         models.CharField(max_length=255),
         default=list,
     )
+
+    def __str__(self):
+        return f'Issue #{self.issue_refid} ({self.pk})'
 
     def get_age(self, at_date=None):
         if self.closed_at and at_date:
