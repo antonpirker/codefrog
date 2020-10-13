@@ -1,13 +1,11 @@
-from django.db import models
-
 CATEGORY_BUG = 'bug'
 CATEGORY_CHANGE = 'change'
+
 CATEGORY_CHOICES = (
     (CATEGORY_BUG, 'Bug-Fix'),
     (CATEGORY_CHANGE, 'Change'),
 )
 
-BUG_LABELS = ()
 
 class CategorizationMixin:
     def get_category(self):
@@ -15,5 +13,10 @@ class CategorizationMixin:
         for label in self.labels:
             if label in bug_labels:
                 return CATEGORY_BUG
+
+        for label in self.labels:
+            for bug_label in bug_labels:
+                if bug_label in label:
+                    return CATEGORY_BUG
 
         return CATEGORY_CHANGE

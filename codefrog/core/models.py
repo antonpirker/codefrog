@@ -136,7 +136,22 @@ class Project(GithubMixin, models.Model):
         return f'{self.github_repo_url}/blame/master/{path}'
 
     def get_bug_labels(self):
-        return ['bug', 'Bug', ]
+        return [
+            'bug',
+            'Bug',
+            'type:bug',
+            'blocker',
+            'breaking',
+            'critical',
+            'error',
+            'failure',
+            'issue',
+            'regression',
+            "won't fix",
+            'wont-fix',
+            'wontfix',
+            'WontFix',
+        ]
 
     def ingest(self):
         """
