@@ -74,9 +74,9 @@ class Project(GithubMixin, models.Model):
     @contextmanager
     def get_tmp_repo_dir(self):
         self.clone_repo()
-        tmp_dir = tempfile.mkdtemp()
+        tmp_dir = tempfile.mkdtemp(dir='/dev/shm') # in memory! yay!
 
-        cmd = f'git clone -q "{self.repo_dir}" "{tmp_dir}"'
+        cmd = f'git clone --quiet --no-hardlinks "{self.repo_dir}" "{tmp_dir}"'
         run_shell_command(cmd)
 
         try:
