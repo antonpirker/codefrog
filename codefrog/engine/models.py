@@ -112,6 +112,14 @@ class PullRequest(models.Model):
     merged_at = models.DateTimeField(null=True)
     age = models.IntegerField(null=True)
 
+    labels = ArrayField(
+        models.CharField(max_length=255),
+        default=list,
+    )
+
+    def __str__(self):
+        return f'Pull Request #{self.pull_request_refid} ({self.pk})'
+
     class Meta:
         unique_together = (
             ('project', 'pull_request_refid', ),

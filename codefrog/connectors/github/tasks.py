@@ -240,6 +240,11 @@ def import_pull_requests(project_id, *args, **kwargs):
         else:
             age = None
 
+        try:
+            labels = [label['name'] for label in pull_request['labels']]
+        except TypeError:
+            labels = []
+
         raw_pull_request, created = PullRequest.objects.update_or_create(
             project_id=project_id,
             pull_request_refid=pull_request['number'],
@@ -247,6 +252,7 @@ def import_pull_requests(project_id, *args, **kwargs):
             defaults={
                 'merged_at': merged_at,
                 'age': age,
+                'labels': labels,
             }
         )
         logger.debug(f'{raw_pull_request}: created: {created}')
