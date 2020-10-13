@@ -20,3 +20,7 @@ class CategorizationMixin:
                     return CATEGORY_BUG
 
         return CATEGORY_CHANGE
+
+    def save(self, *args, **kwargs):
+        self.category = self.get_category()
+        super().save(*args, **kwargs)
