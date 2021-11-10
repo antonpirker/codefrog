@@ -264,7 +264,7 @@ if not os.path.exists(PROJECT_SOURCE_CODE_DIR):
 # Sentry error catching service
 if not DEBUG:
     sentry_sdk.init(
-        dsn="https://14e094f6e2f74dd79a36457a27ddb5a6@o400782.ingest.sentry.io/5259497",
+        dsn="https://xxx@xxx.ingest.sentry.io/xxx",
         integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
 
         # If you wish to associate users to errors (assuming you are using
