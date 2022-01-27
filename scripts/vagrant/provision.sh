@@ -70,5 +70,5 @@ runuser -l  postgres -c "psql -c \"CREATE DATABASE codefrog OWNER codefrog;\"" |
 echo "-------------------------------------------------------------------------"
 echo "###### Setup dir for Git repos ..." && tput sgr0 && echo ""
 
-mkdir -p /codefrog_projects_git_repos
-chown vagrant.vagrant /codefrog_projects_git_repos
+mkdir -p ~/codefrog_projects_git_repos
+chown vagrant.vagrant ~/codefrog_projects_git_repos
