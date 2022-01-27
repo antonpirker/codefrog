@@ -17,54 +17,121 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('private', models.BooleanField(default=True)),
-                ('active', models.BooleanField(default=False)),
-                ('source', models.CharField(blank=True, default='', max_length=10)),
-                ('slug', models.SlugField(max_length=255, unique=True)),
-                ('name', models.CharField(max_length=100)),
-                ('git_url', models.CharField(max_length=255)),
-                ('external_services', django.contrib.postgres.fields.jsonb.JSONField(null=True)),
-                ('source_tree_metrics', django.contrib.postgres.fields.jsonb.JSONField(null=True)),
-                ('last_update', models.DateTimeField(blank=True, null=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='projects', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("private", models.BooleanField(default=True)),
+                ("active", models.BooleanField(default=False)),
+                ("source", models.CharField(blank=True, default="", max_length=10)),
+                ("slug", models.SlugField(max_length=255, unique=True)),
+                ("name", models.CharField(max_length=100)),
+                ("git_url", models.CharField(max_length=255)),
+                (
+                    "external_services",
+                    django.contrib.postgres.fields.jsonb.JSONField(null=True),
+                ),
+                (
+                    "source_tree_metrics",
+                    django.contrib.postgres.fields.jsonb.JSONField(null=True),
+                ),
+                ("last_update", models.DateTimeField(blank=True, null=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="projects",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             bases=(core.mixins.GithubMixin, models.Model),
         ),
         migrations.CreateModel(
-            name='Release',
+            name="Release",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField()),
-                ('type', models.CharField(default='git_tag', max_length=20)),
-                ('name', models.CharField(max_length=100)),
-                ('url', models.CharField(blank=True, max_length=255)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField()),
+                ("type", models.CharField(default="git_tag", max_length=20)),
+                ("name", models.CharField(max_length=100)),
+                ("url", models.CharField(blank=True, max_length=255)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Complexity',
+            name="Complexity",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField()),
-                ('file_path', models.CharField(max_length=255)),
-                ('complexity', models.PositiveIntegerField()),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField()),
+                ("file_path", models.CharField(max_length=255)),
+                ("complexity", models.PositiveIntegerField()),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Metric',
+            name="Metric",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('file_path', models.CharField(blank=True, max_length=255)),
-                ('metrics', django.contrib.postgres.fields.jsonb.JSONField(blank=True, null=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("file_path", models.CharField(blank=True, max_length=255)),
+                (
+                    "metrics",
+                    django.contrib.postgres.fields.jsonb.JSONField(
+                        blank=True, null=True
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('project', 'date')},
+                "unique_together": {("project", "date")},
             },
         ),
     ]

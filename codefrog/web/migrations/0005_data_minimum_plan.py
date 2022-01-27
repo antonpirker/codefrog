@@ -4,17 +4,17 @@ from django.db import migrations
 
 
 def up(apps, schema_editor):
-    Plan = apps.get_model('web', 'Plan')
+    Plan = apps.get_model("web", "Plan")
 
     try:
-        plan = Plan.objects.get(slug='minimum')
+        plan = Plan.objects.get(slug="minimum")
     except Plan.DoesNotExist:
         plan = None
 
     if not plan:
         Plan.objects.create(
-            name='Minimum',
-            slug='minimum',
+            name="Minimum",
+            slug="minimum",
             has_trial_period=True,
             free_trial_days=30,
         )
@@ -26,7 +26,7 @@ def up(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('web', '0004_message_handled'),
+        ("web", "0004_message_handled"),
     ]
 
     operations = [

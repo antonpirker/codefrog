@@ -19,13 +19,20 @@ DAYS_PER_CHUNK = 365 * 10
 
 @shared_task
 def calculate_code_complexity(project_id, *args, **kwargs):
-    logger.info('Project(%s): Starting calculate_code_complexity.', project_id)
+    logger.info("Project(%s): Starting calculate_code_complexity.", project_id)
 
-    Complexity.objects.filter(project_id=project_id).delete()  # TODO: maybe do this in a better way?
+    Complexity.objects.filter(
+        project_id=project_id
+    ).delete()  # TODO: maybe do this in a better way?
 
     # Get the newest Complexity we have
     try:
-        timestamp = Complexity.objects.filter(project_id=project_id).order_by('-timestamp').first().timestamp
+        timestamp = (
+            Complexity.objects.filter(project_id=project_id)
+            .order_by("-timestamp")
+            .first()
+            .timestamp
+        )
     except AttributeError:
         timestamp = datetime.datetime(1970, 1, 1)
 
@@ -33,17 +40,21 @@ def calculate_code_complexity(project_id, *args, **kwargs):
     code_changes = CodeChange.objects.filter(
         project_id=project_id,
         timestamp__gte=timestamp,
-    ).order_by('file_path', 'timestamp')
+    ).order_by("file_path", "timestamp")
 
     complexity = defaultdict(int)
     for change in code_changes:
         # if we do not have a complexity for the file, get the last one from the database.
         if complexity[change.file_path] == 0:
-            comp = Complexity.objects.filter(
-                project_id=project_id,
-                file_path=change.file_path,
-                timestamp__lte=change.timestamp,
-            ).order_by('-timestamp').first()
+            comp = (
+                Complexity.objects.filter(
+                    project_id=project_id,
+                    file_path=change.file_path,
+                    timestamp__lte=change.timestamp,
+                )
+                .order_by("-timestamp")
+                .first()
+            )
 
             if comp:
                 complexity[change.file_path] = comp.complexity
@@ -60,32 +71,39 @@ def calculate_code_complexity(project_id, *args, **kwargs):
             complexity=complexity[change.file_path],
         )
 
-    logger.info('Project(%s): Finished calculate_code_complexity.', project_id)
+    logger.info("Project(%s): Finished calculate_code_complexity.", project_id)
 
 
 @shared_task
 def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
-    logger.info('Project(%s): Starting calculate_code_metrics (%s).', project_id, start_date)
+    logger.info(
+        "Project(%s): Starting calculate_code_metrics (%s).", project_id, start_date
+    )
     project_id = make_one(project_id)
-    log(project_id, 'Calculating code evolution', 'start')
-
+    log(project_id, "Calculating code evolution", "start")
 
     if isinstance(start_date, str):
         start_date = parse(start_date)
     start_date = start_date.date() if start_date else datetime.date(1970, 1, 1)
 
     # Get the last known complexity as starting point. (or 0)
-    total_complexity = Metric.objects.filter(
-        project_id=project_id,
-        date__lt=start_date,
-        metrics__complexity__isnull=False,
-    ).order_by('date').values_list('metrics__complexity', flat=True).last() or 0
+    total_complexity = (
+        Metric.objects.filter(
+            project_id=project_id,
+            date__lt=start_date,
+            metrics__complexity__isnull=False,
+        )
+        .order_by("date")
+        .values_list("metrics__complexity", flat=True)
+        .last()
+        or 0
+    )
 
     complexity = defaultdict(int)
     change_frequency = defaultdict(int)
 
     logger.info(
-        f'Project(%s): Running calculate_code_metrics starting with %s.',
+        f"Project(%s): Running calculate_code_metrics starting with %s.",
         project_id,
         start_date.strftime("%Y-%m-%d"),
     )
@@ -93,7 +111,7 @@ def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
     code_changes = CodeChange.objects.filter(
         project_id=project_id,
         timestamp__date__gte=start_date,
-    ).order_by('timestamp')
+    ).order_by("timestamp")
 
     # Calculate complexity and change frequency at the end of the respective day
     for change in code_changes:
@@ -109,7 +127,7 @@ def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
 
     # Save calculated complexity and change frequency to metrics
     for day in complexity.keys():
-        logger.debug('Project(%s): Code Metric %s', project_id, day)
+        logger.debug("Project(%s): Code Metric %s", project_id, day)
         # save the metrics to db
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
@@ -119,8 +137,8 @@ def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
         if not metric_json:
             metric_json = {}
 
-        metric_json['complexity'] = complexity[day]
-        metric_json['change_frequency'] = change_frequency[day]
+        metric_json["complexity"] = complexity[day]
+        metric_json["change_frequency"] = change_frequency[day]
         metric.metrics = metric_json
         metric.save()
 
@@ -130,8 +148,8 @@ def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
             project_id=project_id,
             date=(start_date - datetime.timedelta(days=1)),
         )
-        old_complexity = old_metric.metrics['complexity']
-        old_change_frequency = old_metric.metrics['change_frequency']
+        old_complexity = old_metric.metrics["complexity"]
+        old_change_frequency = old_metric.metrics["change_frequency"]
     except (Metric.DoesNotExist, KeyError):
         old_complexity = 0
         old_change_frequency = 0
@@ -145,37 +163,41 @@ def calculate_code_metrics(project_id, start_date=None, *args, **kwargs):
         if not metric_json:
             metric_json = {}
 
-        metric_json['complexity'] = metric_json['complexity'] \
-            if 'complexity' in metric_json and metric_json['complexity'] \
+        metric_json["complexity"] = (
+            metric_json["complexity"]
+            if "complexity" in metric_json and metric_json["complexity"]
             else old_complexity
-        metric_json['change_frequency'] = metric_json['change_frequency'] \
-            if 'change_frequency' in metric_json and metric_json['change_frequency'] \
+        )
+        metric_json["change_frequency"] = (
+            metric_json["change_frequency"]
+            if "change_frequency" in metric_json and metric_json["change_frequency"]
             else old_change_frequency
+        )
         metric.metrics = metric_json
         metric.save()
 
-        old_complexity = metric_json['complexity']
-        old_change_frequency = metric_json['change_frequency']
+        old_complexity = metric_json["complexity"]
+        old_change_frequency = metric_json["change_frequency"]
 
-    logger.info('Project(%s): Finished calculate_code_metrics.', project_id)
-    log(project_id, 'Calculating code evolution', 'stop')
+    logger.info("Project(%s): Finished calculate_code_metrics.", project_id)
+    log(project_id, "Calculating code evolution", "stop")
 
     return project_id
 
 
 @shared_task
 def calculate_issue_metrics(project_id, *args, **kwargs):
-    logger.info('Project(%s): Starting calculate_issue_metrics.', project_id)
+    logger.info("Project(%s): Starting calculate_issue_metrics.", project_id)
     project_id = make_one(project_id)
-    log(project_id, 'Calculating issue metrics', 'start')
+    log(project_id, "Calculating issue metrics", "start")
 
     issues = Issue.objects.filter(
         project_id=project_id,
-    ).order_by('opened_at', 'closed_at')
+    ).order_by("opened_at", "closed_at")
 
     if issues.count() == 0:
-        logger.info('Project(%s): No issues found. Aborting.', project_id)
-        logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
+        logger.info("Project(%s): No issues found. Aborting.", project_id)
+        logger.info("Project(%s): Finished calculate_issue_metrics.", project_id)
         return
 
     start_date = issues.first().opened_at
@@ -197,17 +219,19 @@ def calculate_issue_metrics(project_id, *args, **kwargs):
 
         # age
         try:
-            age = (age_closed_issues + age_opened_issues) / (count_closed_issues + count_open_issues)
+            age = (age_closed_issues + age_opened_issues) / (
+                count_closed_issues + count_open_issues
+            )
         except ZeroDivisionError:
             age = 0
 
         count_issues_closed_today = issues.filter(closed_at__date=day).count()
 
         logger.debug(
-            f'{day}: '
-            f'open/age_opened/closed/age_closed/age: '
-            f'{count_open_issues}/{age_opened_issues}/'
-            f'{count_closed_issues}/{age_closed_issues}/{age}'
+            f"{day}: "
+            f"open/age_opened/closed/age_closed/age: "
+            f"{count_open_issues}/{age_opened_issues}/"
+            f"{count_closed_issues}/{age_closed_issues}/{age}"
         )
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
@@ -217,46 +241,50 @@ def calculate_issue_metrics(project_id, *args, **kwargs):
         metric_json = metric.metrics
         if not metric_json:
             metric_json = {}
-        metric_json['github_issues_open'] = count_open_issues
-        metric_json['github_issues_closed'] = count_issues_closed_today
-        metric_json['github_issue_age'] = age
+        metric_json["github_issues_open"] = count_open_issues
+        metric_json["github_issues_closed"] = count_issues_closed_today
+        metric_json["github_issue_age"] = age
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Project(%s): Finished calculate_issue_metrics.', project_id)
-    log(project_id, 'Calculating issue metrics', 'stop')
+    logger.info("Project(%s): Finished calculate_issue_metrics.", project_id)
+    log(project_id, "Calculating issue metrics", "stop")
 
     return project_id
 
 
 @shared_task
 def calculate_pull_request_metrics(project_id, *args, **kwargs):
-    logger.info('Project(%s): Starting calculate_pull_request_metrics.', project_id)
+    logger.info("Project(%s): Starting calculate_pull_request_metrics.", project_id)
     project_id = make_one(project_id)
-    log(project_id, 'Calculating pull request metrics', 'start')
+    log(project_id, "Calculating pull request metrics", "start")
 
     pull_requests = PullRequest.objects.filter(
         project_id=project_id,
         merged_at__isnull=False,
-    ).order_by('opened_at', 'merged_at')
+    ).order_by("opened_at", "merged_at")
 
     if pull_requests.count() == 0:
-        logger.info('Project(%s): No pull requests found. Aborting.', project_id)
-        logger.info('Project(%s): Finished calculate_pull_request_metrics.', project_id)
+        logger.info("Project(%s): No pull requests found. Aborting.", project_id)
+        logger.info("Project(%s): Finished calculate_pull_request_metrics.", project_id)
         return
 
     start_date = pull_requests.first().opened_at
     end_date = timezone.now()
 
     for day in date_range(start_date, end_date):
-        count_pull_requests_merged_today = pull_requests.filter(merged_at__date=day).count()
-        cumulative_pull_requests_age = pull_requests.filter(merged_at__date=day).aggregate(Sum('age'))['age__sum']
+        count_pull_requests_merged_today = pull_requests.filter(
+            merged_at__date=day
+        ).count()
+        cumulative_pull_requests_age = pull_requests.filter(
+            merged_at__date=day
+        ).aggregate(Sum("age"))["age__sum"]
 
         logger.debug(
-            f'{day}: '
-            f'merged/cumulative_age: '
-            f'{count_pull_requests_merged_today}/'
-            f'{cumulative_pull_requests_age}'
+            f"{day}: "
+            f"merged/cumulative_age: "
+            f"{count_pull_requests_merged_today}/"
+            f"{cumulative_pull_requests_age}"
         )
         metric, _ = Metric.objects.get_or_create(
             project_id=project_id,
@@ -267,12 +295,14 @@ def calculate_pull_request_metrics(project_id, *args, **kwargs):
         if not metric_json:
             metric_json = {}
 
-        metric_json['github_pull_requests_merged'] = count_pull_requests_merged_today
-        metric_json['github_pull_requests_cumulative_age'] = cumulative_pull_requests_age
+        metric_json["github_pull_requests_merged"] = count_pull_requests_merged_today
+        metric_json[
+            "github_pull_requests_cumulative_age"
+        ] = cumulative_pull_requests_age
         metric.metrics = metric_json
         metric.save()
 
-    logger.info('Project(%s): Finished calculate_pull_request_metrics.', project_id)
-    log(project_id, 'Calculating pull request metrics', 'stop')
+    logger.info("Project(%s): Finished calculate_pull_request_metrics.", project_id)
+    log(project_id, "Calculating pull request metrics", "stop")
 
     return project_id

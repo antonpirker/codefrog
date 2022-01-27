@@ -8,35 +8,71 @@ import mptt.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0006_auto_20200611_0755'),
+        ("core", "0006_auto_20200611_0755"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SourceStatus',
+            name="SourceStatus",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField()),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField()),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='SourceNode',
+            name="SourceNode",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('path', models.CharField(max_length=255)),
-                ('complexity', models.PositiveIntegerField(default=1)),
-                ('changes', models.PositiveIntegerField(default=1)),
-                ('lft', models.PositiveIntegerField(editable=False)),
-                ('rght', models.PositiveIntegerField(editable=False)),
-                ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('level', models.PositiveIntegerField(editable=False)),
-                ('parent', mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='core.SourceNode')),
-                ('source_status', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.SourceStatus')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("path", models.CharField(max_length=255)),
+                ("complexity", models.PositiveIntegerField(default=1)),
+                ("changes", models.PositiveIntegerField(default=1)),
+                ("lft", models.PositiveIntegerField(editable=False)),
+                ("rght", models.PositiveIntegerField(editable=False)),
+                ("tree_id", models.PositiveIntegerField(db_index=True, editable=False)),
+                ("level", models.PositiveIntegerField(editable=False)),
+                (
+                    "parent",
+                    mptt.fields.TreeForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="children",
+                        to="core.SourceNode",
+                    ),
+                ),
+                (
+                    "source_status",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.SourceStatus",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

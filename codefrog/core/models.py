@@ -24,9 +24,9 @@ STATUS_QUEUED = 2
 STATUS_UPDATING = 3
 
 STATUS_CHOICES = (
-    (STATUS_READY, 'ready'),
-    (STATUS_QUEUED, 'queued'),
-    (STATUS_UPDATING, 'updating'),
+    (STATUS_READY, "ready"),
+    (STATUS_QUEUED, "queued"),
+    (STATUS_UPDATING, "updating"),
 )
 
 # Possibly nice projects to import:
@@ -47,20 +47,22 @@ Vue.js https://github.com/vuejs/vue
 ZEIT Now https://github.com/zeit/now
 """
 
+
 class Project(GithubMixin, models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        related_name='projects',
-        null=True, blank=True,
+        related_name="projects",
+        null=True,
+        blank=True,
     )
     private = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
-    source = models.CharField(max_length=10, blank=True, default='')
+    source = models.CharField(max_length=10, blank=True, default="")
     slug = models.SlugField(max_length=255, unique=True)
     name = models.CharField(max_length=100)
     git_url = models.CharField(max_length=255)
-    git_branch = models.CharField(max_length=255, default='')
+    git_branch = models.CharField(max_length=255, default="")
 
     external_services = JSONField(null=True)
 
@@ -69,12 +71,12 @@ class Project(GithubMixin, models.Model):
     last_update = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.name} ({self.pk})'
+        return f"{self.name} ({self.pk})"
 
     @contextmanager
     def get_tmp_repo_dir(self):
         self.clone_repo()
-        tmp_dir = tempfile.mkdtemp(dir='/dev/shm') # in memory! yay!
+        tmp_dir = tempfile.mkdtemp(dir="/dev/shm")  # in memory! yay!
 
         cmd = f'git clone --quiet --no-hardlinks "{self.repo_dir}" "{tmp_dir}"'
         run_shell_command(cmd)
@@ -98,59 +100,61 @@ class Project(GithubMixin, models.Model):
 
     def get_source_status(self, date=None):
         kwargs = {
-            'active': True,
+            "active": True,
         }
         if date:
-            kwargs['timestamp__date__lte'] = date
+            kwargs["timestamp__date__lte"] = date
 
-        return self.source_stati.filter(**kwargs).order_by('timestamp').last()
+        return self.source_stati.filter(**kwargs).order_by("timestamp").last()
 
     def get_file_changes(self, date_from, date_to):
-        changes = CodeChange.objects.filter(
+        changes = (
+            CodeChange.objects.filter(
                 project=self,
                 timestamp__date__gte=date_from,
                 timestamp__date__lte=date_to,
-            )\
-            .values('file_path')\
-            .annotate(changes=Count('file_path'))\
-            .order_by('-changes', 'file_path')
+            )
+            .values("file_path")
+            .annotate(changes=Count("file_path"))
+            .order_by("-changes", "file_path")
+        )
 
-        changes_dict = {
-            x['file_path']: x['changes'] for x in changes
-        }
+        changes_dict = {x["file_path"]: x["changes"] for x in changes}
         all_nodes = SourceNode.objects.filter(source_status=self.current_source_status)
         all_paths = list(filter(None, list(set(x.project_path for x in all_nodes))))
 
         out = []
         for path in all_paths:
-            out.append({
-                'file_path': path,
-                'changes': changes_dict.get(path, 0),
-                'repo_link': self.get_repo_link(path),
-            })
+            out.append(
+                {
+                    "file_path": path,
+                    "changes": changes_dict.get(path, 0),
+                    "repo_link": self.get_repo_link(path),
+                }
+            )
 
-        out.sort(key=lambda x: x['changes'], reverse=True)
+        out.sort(key=lambda x: x["changes"], reverse=True)
         return out
 
     def get_repo_link(self, path):
-        return f'{self.github_repo_url}/blame/master/{path}'
+        return f"{self.github_repo_url}/blame/master/{path}"
 
     def get_bug_labels(self):
         return [
-            'bug',
-            'Bug',
-            'type:bug',
-            'blocker',
-            'breaking',
-            'critical',
-            'error',
-            'failure',
-            'issue',
-            'regression',
+            "bug",
+            "Bug",
+            "type:bug",
+            "blocker",
+            "breaking",
+            "critical",
+            "error",
+            "failure",
+            "issue",
+            "regression",
             "won't fix",
-            'wont-fix',
-            'wontfix',
-            'WontFix',
+            "wont-fix",
+            "wontfix",
+            "WontFix",
         ]
 
     def ingest(self):
@@ -159,10 +163,21 @@ class Project(GithubMixin, models.Model):
         """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from core.tasks import save_last_update, get_source_status, \
-            update_source_status_with_metrics
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics, calculate_pull_request_metrics
-        from connectors.github.tasks import import_issues, import_releases, import_pull_requests
+        from core.tasks import (
+            save_last_update,
+            get_source_status,
+            update_source_status_with_metrics,
+        )
+        from engine.tasks import (
+            calculate_code_metrics,
+            calculate_issue_metrics,
+            calculate_pull_request_metrics,
+        )
+        from connectors.github.tasks import (
+            import_issues,
+            import_releases,
+            import_pull_requests,
+        )
 
         self.status = STATUS_QUEUED
         self.save()
@@ -179,24 +194,30 @@ class Project(GithubMixin, models.Model):
                 ),
                 chain(
                     import_pull_requests.s().set(expires=DEFAULT_TASK_EXPIRATION),
-                    calculate_pull_request_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    calculate_pull_request_metrics.s().set(
+                        expires=DEFAULT_TASK_EXPIRATION
+                    ),
                 ),
                 import_releases.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 import_tags.s().set(expires=DEFAULT_TASK_EXPIRATION),
             ),
             # Calculate code metrics and at the same time the source status
             group(
-                calculate_code_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION), # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                calculate_code_metrics.s().set(
+                    expires=DEFAULT_TASK_EXPIRATION
+                ),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
                     get_source_status.s().set(expires=DEFAULT_TASK_EXPIRATION),
-                    update_source_status_with_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    update_source_status_with_metrics.s().set(
+                        expires=DEFAULT_TASK_EXPIRATION
+                    ),
                 ),
             ),
             # Save last update date
             save_last_update.s().set(expires=DEFAULT_TASK_EXPIRATION),
         )
 
-        ingest_project.apply_async((self.pk, ))
+        ingest_project.apply_async((self.pk,))
 
     def update(self):
         """
@@ -204,14 +225,27 @@ class Project(GithubMixin, models.Model):
         """
         from celery import chain, group
         from connectors.git.tasks import clone_repo, import_code_changes, import_tags
-        from core.tasks import save_last_update, get_source_status, \
-            update_source_status_with_metrics
-        from engine.tasks import calculate_code_metrics, calculate_issue_metrics, calculate_pull_request_metrics
-        from connectors.github.tasks import import_issues, import_open_issues, \
-            import_releases, import_pull_requests
+        from core.tasks import (
+            save_last_update,
+            get_source_status,
+            update_source_status_with_metrics,
+        )
+        from engine.tasks import (
+            calculate_code_metrics,
+            calculate_issue_metrics,
+            calculate_pull_request_metrics,
+        )
+        from connectors.github.tasks import (
+            import_issues,
+            import_open_issues,
+            import_releases,
+            import_pull_requests,
+        )
 
-        start_date = (timezone.now() - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-        log(self.pk, 'Project update', 'start')
+        start_date = (timezone.now() - timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        log(self.pk, "Project update", "start")
         self.status = STATUS_QUEUED
         self.save()
 
@@ -221,12 +255,15 @@ class Project(GithubMixin, models.Model):
                 import_code_changes.s(start_date=start_date),
                 chain(
                     get_source_status.s().set(expires=DEFAULT_TASK_EXPIRATION),
-                    update_source_status_with_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    update_source_status_with_metrics.s().set(
+                        expires=DEFAULT_TASK_EXPIRATION
+                    ),
                 ),
             ),
-
             group(
-                calculate_code_metrics.s(start_date=start_date),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
+                calculate_code_metrics.s(
+                    start_date=start_date
+                ),  # TODO: calculate_code_metrics calculates complexity and change frequency for the whole project. We do not need the change frequency at the moment, may delete? (can not be run in parallel)
                 chain(
                     import_open_issues.s().set(expires=DEFAULT_TASK_EXPIRATION),
                     import_issues.s(start_date=start_date),
@@ -234,14 +271,16 @@ class Project(GithubMixin, models.Model):
                 ),
                 chain(
                     import_pull_requests.s().set(expires=DEFAULT_TASK_EXPIRATION),
-                    calculate_pull_request_metrics.s().set(expires=DEFAULT_TASK_EXPIRATION),
+                    calculate_pull_request_metrics.s().set(
+                        expires=DEFAULT_TASK_EXPIRATION
+                    ),
                 ),
                 import_releases.s().set(expires=DEFAULT_TASK_EXPIRATION),
                 import_tags.s().set(expires=DEFAULT_TASK_EXPIRATION),
             ),
             save_last_update.s().set(expires=DEFAULT_TASK_EXPIRATION),
         )
-        update_project.apply_async((self.pk, ))
+        update_project.apply_async((self.pk,))
 
     def purge(self):
         """
@@ -265,6 +304,7 @@ class Project(GithubMixin, models.Model):
 
     def clone_repo(self):
         from connectors.git.tasks import clone_repo
+
         clone_repo(
             project_id=self.pk,
         )
@@ -277,6 +317,7 @@ class Project(GithubMixin, models.Model):
 
     def import_code_changes(self, start_date=None):
         from connectors.git.tasks import import_code_changes
+
         import_code_changes(
             project_id=self.pk,
             start_date=start_date,
@@ -284,6 +325,7 @@ class Project(GithubMixin, models.Model):
 
     def calculate_code_metrics(self, start_date=None):
         from engine.tasks import calculate_code_metrics
+
         calculate_code_metrics(
             project_id=self.pk,
             start_date=start_date,
@@ -291,6 +333,7 @@ class Project(GithubMixin, models.Model):
 
     def import_issues(self, start_date=None):
         from connectors.github.tasks import import_issues
+
         import_issues(
             project_id=self.pk,
             start_date=start_date,
@@ -298,23 +341,26 @@ class Project(GithubMixin, models.Model):
 
     def import_open_issues(self):
         from connectors.github.tasks import import_open_issues
+
         import_open_issues(
             project_id=self.pk,
         )
 
     def calculate_issue_metrics(self):
         from engine.tasks import calculate_issue_metrics
-        calculate_issue_metrics(
-            project_id=self.pk
-        )
+
+        calculate_issue_metrics(project_id=self.pk)
+
     def import_releases(self):
         from connectors.github.tasks import import_releases
+
         import_releases(
             project_id=self.pk,
         )
 
     def import_tags(self):
         from connectors.git.tasks import import_tags
+
         import_tags(
             project_id=self.pk,
         )
@@ -331,11 +377,13 @@ class Project(GithubMixin, models.Model):
         avg_pr_age_past = self.get_avg_pr_age(date_from_past, date_to_past)
 
         state_of_affairs = {
-            'complexity_change': self.get_complexity_change(date_from, date_to),
-            'issue_age': avg_issue_age,
-            'issue_age_change': self.get_value_change(avg_issue_age_past, avg_issue_age),
-            'pr_age': avg_pr_age,
-            'pr_age_change': self.get_value_change(avg_pr_age_past, avg_pr_age),
+            "complexity_change": self.get_complexity_change(date_from, date_to),
+            "issue_age": avg_issue_age,
+            "issue_age_change": self.get_value_change(
+                avg_issue_age_past, avg_issue_age
+            ),
+            "pr_age": avg_pr_age,
+            "pr_age_change": self.get_value_change(avg_pr_age_past, avg_pr_age),
         }
 
         return state_of_affairs
@@ -343,24 +391,28 @@ class Project(GithubMixin, models.Model):
     def get_value_change(self, old_value, new_value):
         old_value = old_value if old_value != 0 else 1
         new_value = new_value if new_value != 0 else 1
-        change = new_value/old_value*100 - 100
+        change = new_value / old_value * 100 - 100
         return change
 
     def get_complexity_change(self, date_from, date_to):
-        ref_metric = Metric.objects.filter(project=self, date__lte=date_from)\
-            .order_by('date')\
+        ref_metric = (
+            Metric.objects.filter(project=self, date__lte=date_from)
+            .order_by("date")
             .last()
-        metric = Metric.objects.filter(project=self, date__lte=date_to)\
-            .order_by('date')\
+        )
+        metric = (
+            Metric.objects.filter(project=self, date__lte=date_to)
+            .order_by("date")
             .last()
+        )
 
         try:
-            complexity = metric.metrics['complexity']
+            complexity = metric.metrics["complexity"]
         except (KeyError, AttributeError):
             complexity = 0
 
         try:
-            ref_complexity = ref_metric.metrics['complexity']
+            ref_complexity = ref_metric.metrics["complexity"]
         except (KeyError, AttributeError):
             ref_complexity = 0
 
@@ -369,33 +421,40 @@ class Project(GithubMixin, models.Model):
 
     def get_avg_issue_age(self, date_from, date_to):
         kwargs = {
-            'project': self,
-            'date__gte': date_from,
-            'date__lte': date_to,
+            "project": self,
+            "date__gte": date_from,
+            "date__lte": date_to,
         }
 
         age = 0
-        metric = Metric.objects.filter(**kwargs).order_by('date').last()
+        metric = Metric.objects.filter(**kwargs).order_by("date").last()
         if metric:
-            age = metric.metrics['github_issue_age'] if 'github_issue_age' in metric.metrics else 0
+            age = (
+                metric.metrics["github_issue_age"]
+                if "github_issue_age" in metric.metrics
+                else 0
+            )
 
         return age
 
     def get_avg_pr_age(self, date_from, date_to):
         kwargs = {
-            'project': self,
-            'date__gte': date_from,
-            'date__lte': date_to,
+            "project": self,
+            "date__gte": date_from,
+            "date__lte": date_to,
         }
 
         age = 0
-        metric = Metric.objects.filter(**kwargs).order_by('date').last()
+        metric = Metric.objects.filter(**kwargs).order_by("date").last()
         if metric:
-            age = metric.metrics['github_pull_requests_cumulative_age'] or 0 \
-                if 'github_pull_requests_cumulative_age' in metric.metrics else 0 \
-                / metric.metrics['github_pull_requests_merged'] or 1 \
-                if 'github_pull_requests_merged' in metric.metrics \
-                   and metric.metrics['github_pull_requests_merged'] != 0 else 1
+            age = (
+                metric.metrics["github_pull_requests_cumulative_age"] or 0
+                if "github_pull_requests_cumulative_age" in metric.metrics
+                else 0 / metric.metrics["github_pull_requests_merged"] or 1
+                if "github_pull_requests_merged" in metric.metrics
+                and metric.metrics["github_pull_requests_merged"] != 0
+                else 1
+            )
         age = age / 60 / 60
 
         return age
@@ -408,43 +467,56 @@ class Project(GithubMixin, models.Model):
         :return: Array of integers
         """
         try:
-            ref_complexity = Complexity.objects.filter(
-                project=self,
-                file_path=path,
-                timestamp__date__gte=date_from,
-                timestamp__date__lte=date_to,
-            ).order_by('-timestamp').first().complexity
+            ref_complexity = (
+                Complexity.objects.filter(
+                    project=self,
+                    file_path=path,
+                    timestamp__date__gte=date_from,
+                    timestamp__date__lte=date_to,
+                )
+                .order_by("-timestamp")
+                .first()
+                .complexity
+            )
         except AttributeError:
             ref_complexity = 0
 
         source_status = self.get_source_status(date=date_to)
-        is_file = SourceNode.objects.get(source_status=source_status, path=os.path.join(self.github_repo_name, path)).children.all().count() == 0
+        is_file = (
+            SourceNode.objects.get(
+                source_status=source_status,
+                path=os.path.join(self.github_repo_name, path),
+            )
+            .children.all()
+            .count()
+            == 0
+        )
         complexities = {}
         if is_file:
             for day in date_range(date_from, date_to):
-                complexities[day.strftime('%Y-%m-%d')] = ref_complexity
+                complexities[day.strftime("%Y-%m-%d")] = ref_complexity
 
             comps = Complexity.objects.filter(
                 project=self,
                 file_path=path,
                 timestamp__date__gte=date_from,
                 timestamp__date__lte=date_to,
-            ).order_by('timestamp')
+            ).order_by("timestamp")
 
             for comp in comps:
-                complexities[comp.timestamp.strftime('%Y-%m-%d')] = comp.complexity
+                complexities[comp.timestamp.strftime("%Y-%m-%d")] = comp.complexity
         else:
             comps = Complexity.objects.filter(
                 project=self,
                 file_path=path,
                 timestamp__date__gte=date_from,
                 timestamp__date__lte=date_to,
-            ).order_by('timestamp')
+            ).order_by("timestamp")
 
             for comp in comps:
-                key = comp.timestamp.strftime('%Y-%m-%d')
+                key = comp.timestamp.strftime("%Y-%m-%d")
                 if key not in complexities.keys():
-                    complexities[comp.timestamp.strftime('%Y-%m-%d')] = 0
+                    complexities[comp.timestamp.strftime("%Y-%m-%d")] = 0
 
                 complexities[key] = complexities[key] + comp.complexity
 
@@ -459,116 +531,136 @@ class Project(GithubMixin, models.Model):
         """
         changes = {}
         for day in date_range(date_from, date_to):
-            changes[day.strftime('%Y-%m-%d')] = 0
+            changes[day.strftime("%Y-%m-%d")] = 0
 
         source_status = self.get_source_status(date=date_to)
-        is_file = SourceNode.objects.get(source_status=source_status, path=os.path.join(self.github_repo_name, path)).children.all().count() == 0
+        is_file = (
+            SourceNode.objects.get(
+                source_status=source_status,
+                path=os.path.join(self.github_repo_name, path),
+            )
+            .children.all()
+            .count()
+            == 0
+        )
         if is_file:
-            raw_changes = CodeChange.objects.filter(
+            raw_changes = (
+                CodeChange.objects.filter(
                     project=self,
                     file_path=path,
                     timestamp__date__gte=date_from,
                     timestamp__date__lte=date_to,
-                )\
-                .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
-                .values('day')\
-                .annotate(changes=Count('timestamp'))
+                )
+                .extra(select={"day": "TO_CHAR(timestamp, 'YYYY-MM-DD')"})
+                .values("day")
+                .annotate(changes=Count("timestamp"))
+            )
         else:
-            raw_changes = CodeChange.objects.filter(
+            raw_changes = (
+                CodeChange.objects.filter(
                     project=self,
                     file_path__startswith=path,
                     timestamp__date__gte=date_from,
                     timestamp__date__lte=date_to,
-                )\
-                .extra(select={'day': "TO_CHAR(timestamp, 'YYYY-MM-DD')"})\
-                .values('day')\
-                .annotate(changes=Count('timestamp'))
+                )
+                .extra(select={"day": "TO_CHAR(timestamp, 'YYYY-MM-DD')"})
+                .values("day")
+                .annotate(changes=Count("timestamp"))
+            )
 
         for raw_change in raw_changes:
-            changes[raw_change['day']] = raw_change['changes']
+            changes[raw_change["day"]] = raw_change["changes"]
 
         return sorted(changes.items())
 
     def get_file_metrics(self, path):
         path = os.path.join(self.github_repo_name, path)
-        node = SourceNode.objects.get(source_status=self.current_source_status, path=path)
+        node = SourceNode.objects.get(
+            source_status=self.current_source_status, path=path
+        )
         if node.children.all().count() == 0:
             return node.json_representation
         else:
-            return SourceNode.objects.filter(source_status=self.current_source_status, path__startswith=path)
+            return SourceNode.objects.filter(
+                source_status=self.current_source_status, path__startswith=path
+            )
 
     def get_file_ownership(self, path):
         file_metrics = self.get_file_metrics(path)
         if type(file_metrics) == dict:
-            ownership = file_metrics['ownership']
+            ownership = file_metrics["ownership"]
         else:
             lines = {}
             for node in file_metrics:
-                node_json = node.json_representation['ownership']
+                node_json = node.json_representation["ownership"]
                 for node_ownership in node_json:
-                    if node_ownership['author'] not in lines.keys():
-                        lines[node_ownership['author']] = 0
-                    lines[node_ownership['author']] = lines[node_ownership['author']] + node_ownership['lines']
+                    if node_ownership["author"] not in lines.keys():
+                        lines[node_ownership["author"]] = 0
+                    lines[node_ownership["author"]] = (
+                        lines[node_ownership["author"]] + node_ownership["lines"]
+                    )
 
-            ownership = [{'author': key, 'lines': lines[key]}for key in lines.keys()]
+            ownership = [{"author": key, "lines": lines[key]} for key in lines.keys()]
 
         # only return top 4 and the rest as "others"
         top = ownership[:4]
 
         others = ownership[6:]
-        lines_of_others = sum([x['lines'] for x in others])
+        lines_of_others = sum([x["lines"] for x in others])
 
         if len(others) > 0:
-            top.append({
-                'author': '%s Others' % len(others),
-                'lines': lines_of_others,
-            })
+            top.append(
+                {
+                    "author": "%s Others" % len(others),
+                    "lines": lines_of_others,
+                }
+            )
 
         # normalize ownership to percentage values
-        sum_values = sum([x['lines'] for x in top])
+        sum_values = sum([x["lines"] for x in top])
         for x in top:
-            x['lines'] = round(x['lines'] / sum_values * 100)
+            x["lines"] = round(x["lines"] / sum_values * 100)
 
         return top
 
 
 class LogEntry(models.Model):
     project = models.ForeignKey(
-        'Project',
+        "Project",
         on_delete=models.CASCADE,
     )
     timestamp_start = models.DateTimeField()
-    timestamp_end = models.DateTimeField(null=True,)
+    timestamp_end = models.DateTimeField(
+        null=True,
+    )
     message = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.project} {self.message} ({self.timestamp_start} - {self.timestamp_end})'
+        return f"{self.project} {self.message} ({self.timestamp_start} - {self.timestamp_end})"
 
     class Meta:
-        ordering = ['-timestamp_start']
+        ordering = ["-timestamp_start"]
 
 
 class Metric(models.Model):
     project = models.ForeignKey(
-        'Project',
+        "Project",
         on_delete=models.CASCADE,
-        related_name='metrics',
+        related_name="metrics",
     )
     date = models.DateField()
     file_path = models.CharField(max_length=255, blank=True)
     metrics = JSONField(null=True, blank=True)
 
     class Meta:
-        unique_together = (
-            ('project', 'date'),
-        )
+        unique_together = (("project", "date"),)
 
 
 class SourceStatus(models.Model):
     project = models.ForeignKey(
-        'Project',
+        "Project",
         on_delete=models.CASCADE,
-        related_name='source_stati',
+        related_name="source_stati",
     )
     timestamp = models.DateTimeField()
     active = models.BooleanField(default=False)
@@ -578,7 +670,7 @@ class SourceStatus(models.Model):
         def render_tree(node):
             current_node = node.simple_json_representation
             for child in node.get_children():
-                current_node['children'].append(render_tree(child))
+                current_node["children"].append(render_tree(child))
 
             return current_node
 
@@ -590,7 +682,7 @@ class SourceStatus(models.Model):
         def render_tree(node):
             current_node = node.json_representation
             for child in node.get_children():
-                current_node['children'].append(render_tree(child))
+                current_node["children"].append(render_tree(child))
 
             return current_node
 
@@ -599,39 +691,53 @@ class SourceStatus(models.Model):
 
     @property
     def min_changes(self):
-        return SourceNode.objects.filter(source_status=self)\
-            .aggregate(Min('changes')).get('changes__min', 1)
+        return (
+            SourceNode.objects.filter(source_status=self)
+            .aggregate(Min("changes"))
+            .get("changes__min", 1)
+        )
 
     @property
     def max_changes(self):
-        return SourceNode.objects.filter(source_status=self)\
-            .aggregate(Max('changes')).get('changes__max', 1)
+        return (
+            SourceNode.objects.filter(source_status=self)
+            .aggregate(Max("changes"))
+            .get("changes__max", 1)
+        )
 
     @property
     def min_complexity(self):
-        return SourceNode.objects.filter(source_status=self)\
-            .aggregate(Min('complexity')).get('complexity__min', 1)
+        return (
+            SourceNode.objects.filter(source_status=self)
+            .aggregate(Min("complexity"))
+            .get("complexity__min", 1)
+        )
 
     @property
     def max_complexity(self):
-        return SourceNode.objects.filter(source_status=self)\
-            .aggregate(Max('complexity')).get('complexity__max', 1)
+        return (
+            SourceNode.objects.filter(source_status=self)
+            .aggregate(Max("complexity"))
+            .get("complexity__max", 1)
+        )
 
     def __str__(self):
-        return f'{self.project} on {self.timestamp}'
+        return f"{self.project} on {self.timestamp}"
 
 
 class SourceNode(MPTTModel):
     source_status = models.ForeignKey(
-        'SourceStatus',
+        "SourceStatus",
         on_delete=models.CASCADE,
     )
 
     name = models.CharField(max_length=255)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
-    path = models.CharField(max_length=255, null=False, default='')
-    repo_link = models.CharField(max_length=255, null=False, default='')
+    path = models.CharField(max_length=255, null=False, default="")
+    repo_link = models.CharField(max_length=255, null=False, default="")
 
     complexity = models.PositiveIntegerField(null=False, default=1)
     changes = models.PositiveIntegerField(null=False, default=1)
@@ -664,44 +770,41 @@ class SourceNode(MPTTModel):
     def json_representation(self):
         representation = {
             "name": self.name,
-
             "path": self.project_path,
             "repo_link": self.repo_link,
             "is_file": self.is_file,
-
             "size": self.complexity,
             "changes": self.changes,
             "ownership": self.ownership,
-
             "children": [],
         }
 
         return representation
 
     class MPTTMeta:
-        order_insertion_by = ['name']
+        order_insertion_by = ["name"]
 
     class Meta:
-        unique_together = [['parent', 'name']]
+        unique_together = [["parent", "name"]]
 
 
 class Release(models.Model):
     project = models.ForeignKey(
-        'Project',
+        "Project",
         on_delete=models.CASCADE,
     )
     timestamp = models.DateTimeField()
-    type = models.CharField(max_length=20, default='git_tag')
+    type = models.CharField(max_length=20, default="git_tag")
     name = models.CharField(max_length=100)
     url = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f'{self.name} ({self.pk})'
+        return f"{self.name} ({self.pk})"
 
 
 class Complexity(models.Model):
     project = models.ForeignKey(
-        'core.Project',
+        "core.Project",
         on_delete=models.CASCADE,
     )
     timestamp = models.DateTimeField()

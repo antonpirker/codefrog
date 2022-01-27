@@ -10,44 +10,97 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OpenIssue',
+            name="OpenIssue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('query_time', models.DateTimeField()),
-                ('issue_refid', models.CharField(max_length=100)),
-                ('labels', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), default=list, size=None)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("query_time", models.DateTimeField()),
+                ("issue_refid", models.CharField(max_length=100)),
+                (
+                    "labels",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.CharField(max_length=255),
+                        default=list,
+                        size=None,
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CodeChange',
+            name="CodeChange",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField()),
-                ('file_path', models.CharField(max_length=255)),
-                ('author', models.CharField(max_length=255)),
-                ('complexity_added', models.PositiveIntegerField()),
-                ('complexity_removed', models.PositiveIntegerField()),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField()),
+                ("file_path", models.CharField(max_length=255)),
+                ("author", models.CharField(max_length=255)),
+                ("complexity_added", models.PositiveIntegerField()),
+                ("complexity_removed", models.PositiveIntegerField()),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Issue',
+            name="Issue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('issue_refid', models.CharField(max_length=100)),
-                ('opened_at', models.DateTimeField()),
-                ('closed_at', models.DateTimeField(null=True)),
-                ('labels', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), default=list, size=None)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("issue_refid", models.CharField(max_length=100)),
+                ("opened_at", models.DateTimeField()),
+                ("closed_at", models.DateTimeField(null=True)),
+                (
+                    "labels",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.CharField(max_length=255),
+                        default=list,
+                        size=None,
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('project', 'issue_refid')},
+                "unique_together": {("project", "issue_refid")},
             },
         ),
     ]

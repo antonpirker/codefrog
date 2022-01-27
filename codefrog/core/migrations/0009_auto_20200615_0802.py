@@ -7,43 +7,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0008_auto_20200614_2037'),
+        ("core", "0008_auto_20200614_2037"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sourcenode',
-            name='ownership',
+            model_name="sourcenode",
+            name="ownership",
             field=django.contrib.postgres.fields.jsonb.JSONField(default=[]),
         ),
         migrations.AddField(
-            model_name='sourcenode',
-            name='repo_link',
-            field=models.CharField(default='', max_length=255),
+            model_name="sourcenode",
+            name="repo_link",
+            field=models.CharField(default="", max_length=255),
         ),
         migrations.AddField(
-            model_name='sourcestatus',
-            name='max_changes',
+            model_name="sourcestatus",
+            name="max_changes",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AddField(
-            model_name='sourcestatus',
-            name='max_complexity',
+            model_name="sourcestatus",
+            name="max_complexity",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AddField(
-            model_name='sourcestatus',
-            name='min_changes',
+            model_name="sourcestatus",
+            name="min_changes",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AddField(
-            model_name='sourcestatus',
-            name='min_complexity',
+            model_name="sourcestatus",
+            name="min_complexity",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AlterField(
-            model_name='sourcenode',
-            name='path',
-            field=models.CharField(default='', max_length=255),
+            model_name="sourcenode",
+            name="path",
+            field=models.CharField(default="", max_length=255),
         ),
     ]

@@ -7,22 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0010_auto_20200615_0957'),
+        ("core", "0010_auto_20200615_0957"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='project',
-            name='source_tree_metrics',
+            model_name="project",
+            name="source_tree_metrics",
         ),
         migrations.AddField(
-            model_name='sourcestatus',
-            name='active',
+            model_name="sourcestatus",
+            name="active",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='sourcenode',
-            name='ownership',
+            model_name="sourcenode",
+            name="ownership",
             field=django.contrib.postgres.fields.jsonb.JSONField(default=list),
         ),
     ]

@@ -6,22 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0005_auto_20200521_0714'),
+        ("core", "0005_auto_20200521_0714"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='logentry',
-            options={'ordering': ['-timestamp_start']},
+            name="logentry",
+            options={"ordering": ["-timestamp_start"]},
         ),
         migrations.RenameField(
-            model_name='logentry',
-            old_name='timestamp',
-            new_name='timestamp_start',
+            model_name="logentry",
+            old_name="timestamp",
+            new_name="timestamp_start",
         ),
         migrations.AddField(
-            model_name='logentry',
-            name='timestamp_end',
+            model_name="logentry",
+            name="timestamp_end",
             field=models.DateTimeField(null=True),
         ),
     ]

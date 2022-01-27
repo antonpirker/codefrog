@@ -20,31 +20,32 @@ logger = structlog.get_logger(__name__)
 MONTH = 30
 YEAR = 365
 
+
 def index(request):
     # users that are not logged in see the landing page.
     if not request.user.is_authenticated:
         return landing(request)
 
     if request.user.is_superuser:
-        projects = Project.objects.all().order_by('-active', 'name')
+        projects = Project.objects.all().order_by("-active", "name")
     else:
-        projects = request.user.projects.all().order_by('-active', 'name')
+        projects = request.user.projects.all().order_by("-active", "name")
 
     context = {
-        'user': request.user,
-        'projects': projects,
-        'github_app_client_id': settings.GITHUB_APP_CLIENT_ID,
-        'github_redirect_uri': settings.GITHUB_AUTH_REDIRECT_URI,
+        "user": request.user,
+        "projects": projects,
+        "github_app_client_id": settings.GITHUB_APP_CLIENT_ID,
+        "github_redirect_uri": settings.GITHUB_AUTH_REDIRECT_URI,
     }
 
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
         timestamp=timezone.now(),
-        action='repository_list.view',
+        action="repository_list.view",
     )
 
-    html = render_to_string('index.html', context=context, request=request)
+    html = render_to_string("index.html", context=context, request=request)
     return HttpResponse(html)
 
 
@@ -52,18 +53,20 @@ def project_detail(request, slug):
     try:
         project = Project.objects.get(slug=slug)
     except Project.DoesNotExist:
-        raise Http404('Project does not exist')
+        raise Http404("Project does not exist")
 
-    if project.private \
-        and request.user != project.user  \
-        and not request.user.is_superuser:
-            raise Http404('Project does not exist')
+    if (
+        project.private
+        and request.user != project.user
+        and not request.user.is_superuser
+    ):
+        raise Http404("Project does not exist")
 
     # Render the HTML and send to client.
     context = {
-        'user': request.user,
-        'projects': Project.objects.all().order_by('name'),
-        'project': project,
+        "user": request.user,
+        "projects": Project.objects.all().order_by("name"),
+        "project": project,
     }
 
     """
@@ -458,10 +461,10 @@ def project_detail(request, slug):
         user=request.user if request.user.is_authenticated else None,
         project=project,
         timestamp=now,
-        action='project.load',
+        action="project.load",
     )
 
-    html = render_to_string('project/detail.html', context=context, request=request)
+    html = render_to_string("project/detail.html", context=context, request=request)
     return HttpResponse(html)
 
 
@@ -481,7 +484,7 @@ def project_toggle(request, username, project_slug, user, project):
             user=request.user if request.user.is_authenticated else None,
             project=None,
             timestamp=now,
-            action='project.activate',
+            action="project.activate",
         )
         project.ingest()
     else:
@@ -489,12 +492,12 @@ def project_toggle(request, username, project_slug, user, project):
             user=request.user if request.user.is_authenticated else None,
             project=None,
             timestamp=now,
-            action='project.deactivate',
+            action="project.deactivate",
         )
         project.last_update = None
         project.save()
 
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 
 def count_usage(request):
@@ -502,9 +505,9 @@ def count_usage(request):
 
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
-        project_id=payload['project_id'],
-        timestamp=parse_datetime(payload['timestamp']),
-        action=payload['action'],
+        project_id=payload["project_id"],
+        timestamp=parse_datetime(payload["timestamp"]),
+        action=payload["action"],
     )
 
-    return HttpResponse('')
+    return HttpResponse("")

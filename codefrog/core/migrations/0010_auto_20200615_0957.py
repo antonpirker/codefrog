@@ -7,29 +7,33 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0009_auto_20200615_0802'),
+        ("core", "0009_auto_20200615_0802"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='sourcestatus',
-            name='max_changes',
+            model_name="sourcestatus",
+            name="max_changes",
         ),
         migrations.RemoveField(
-            model_name='sourcestatus',
-            name='max_complexity',
+            model_name="sourcestatus",
+            name="max_complexity",
         ),
         migrations.RemoveField(
-            model_name='sourcestatus',
-            name='min_changes',
+            model_name="sourcestatus",
+            name="min_changes",
         ),
         migrations.RemoveField(
-            model_name='sourcestatus',
-            name='min_complexity',
+            model_name="sourcestatus",
+            name="min_complexity",
         ),
         migrations.AlterField(
-            model_name='sourcestatus',
-            name='project',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='source_stati', to='core.Project'),
+            model_name="sourcestatus",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="source_stati",
+                to="core.Project",
+            ),
         ),
     ]

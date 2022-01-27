@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0003_logentry'),
+        ("core", "0003_logentry"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='status',
-            field=models.IntegerField(choices=[(1, 'ready'), (2, 'queued'), (3, 'updating')], default=1),
+            model_name="project",
+            name="status",
+            field=models.IntegerField(
+                choices=[(1, "ready"), (2, "queued"), (3, "updating")], default=1
+            ),
         ),
     ]

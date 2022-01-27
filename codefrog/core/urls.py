@@ -8,22 +8,18 @@ def trigger_error(request):
 
 
 urlpatterns = [
-    path('', views.index, name='index'),
-
+    path("", views.index, name="index"),
     # project details
-    path('project/<slug:slug>',
-        views.project_detail, name='project-detail'),
-
+    path("project/<slug:slug>", views.project_detail, name="project-detail"),
     # settings actions
-    path('settings/<slug:username>/project/<slug:project_slug>/toggle',
-        views.project_toggle, name='project-toggle'),
-
-    path('accounts/', include('django.contrib.auth.urls')),
-
+    path(
+        "settings/<slug:username>/project/<slug:project_slug>/toggle",
+        views.project_toggle,
+        name="project-toggle",
+    ),
+    path("accounts/", include("django.contrib.auth.urls")),
     # usage statistics
-    path('count', views.count_usage),
-
-    path('', include('web.urls')),
-
-    path('sentry-debug/', trigger_error),
+    path("count", views.count_usage),
+    path("", include("web.urls")),
+    path("sentry-debug/", trigger_error),
 ]

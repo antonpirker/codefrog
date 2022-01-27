@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 class NoValue(object):
     def __repr__(self):
-        return f'{self.__class__.__name__}'
+        return f"{self.__class__.__name__}"
 
 
 NOTSET = NoValue()
@@ -19,19 +19,16 @@ def get_env(*args, **kwargs):
     except (ImproperlyConfigured, ValueError):
         value = NOTSET
 
-    default = kwargs['default'] if 'default' in kwargs else NOTSET
+    default = kwargs["default"] if "default" in kwargs else NOTSET
     no_default_set = isinstance(default, NoValue)
 
-    no_value = value == NOTSET \
-        or hasattr(value, 'geturl') and not value.geturl()
+    no_value = value == NOTSET or hasattr(value, "geturl") and not value.geturl()
 
     if no_value and no_default_set:
-        raise Exception(f'Key {key} not found in environment and no default specified!')
+        raise Exception(f"Key {key} not found in environment and no default specified!")
 
     if no_value:
-        if (hasattr(value, 'geturl')
-            or type(value) == dict
-           ) and default != None:
+        if (hasattr(value, "geturl") or type(value) == dict) and default != None:
             value = func(str(random.random()), default=default)
         else:
             value = default

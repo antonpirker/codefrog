@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0007_sourcenode_sourcestatus'),
+        ("core", "0007_sourcenode_sourcestatus"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='sourcenode',
-            unique_together={('parent', 'name')},
+            name="sourcenode",
+            unique_together={("parent", "name")},
         ),
     ]

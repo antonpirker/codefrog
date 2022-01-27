@@ -5,43 +5,43 @@ from django.db.utils import IntegrityError
 
 
 def up(apps, schema_editor):
-    Plan = apps.get_model('web', 'Plan')
+    Plan = apps.get_model("web", "Plan")
 
     try:
-        plan = Plan.objects.get(slug='free')
+        plan = Plan.objects.get(slug="free")
     except Plan.DoesNotExist:
         plan = None
 
     if not plan:
         Plan.objects.create(
-            name='Free',
-            slug='free',
+            name="Free",
+            slug="free",
             has_trial_period=False,
             free_trial_days=0,
         )
 
     try:
-        plan = Plan.objects.get(slug='individual')
+        plan = Plan.objects.get(slug="individual")
     except Plan.DoesNotExist:
         plan = None
 
     if not plan:
         Plan.objects.create(
-            name='Individual',
-            slug='individual',
+            name="Individual",
+            slug="individual",
             has_trial_period=True,
             free_trial_days=14,
         )
 
     try:
-        plan = Plan.objects.get(slug='team')
+        plan = Plan.objects.get(slug="team")
     except Plan.DoesNotExist:
         plan = None
 
     if not plan:
         Plan.objects.create(
-            name='Team',
-            slug='team',
+            name="Team",
+            slug="team",
             has_trial_period=True,
             free_trial_days=14,
         )
@@ -50,7 +50,7 @@ def up(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('web', '0001_initial'),
+        ("web", "0001_initial"),
     ]
 
     operations = [

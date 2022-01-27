@@ -17,21 +17,21 @@ def github_hook(request):
     :param request: The request as sent by Github.
     :return:
     """
-    logger.info('Starting github_hook')
-    event = request.headers['X-Github-Event']
+    logger.info("Starting github_hook")
+    event = request.headers["X-Github-Event"]
     payload = json.loads(request.body)
-    action = payload['action']
-    logger.info(f'RECEIVED GITHUB HOOK (event/action):  {event}/{action}')
+    action = payload["action"]
+    logger.info(f"RECEIVED GITHUB HOOK (event/action):  {event}/{action}")
 
-    handlers_module = import_module('%s.handlers' % __name__.rpartition('.')[0])
-    handler_name = f'{event}__{action}'
+    handlers_module = import_module("%s.handlers" % __name__.rpartition(".")[0])
+    handler_name = f"{event}__{action}"
     try:
         handler = getattr(handlers_module, handler_name)
         out = handler(payload, request)
     except AttributeError as err:
-        msg = f'Could not import handler for Github event: {event} / action: {action}. Error: {err}'
+        msg = f"Could not import handler for Github event: {event} / action: {action}. Error: {err}"
         logger.warning(msg)
         out = msg
 
-    logger.info('Finished github_hook')
+    logger.info("Finished github_hook")
     return out

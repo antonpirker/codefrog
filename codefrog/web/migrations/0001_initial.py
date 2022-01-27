@@ -11,42 +11,103 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Plan',
+            name="Plan",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=40)),
-                ('slug', models.CharField(max_length=40)),
-                ('has_trial_period', models.BooleanField(default=False)),
-                ('free_trial_days', models.IntegerField(default=14)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=40)),
+                ("slug", models.CharField(max_length=40)),
+                ("has_trial_period", models.BooleanField(default=False)),
+                ("free_trial_days", models.IntegerField(default=14)),
             ],
         ),
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('github_app_installation_refid', models.IntegerField(null=True)),
-                ('fastspring_subscription_refid', models.CharField(blank=True, default='', max_length=100)),
-                ('fastspring_account_refid', models.CharField(blank=True, default='', max_length=100)),
-                ('newly_registered', models.BooleanField(default=True)),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now)),
-                ('plan', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='web.Plan')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("github_app_installation_refid", models.IntegerField(null=True)),
+                (
+                    "fastspring_subscription_refid",
+                    models.CharField(blank=True, default="", max_length=100),
+                ),
+                (
+                    "fastspring_account_refid",
+                    models.CharField(blank=True, default="", max_length=100),
+                ),
+                ("newly_registered", models.BooleanField(default=True)),
+                (
+                    "date_joined",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="web.Plan",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Usage',
+            name="Usage",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField(db_index=True)),
-                ('action', models.CharField(db_index=True, max_length=100)),
-                ('project', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField(db_index=True)),
+                ("action", models.CharField(db_index=True, max_length=100)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.Project",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

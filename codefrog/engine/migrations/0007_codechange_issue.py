@@ -7,13 +7,17 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0006_pullrequest_age'),
+        ("engine", "0006_pullrequest_age"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='codechange',
-            name='issue',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, to='engine.Issue'),
+            model_name="codechange",
+            name="issue",
+            field=models.OneToOneField(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="engine.Issue",
+            ),
         ),
     ]

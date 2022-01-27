@@ -1,6 +1,6 @@
-
 MONTH = 30
 YEAR = 365
+
 
 def get_best_frequency(date_from, date_to):
     """
@@ -15,14 +15,14 @@ def get_best_frequency(date_from, date_to):
         days = 0
 
     if 0 < days <= 3 * MONTH:
-        frequency = 'D'
+        frequency = "D"
     elif 3 * MONTH < days <= 1 * YEAR:
-        frequency = 'W'
+        frequency = "W"
     elif 1 * YEAR < days <= 3 * YEAR:
-        frequency = 'M'
+        frequency = "M"
     elif days > 3 * YEAR:
-        frequency = 'Q'
+        frequency = "Q"
     else:  # default
-        frequency = 'D'
+        frequency = "D"
 
     return frequency

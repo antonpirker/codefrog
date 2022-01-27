@@ -7,22 +7,35 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0012_project_git_branch'),
-        ('engine', '0003_codechange_git_commit_hash'),
+        ("core", "0012_project_git_branch"),
+        ("engine", "0003_codechange_git_commit_hash"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PullRequest',
+            name="PullRequest",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pr_refid', models.CharField(max_length=100)),
-                ('opened_at', models.DateTimeField()),
-                ('closed_at', models.DateTimeField(null=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("pr_refid", models.CharField(max_length=100)),
+                ("opened_at", models.DateTimeField()),
+                ("closed_at", models.DateTimeField(null=True)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.Project"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('project', 'pr_refid')},
+                "unique_together": {("project", "pr_refid")},
             },
         ),
     ]

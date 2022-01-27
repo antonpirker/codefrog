@@ -23,11 +23,11 @@ def landing(request):
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
         timestamp=timezone.now(),
-        action='landing_page.view',
+        action="landing_page.view",
     )
 
     context = {}
-    html = render_to_string('landing.html', context=context, request=request)
+    html = render_to_string("landing.html", context=context, request=request)
 
     return HttpResponse(html)
 
@@ -40,20 +40,20 @@ def connect_github(request):
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
         timestamp=timezone.now(),
-        action='connect_github_page.view',
+        action="connect_github_page.view",
     )
 
-    plan = request.GET.get('plan', 'minimum')
+    plan = request.GET.get("plan", "minimum")
 
-    bytes = b'%s%s' % (settings.SECRET_KEY.encode('utf8'), plan.encode('utf8'))
-    hash = 'hash_%s' % hashlib.sha224(bytes).hexdigest()
+    bytes = b"%s%s" % (settings.SECRET_KEY.encode("utf8"), plan.encode("utf8"))
+    hash = "hash_%s" % hashlib.sha224(bytes).hexdigest()
 
     context = {
-        'github_state': secrets.token_urlsafe(50),
-        'plan': plan,
-        'hash': hash,
+        "github_state": secrets.token_urlsafe(50),
+        "plan": plan,
+        "hash": hash,
     }
-    html = render_to_string('connect_github.html', context=context, request=request)
+    html = render_to_string("connect_github.html", context=context, request=request)
 
     return HttpResponse(html)
 
@@ -66,24 +66,26 @@ def pricing(request):
         user=request.user if request.user.is_authenticated else None,
         project_id=None,
         timestamp=timezone.now(),
-        action='pricing_page.view',
+        action="pricing_page.view",
     )
 
     context = {
-        'github_state': secrets.token_urlsafe(50),
+        "github_state": secrets.token_urlsafe(50),
     }
 
-    signing = request.GET.get('signing', False)
+    signing = request.GET.get("signing", False)
 
     if signing:
-        context['signin'] = True
-        context['headline'] = 'No matching account found!'
-        context['message'] = """
+        context["signin"] = True
+        context["headline"] = "No matching account found!"
+        context[
+            "message"
+        ] = """
             You do not yet have an Codefrog account matching your GitHub account.<br/>
             Please choose an account type below and start your free trial:
         """
 
-    html = render_to_string('pricing.html', context=context, request=request)
+    html = render_to_string("pricing.html", context=context, request=request)
     return HttpResponse(html)
 
 
@@ -92,20 +94,20 @@ def user_settings(request, username):
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
-        raise Http404('User does not exist')
+        raise Http404("User does not exist")
 
     Usage.objects.create(
         user=request.user if request.user.is_authenticated else None,
         project=None,
         timestamp=timezone.now(),
-        action='user_settings.view',
+        action="user_settings.view",
     )
 
     context = {
-        'user': user,
-        'projects': user.projects.all().order_by('name'),
+        "user": user,
+        "projects": user.projects.all().order_by("name"),
     }
-    html = render_to_string('settings/user.html', context=context)
+    html = render_to_string("settings/user.html", context=context)
     return HttpResponse(html)
 
 
@@ -116,22 +118,22 @@ def project_settings(request, username, project_slug, user, project):
         user=request.user if request.user.is_authenticated else None,
         project=None,
         timestamp=timezone.now(),
-        action='project_settings.view',
+        action="project_settings.view",
     )
 
     context = {
-        'user': request.user,
-        'project': project,
+        "user": request.user,
+        "project": project,
     }
-    html = render_to_string('settings/project.html', context=context)
+    html = render_to_string("settings/project.html", context=context)
     return HttpResponse(html)
 
 
 def feedback(request):
-    url = request.META.get('HTTP_REFERER', None)
+    url = request.META.get("HTTP_REFERER", None)
 
-    if request.method == 'POST':
-        message = request.POST.get('message', None)
+    if request.method == "POST":
+        message = request.POST.get("message", None)
         if message:
             Message.objects.create(
                 timestamp=timezone.now(),

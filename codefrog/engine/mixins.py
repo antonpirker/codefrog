@@ -1,9 +1,9 @@
-CATEGORY_BUG = 'bug'
-CATEGORY_CHANGE = 'change'
+CATEGORY_BUG = "bug"
+CATEGORY_CHANGE = "change"
 
 CATEGORY_CHOICES = (
-    (CATEGORY_BUG, 'Bug-Fix'),
-    (CATEGORY_CHANGE, 'Change'),
+    (CATEGORY_BUG, "Bug-Fix"),
+    (CATEGORY_CHANGE, "Change"),
 )
 
 

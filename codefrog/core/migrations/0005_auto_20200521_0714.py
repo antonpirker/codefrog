@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0004_project_status'),
+        ("core", "0004_project_status"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='logentry',
-            options={'ordering': ['-timestamp']},
+            name="logentry",
+            options={"ordering": ["-timestamp"]},
         ),
     ]

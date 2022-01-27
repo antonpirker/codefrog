@@ -4,69 +4,69 @@ from django.db import migrations
 
 
 def up(apps, schema_editor):
-    Project = apps.get_model('core', 'Project')
+    Project = apps.get_model("core", "Project")
 
     try:
-        prj = Project.objects.get(slug='elasticsearch')
+        prj = Project.objects.get(slug="elasticsearch")
     except Project.DoesNotExist:
         prj = None
 
     if not prj:
         Project.objects.get_or_create(
-            name='Elasticsearch',
-            slug='elasticsearch',
+            name="Elasticsearch",
+            slug="elasticsearch",
             private=False,
             active=True,
-            source='github',
-            git_url='https://github.com/elastic/elasticsearch',
+            source="github",
+            git_url="https://github.com/elastic/elasticsearch",
             external_services={
-                'github_issues': {
-                    'repo_owner': 'elastic',
-                    'repo_name': 'elasticsearch',
+                "github_issues": {
+                    "repo_owner": "elastic",
+                    "repo_name": "elasticsearch",
                 },
             },
             source_tree_metrics={},
         )
 
     try:
-        prj = Project.objects.get(slug='kubernetes')
+        prj = Project.objects.get(slug="kubernetes")
     except Project.DoesNotExist:
         prj = None
 
     if not prj:
         Project.objects.get_or_create(
-            name='Kubernetes',
-            slug='kubernetes',
+            name="Kubernetes",
+            slug="kubernetes",
             private=False,
             active=True,
-            source='github',
-            git_url='https://github.com/kubernetes/kubernetes.git',
+            source="github",
+            git_url="https://github.com/kubernetes/kubernetes.git",
             external_services={
-                'github_issues': {
-                    'repo_owner': 'kubernetes',
-                    'repo_name': 'kubernetes',
+                "github_issues": {
+                    "repo_owner": "kubernetes",
+                    "repo_name": "kubernetes",
                 },
             },
             source_tree_metrics={},
         )
 
     try:
-        prj = Project.objects.get(slug='vscode')
+        prj = Project.objects.get(slug="vscode")
     except Project.DoesNotExist:
         prj = None
 
     if not prj:
         Project.objects.get_or_create(
-            name='Visual Studio Code',
-            slug='vscode',
+            name="Visual Studio Code",
+            slug="vscode",
             private=False,
             active=True,
-            source='github',
-            git_url='https://github.com/Microsoft/vscode.git',
+            source="github",
+            git_url="https://github.com/Microsoft/vscode.git",
             external_services={
-                'github_issues': {
-                    'repo_owner': 'Microsoft',
-                    'repo_name': 'vscode',
+                "github_issues": {
+                    "repo_owner": "Microsoft",
+                    "repo_name": "vscode",
                 },
             },
             source_tree_metrics={},
@@ -76,7 +76,7 @@ def up(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [

@@ -7,13 +7,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0009_auto_20201013_0956'),
+        ("engine", "0009_auto_20201013_0956"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pullrequest',
-            name='labels',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), default=list, size=None),
+            model_name="pullrequest",
+            name="labels",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(max_length=255), default=list, size=None
+            ),
         ),
     ]

@@ -13,24 +13,31 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id',
-            'name', 'slug', 'private', 'active', 'status', 'last_update',
-            'user', 'state_of_affairs',
+            "id",
+            "name",
+            "slug",
+            "private",
+            "active",
+            "status",
+            "last_update",
+            "user",
+            "state_of_affairs",
         ]
 
     def get_state_of_affairs(self, obj):
         date_to = timezone.now()
         date_from = date_to - datetime.timedelta(days=14)
 
-        date_override = self.context.get("request").GET.get('date_from', None)
+        date_override = self.context.get("request").GET.get("date_from", None)
         if date_override:
             date_from = parse(date_override)
 
-        date_override = self.context.get("request").GET.get('date_to', None)
+        date_override = self.context.get("request").GET.get("date_to", None)
         if date_override:
             date_to = parse(date_override)
 
-        return obj.get_state_of_affairs(date_from, date_to);
+        return obj.get_state_of_affairs(date_from, date_to)
+
 
 class SimpleMetricSerializer(serializers.Serializer):
     date = serializers.DateTimeField()
@@ -43,8 +50,12 @@ class SimpleMetricSerializer(serializers.Serializer):
     github_avg_pull_request_age = serializers.SerializerMethodField()
 
     def get_github_avg_pull_request_age(self, obj):
-        avg_age = obj['github_pull_requests_cumulative_age'] / obj['github_pull_requests_merged'] \
-            if obj['github_pull_requests_merged'] != 0 else 0
+        avg_age = (
+            obj["github_pull_requests_cumulative_age"]
+            / obj["github_pull_requests_merged"]
+            if obj["github_pull_requests_merged"] != 0
+            else 0
+        )
         avg_age = avg_age / 60 / 60
 
         return avg_age
@@ -53,11 +64,11 @@ class SimpleMetricSerializer(serializers.Serializer):
 class MetricSerializer(serializers.ModelSerializer):
     class Meta:
         model = Metric
-        fields = ['date', 'file_path', 'metrics']
+        fields = ["date", "file_path", "metrics"]
 
 
 class ReleaseSerializer(serializers.Serializer):
-    date = serializers.DateTimeField(source='timestamp')
+    date = serializers.DateTimeField(source="timestamp")
     name = serializers.CharField()
 
 
@@ -68,7 +79,7 @@ class FileChangesSerializer(serializers.Serializer):
 
 
 class SourceStatusSerializer(serializers.Serializer):
-    tree = serializers.DictField(source='simple_tree')
+    tree = serializers.DictField(source="simple_tree")
     min_changes = serializers.IntegerField()
     max_changes = serializers.IntegerField()
 
@@ -76,27 +87,11 @@ class SourceStatusSerializer(serializers.Serializer):
 class FileStatusSerializer(serializers.Serializer):
     path = serializers.CharField()
     link = serializers.CharField()
-    complexity_trend = serializers.ListField(
-       child=serializers.IntegerField()
-    )
-    complexity_trend_labels = serializers.ListField(
-       child=serializers.CharField()
-    )
-    changes_trend = serializers.ListField(
-       child=serializers.IntegerField()
-    )
-    changes_trend_labels = serializers.ListField(
-       child=serializers.CharField()
-    )
-    commit_counts = serializers.ListField(
-       child=serializers.IntegerField()
-    )
-    commit_counts_labels = serializers.ListField(
-       child=serializers.CharField()
-    )
-    code_ownership = serializers.ListField(
-       child=serializers.IntegerField()
-    )
-    code_ownership_labels = serializers.ListField(
-       child=serializers.CharField()
-    )
+    complexity_trend = serializers.ListField(child=serializers.IntegerField())
+    complexity_trend_labels = serializers.ListField(child=serializers.CharField())
+    changes_trend = serializers.ListField(child=serializers.IntegerField())
+    changes_trend_labels = serializers.ListField(child=serializers.CharField())
+    commit_counts = serializers.ListField(child=serializers.IntegerField())
+    commit_counts_labels = serializers.ListField(child=serializers.CharField())
+    code_ownership = serializers.ListField(child=serializers.IntegerField())
+    code_ownership_labels = serializers.ListField(child=serializers.CharField())
