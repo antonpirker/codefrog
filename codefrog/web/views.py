@@ -70,6 +70,7 @@ def pricing(request):
     )
 
     context = {
+        "something": 1 / 0,
         "github_state": secrets.token_urlsafe(50),
     }
 
