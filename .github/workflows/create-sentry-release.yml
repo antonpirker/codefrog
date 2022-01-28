@@ -23,4 +23,4 @@ jobs:
           environment: production
           ignore_empty: True
           ignore_missing: True
-          finaliye: True
+          finalize: True
