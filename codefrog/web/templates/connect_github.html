@@ -11,7 +11,7 @@
 {% block content %}
     <div class="grid-x grid-padding-x grid-padding-y text-center">
         <div class="large-12 cell text-center">
-            <h1>Signing up for  up for {{ plan|capfirst }} plan!</h1>
+            <h1>Signing up for  up for {{ plan|capfirst }} plan! </h1>
             <p>
                 On the next page you will be redirected to Github where you can connect your GitHub account with Codefrog:
             </p>
@@ -19,6 +19,7 @@
                 <img class="shadow" style="width: 600px; opacity: 80%;" src="{% static 'images/github-connect-screenshot.png' %}" />
              </a>
         </div>
+        
         <div class="large-12 cell text-center">
             <a href="https://github.com/apps/codefrog-ai{% if not LIVE_SYSTEM %}-dev{% endif %}/installations/new?state={{ hash }}"
                class="button primary">
