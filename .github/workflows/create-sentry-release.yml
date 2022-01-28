@@ -21,3 +21,6 @@ jobs:
           SENTRY_URL: https://antonpirker.eu.ngrok.io/
         with:
           environment: production
+          ignore_empty: True
+          ignore_missing: True
+          finaliye: True
