@@ -3,52 +3,53 @@ name: Build - Test - Publish - Deploy
 on:
   push:
     branches:
-      - master
-      - 'release/*'
+      #- master
+      #- 'release/*'
+      - xxx
 
 jobs:
   build-test-publish:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@master
+      - name: Checkout code
+        uses: actions/checkout@master
 
-    - name: Build container
-      uses: antonpirker/Publish-Docker-Github-Action@master
-      with:
-        name: codefroghq/codefrog
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        snapshot: true
-        push: false
+      - name: Build container
+        uses: antonpirker/Publish-Docker-Github-Action@master
+        with:
+          name: codefroghq/codefrog
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          snapshot: true
+          push: false
 
-#    TODO: fix the problem, that I need a Postgres Database to run the tests and then reactivate.
-#    - name: Run tests in container
-#      run: |
-#        docker run \
-#          --env "SECRET_KEY=not_so_important_during_testing" \
-#          --env "DATABASE_URL=sqlite:////tmp/my-tmp-sqlite.db" \
-#          codefroghq/codefrog \
-#          ./manage.py test
+      #    TODO: fix the problem, that I need a Postgres Database to run the tests and then reactivate.
+      #    - name: Run tests in container
+      #      run: |
+      #        docker run \
+      #          --env "SECRET_KEY=not_so_important_during_testing" \
+      #          --env "DATABASE_URL=sqlite:////tmp/my-tmp-sqlite.db" \
+      #          codefroghq/codefrog \
+      #          ./manage.py test
 
-    - name: Publish container to DockerHub
-      uses: antonpirker/Publish-Docker-Github-Action@master
-      with:
-        name: codefroghq/codefrog
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        snapshot: true
-        build: false
+      - name: Publish container to DockerHub
+        uses: antonpirker/Publish-Docker-Github-Action@master
+        with:
+          name: codefroghq/codefrog
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          snapshot: true
+          build: false
 
-    - name: Install SSH key
-      uses: shimataro/ssh-key-action@v1
-      with:
-        private-key: ${{ secrets.SSH_KEY_PRODUCTION }}
-        public-key: ${{ secrets.SSH_KEY_PRODUCTION_PUBLIC }}
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v1
+        with:
+          private-key: ${{ secrets.SSH_KEY_PRODUCTION }}
+          public-key: ${{ secrets.SSH_KEY_PRODUCTION_PUBLIC }}
 
-    # TODO: Add the actual "deployment to production" functionality
-    - name: Deploy to production
-      if: github.ref == 'refs/heads/master'
-      run: |
-        scp -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
-        ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa codefrog@142.93.196.203 "cd /codefrog; cat ~/.pwd | docker login --username codefrogio --password-stdin; docker-compose pull; docker-compose up --scale celery_worker=2 --detach; docker exec -i codefrog_gunicorn_1 ./manage.py migrate;"
+      # TODO: Add the actual "deployment to production" functionality
+      - name: Deploy to production
+        if: github.ref == 'refs/heads/master'
+        run: |
+          scp -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa ./docker-compose.yml codefrog@142.93.196.203:/codefrog/
+          ssh -v -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa codefrog@142.93.196.203 "cd /codefrog; cat ~/.pwd | docker login --username codefrogio --password-stdin; docker-compose pull; docker-compose up --scale celery_worker=2 --detach; docker exec -i codefrog_gunicorn_1 ./manage.py migrate;"
