@@ -22,3 +22,4 @@ jobs:
         with:
           environment: production
           ignore_missing: true
+          ignore_empty: true
