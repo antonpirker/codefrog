@@ -49,12 +49,13 @@ def connect_github(request):
     hash = "hash_%s" % hashlib.sha224(bytes).hexdigest()
 
     foo = 0
+    blub = 1
 
     context = {
         "github_state": secrets.token_urlsafe(50),
         "plan": plan,
         "hash": hash,
-        "bla": 1 / foo,
+        "bla": blub / foo,
     }
     html = render_to_string("connect_github.html", context=context, request=request)
 
