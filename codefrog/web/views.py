@@ -48,10 +48,13 @@ def connect_github(request):
     bytes = b"%s%s" % (settings.SECRET_KEY.encode("utf8"), plan.encode("utf8"))
     hash = "hash_%s" % hashlib.sha224(bytes).hexdigest()
 
+    foo = 0
+
     context = {
         "github_state": secrets.token_urlsafe(50),
         "plan": plan,
         "hash": hash,
+        "bla": 1 / foo,
     }
     html = render_to_string("connect_github.html", context=context, request=request)
 
